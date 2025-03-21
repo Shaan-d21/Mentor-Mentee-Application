@@ -15,9 +15,9 @@
             <BuildableReference
                BuildableIdentifier = "primary"
                BlueprintIdentifier = "13B07F861A680F5B00A75B9A"
-               BuildableName = "frontEnd.app"
-               BlueprintName = "frontEnd"
-               ReferencedContainer = "container:frontEnd.xcodeproj">
+               BuildableName = "login.app"
+               BlueprintName = "login"
+               ReferencedContainer = "container:login.xcodeproj">
             </BuildableReference>
          </BuildActionEntry>
       </BuildActionEntries>
@@ -33,9 +33,9 @@
             <BuildableReference
                BuildableIdentifier = "primary"
                BlueprintIdentifier = "00E356ED1AD99517003FC87E"
-               BuildableName = "frontEndTests.xctest"
-               BlueprintName = "frontEndTests"
-               ReferencedContainer = "container:frontEnd.xcodeproj">
+               BuildableName = "loginTests.xctest"
+               BlueprintName = "loginTests"
+               ReferencedContainer = "container:login.xcodeproj">
             </BuildableReference>
          </TestableReference>
       </Testables>
@@ -55,9 +55,9 @@
          <BuildableReference
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "13B07F861A680F5B00A75B9A"
-            BuildableName = "frontEnd.app"
-            BlueprintName = "frontEnd"
-            ReferencedContainer = "container:frontEnd.xcodeproj">
+            BuildableName = "login.app"
+            BlueprintName = "login"
+            ReferencedContainer = "container:login.xcodeproj">
          </BuildableReference>
       </BuildableProductRunnable>
    </LaunchAction>
@@ -72,9 +72,9 @@
          <BuildableReference
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "13B07F861A680F5B00A75B9A"
-            BuildableName = "frontEnd.app"
-            BlueprintName = "frontEnd"
-            ReferencedContainer = "container:frontEnd.xcodeproj">
+            BuildableName = "login.app"
+            BlueprintName = "login"
+            ReferencedContainer = "container:login.xcodeproj">
          </BuildableReference>
       </BuildableProductRunnable>
    </ProfileAction>
