@@ -11,10 +11,14 @@ import {
 } from 'react-native';
 import { Dropdown } from 'react-native-element-dropdown';
 import { useNavigation } from '@react-navigation/native';
+import { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import { RootStackParamList } from '../../utils/navigation';
 
 
 const SignInPage: React.FC = () => {
-  const navigation = useNavigation();
+  
+  
+  const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList, 'SignInPage'>>();
   const [userType, setUserType] = useState<string | null>(null);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
