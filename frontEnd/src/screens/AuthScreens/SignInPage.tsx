@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React from 'react';
 import {
   Text,
   TextInput,
@@ -7,28 +7,28 @@ import {
   KeyboardAvoidingView,
   Platform,
   Alert,
-  View
+  View,
 } from 'react-native';
 import { Dropdown } from 'react-native-element-dropdown';
 import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../../utils/navigation';
-
+import { useDispatch } from 'react-redux';
+import { setUserType, setEmail, setPassword } from '../../redux/slices/authSlices';
 
 const SignInPage: React.FC = () => {
-  
-  
   const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList, 'SignInPage'>>();
-  const [userType, setUserType] = useState<string | null>(null);
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [isForgotPassword, setIsForgotPassword] = useState(false);
+  const dispatch = useDispatch();
+  const [userTypeLocal, setUserTypeLocal] = React.useState<string | null>(null);
+  const [emailLocal, setEmailLocal] = React.useState('');
+  const [passwordLocal, setPasswordLocal] = React.useState('');
+  const [isForgotPassword, setIsForgotPassword] = React.useState(false);
 
   const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
 
   const handleFormSubmit = () => {
-    const isEmailValid = emailRegex.test(email);
-    const isPasswordValid = password.length >= 6;
+    const isEmailValid = emailRegex.test(emailLocal);
+    const isPasswordValid = passwordLocal.length >= 6;
 
     if (!isEmailValid && !isPasswordValid) {
       Alert.alert('Invalid Username and Password');
@@ -42,17 +42,20 @@ const SignInPage: React.FC = () => {
       Alert.alert('Invalid Password');
       return;
     }
-    if (!userType) {
+    if (!userTypeLocal) {
       Alert.alert('Invalid User Type');
       return;
     }
+    dispatch(setUserType(userTypeLocal));
+    dispatch(setEmail(emailLocal));
+    dispatch(setPassword(passwordLocal));
     Alert.alert('Form Submitted Successfully!');
   };
 
   const userTypes = [
     { label: 'Login as Mentee', value: 'mentee' },
     { label: 'Login as Mentor', value: 'mentor' },
-    { label: 'Login as Admin', value: 'admin' }
+    { label: 'Login as Admin', value: 'admin' },
   ];
 
   return (
@@ -68,33 +71,33 @@ const SignInPage: React.FC = () => {
           labelField="label"
           valueField="value"
           placeholder="Select Login Role"
-          value={userType}
-          onChange={(item) => setUserType(item.value)}
+          value={userTypeLocal}
+          onChange={(item) => setUserTypeLocal(item.value)}
         />
         <TextInput
           style={styles.input}
           placeholder="Email"
           keyboardType="email-address"
-          value={email}
-          onChangeText={setEmail}
+          value={emailLocal}
+          onChangeText={setEmailLocal}
         />
         <TextInput
           style={styles.input}
           placeholder="Password"
           secureTextEntry
-          value={password}
-          onChangeText={setPassword}
+          value={passwordLocal}
+          onChangeText={setPasswordLocal}
         />
         <TouchableOpacity onPress={() => setIsForgotPassword(!isForgotPassword)}>
           <Text style={styles.toggleText}>Forgot your password?</Text>
         </TouchableOpacity>
         <TouchableOpacity style={styles.button} onPress={handleFormSubmit}>
           <Text style={styles.buttonText}>
-            {userType === 'mentee'
+            {userTypeLocal === 'mentee'
               ? 'Sign In as Mentee'
-              : userType === 'mentor'
+              : userTypeLocal === 'mentor'
               ? 'Sign In as Mentor'
-              : userType === 'admin'
+              : userTypeLocal === 'admin'
               ? 'Sign In as Admin'
               : 'Sign In'}
           </Text>
@@ -109,7 +112,6 @@ const SignInPage: React.FC = () => {
     </KeyboardAvoidingView>
   );
 };
-
 
 const styles = StyleSheet.create({
   container: {
@@ -164,6 +166,7 @@ const styles = StyleSheet.create({
     color: '#1a73e8',
     textAlign: 'center',
     marginTop: 15,
-  }
+  },
 });
+
 export default SignInPage;
