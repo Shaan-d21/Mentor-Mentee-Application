@@ -1,0 +1,4 @@
+pip install fastapi uvicorn passlib bcrypt==4.0.1 sqlalchemy python-jose[cryptography] psycopg2-binary
+
+
+uvicorn main:app --reload
