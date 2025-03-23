@@ -6,13 +6,15 @@ import AppBar from '../../components/appbar_component';
 const MentorDashboard = () => {
   return (
     <View style={styles.container}>
-      <AppBar title="Mentor Dashboard" />
+            <AppBar onProfilePress={()=>{}}openDrawer={()=>{}} />
+
       <View style={styles.header}>
         <Text style={styles.headerText}>Hello, Mentor 👋</Text>
         <Avatar rounded icon={{ name: 'user', type: 'font-awesome' }} />
       </View>
+      <ScrollView contentContainerStyle={styles.content}>
         <Text style={styles.noRequestsText}>No requests at the moment</Text>
-      
+      </ScrollView>
       <View style={styles.footer}>
       </View>
     </View>
@@ -21,7 +23,7 @@ const MentorDashboard = () => {
 
 const styles = StyleSheet.create({
   container: {
-    flex: 1,
+    flex: 1, // Take up the entire screen
     backgroundColor: '#FAFAFA',
   },
   header: {
@@ -40,12 +42,13 @@ const styles = StyleSheet.create({
     color: '#333333',
   },
   content: {
-    flexGrow: 1,
+    flexGrow: 1, // Allow content to grow within the ScrollView
     padding: 20,
+    justifyContent: 'center', // Center content vertically
+    alignItems: 'center', // Center content horizontally
   },
   noRequestsText: {
     textAlign: 'center',
-    verticalAlign: 'middle',
     color: '#888888',
     fontSize: 16,
     fontWeight: 'bold',

@@ -1,60 +1,40 @@
 import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
-import { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import { RootStackParamList } from '../utils/navigation';
+import { View, TouchableOpacity, StyleSheet } from 'react-native';
+import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome'
+import { faBars, faUserCircle } from '@fortawesome/free-solid-svg-icons'
 
-interface AppBarProps {
-  title: string;
-  showBackButton?: boolean;
-}
-
-const AppBar: React.FC<AppBarProps> = ({ title, showBackButton = false }) => {
-  const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
-
-  const handleBackPress = () => {
-    navigation.goBack();
-  };
-
-  return (
-    <View style={styles.appBar}>
-      {showBackButton && (
-        <TouchableOpacity style={styles.backButton} onPress={handleBackPress}>
-          <Text style={styles.backButtonText}>Back</Text>
-        </TouchableOpacity>
-      )}
-      <Text style={styles.title}>{title}</Text>
-      <View style={styles.rightElement}></View>
-    </View>
-  );
-};
 
 const styles = StyleSheet.create({
-  appBar: {
-    backgroundColor: '#1a73e8',
-    paddingVertical: 15,
-    paddingHorizontal: 10,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-  },
-  title: {
-    color: 'white',
-    fontSize: 20,
-    fontWeight: 'bold',
-    textAlign: 'center',
-    flex: 1,
-  },
-  backButton: {
-    padding: 5,
-  },
-  backButtonText: {
-    color: 'white',
-    fontSize: 16,
-  },
-  rightElement: {
-    width: 50,
-  }
+    header: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        padding: 10, 
+        backgroundColor: '#FFFFFF', // White background
+        borderBottomWidth: 1, // Subtle border
+        borderBottomColor: '#E0E0E0',
+    },
+    icon: {
+        padding: 10, // Increased padding
+    },
 });
+
+interface Props {
+    openDrawer: () => void;
+    onProfilePress: () => void;
+}
+
+const AppBar: React.FC<Props> = ({ openDrawer, onProfilePress }) => {
+    return (
+        <View style={styles.header}>
+            <TouchableOpacity onPress={openDrawer} style={styles.icon}>
+                <FontAwesomeIcon icon={faBars} size={24} color="#333333" />
+            </TouchableOpacity>
+            <TouchableOpacity onPress={onProfilePress} style={styles.icon}>
+                <FontAwesomeIcon icon={faUserCircle} size={24} color="#333333" />
+            </TouchableOpacity>
+        </View>
+    );
+};
 
 export default AppBar;
