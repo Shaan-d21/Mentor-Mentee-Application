@@ -15,6 +15,7 @@ import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../../utils/navigation';
 import { useDispatch } from 'react-redux';
 import { setUserType, setEmail, setPassword, setName } from '../../redux/slices/authSlices';
+import { signUpUser } from '../../services/api';
 
 const CreateAccountPage: React.FC = () => {
   const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList, 'CreateAccountPage'>>();
@@ -50,11 +51,28 @@ const CreateAccountPage: React.FC = () => {
       Alert.alert('Invalid Name');
       return;
     }
-    dispatch(setUserType(userTypeLocal));
-    dispatch(setEmail(emailLocal));
-    dispatch(setPassword(passwordLocal));
-    dispatch(setName(nameLocal));
-    Alert.alert('Account Created Successfully!');
+
+    const res= signUpUser({name: nameLocal, mail: emailLocal, pwd: passwordLocal, role: userTypeLocal}).then((res)=>{
+    if(res==200){
+      navigation.navigate('SignInPage');
+    }
+    else{
+      Alert.alert('Invalid Data');
+    }
+    console.log(res);
+    }).catch((error)=>{
+      console.log(error);
+    })
+    console.log(res);
+    // dispatch(setUserType(userTypeLocal));
+    // dispatch(setEmail(emailLocal));
+    // dispatch(setPassword(passwordLocal));
+    // dispatch(setName(nameLocal));
+    // Alert.alert('Account Created Successfully!');
+    setEmail('');
+    setPassword('');
+    setName('');
+    setUserTypeLocal(null);
   };
 
   const userTypes = [

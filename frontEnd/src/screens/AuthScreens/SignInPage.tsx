@@ -15,6 +15,8 @@ import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../../utils/navigation';
 import { useDispatch } from 'react-redux';
 import { setUserType, setEmail, setPassword } from '../../redux/slices/authSlices';
+import { loginUser } from '../../services/api';
+
 
 const SignInPage: React.FC = () => {
   const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList, 'SignInPage'>>();
@@ -23,6 +25,7 @@ const SignInPage: React.FC = () => {
   const [emailLocal, setEmailLocal] = React.useState('');
   const [passwordLocal, setPasswordLocal] = React.useState('');
   const [isForgotPassword, setIsForgotPassword] = React.useState(false);
+  const [isloading, setIsLoading] = React.useState(false);
 
   const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
 
@@ -46,10 +49,18 @@ const SignInPage: React.FC = () => {
       Alert.alert('Invalid User Type');
       return;
     }
-    dispatch(setUserType(userTypeLocal));
-    dispatch(setEmail(emailLocal));
-    dispatch(setPassword(passwordLocal));
-    Alert.alert('Form Submitted Successfully!');
+
+    setIsLoading(true);
+    const res = loginUser({ email: emailLocal, password: passwordLocal, }).then((res) => {
+      if (res.access_token == '') {
+        Alert.alert('Invalid Credentials');
+      } else {
+        navigation.navigate('MentorDashboard');
+      }
+      setIsLoading(false);
+    }).catch((error) => {
+      console.log(error);
+    });
   };
 
   const userTypes = [
@@ -96,12 +107,13 @@ const SignInPage: React.FC = () => {
             {userTypeLocal === 'mentee'
               ? 'Sign In as Mentee'
               : userTypeLocal === 'mentor'
-              ? 'Sign In as Mentor'
-              : userTypeLocal === 'admin'
-              ? 'Sign In as Admin'
-              : 'Sign In'}
+                ? 'Sign In as Mentor'
+                : userTypeLocal === 'admin'
+                  ? 'Sign In as Admin'
+                  : 'Sign In'}
           </Text>
         </TouchableOpacity>
+        {isloading && <Text>Loading...</Text>}
         <TouchableOpacity onPress={() => navigation.navigate('CreateAccountPage')}>
           <Text style={styles.toggleText}>
             <Text style={{ color: 'gray' }}>Don't have an account? </Text>
