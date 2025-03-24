@@ -4,17 +4,22 @@ import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome';
 import { faSearch } from '@fortawesome/free-solid-svg-icons';
 import AppBar from '../../components/appbar_component';
 import { useNavigation } from '@react-navigation/native';
+import { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import { RootStackParamList } from '../../utils/navigation';
 
 const MenteeDashboard = () => {
+    const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
+  
   const courses = [
     { name: 'Course 1', Mentee: 'Mentor A', modulesCompleted: 3, totalModules: 24, daysRemaining: 10, color: '#e6f7ff' },
     { name: 'Course 2', Mentee: 'Mentor B', modulesCompleted: 5, totalModules: 24, daysRemaining: 15, color: '#f0e6ff' },
     { name: 'Course 3', Mentee: 'Mentor C', modulesCompleted: 8, totalModules: 24, daysRemaining: 20, color: '#ffe6f0' },
   ];
-const navigation = useNavigation();
   return (
     <View style={styles.container}>
-      <AppBar onProfilePress={()=>{}}openDrawer={()=>{}} />
+      <AppBar onProfilePress={()=>{
+        navigation.navigate('ProfileScreen')
+      }}openDrawer={()=>{}} />
       <View style={styles.searchBar}>
         <FontAwesomeIcon icon={faSearch} size={20} color="#888" style={styles.searchIcon} />
         <TextInput

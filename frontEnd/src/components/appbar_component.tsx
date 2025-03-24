@@ -2,6 +2,7 @@ import React from 'react';
 import { View, TouchableOpacity, StyleSheet } from 'react-native';
 import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome'
 import { faBars, faUserCircle } from '@fortawesome/free-solid-svg-icons'
+import { useDrawer } from '../context/drawer_context';
 
 
 const styles = StyleSheet.create({
@@ -25,9 +26,12 @@ interface Props {
 }
 
 const AppBar: React.FC<Props> = ({ openDrawer, onProfilePress }) => {
+      const { isDrawerOpen, toggleDrawer } = useDrawer();
+    
+
     return (
         <View style={styles.header}>
-            <TouchableOpacity onPress={openDrawer} style={styles.icon}>
+            <TouchableOpacity onPress={toggleDrawer} style={styles.icon}>
                 <FontAwesomeIcon icon={faBars} size={24} color="#333333" />
             </TouchableOpacity>
             <TouchableOpacity onPress={onProfilePress} style={styles.icon}>

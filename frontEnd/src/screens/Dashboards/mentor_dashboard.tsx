@@ -2,11 +2,15 @@ import React from 'react';
 import { View, Text, StyleSheet, ScrollView } from 'react-native';
 import { Avatar } from 'react-native-elements';
 import AppBar from '../../components/appbar_component';
+import { useNavigation } from '@react-navigation/native';
+import { RootStackParamList } from '../../utils/navigation';
+import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 
 const MentorDashboard = () => {
+  const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
   return (
     <View style={styles.container}>
-            <AppBar onProfilePress={()=>{}}openDrawer={()=>{}} />
+            <AppBar onProfilePress={()=>{navigation.navigate('ProfileScreen')}}openDrawer={()=>{}} />
 
       <View style={styles.header}>
         <Text style={styles.headerText}>Hello, Mentor 👋</Text>

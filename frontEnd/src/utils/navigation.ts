@@ -6,6 +6,12 @@ export type RootStackParamList = {
   CreateAccountPage: undefined;
   MenteeDashboard: undefined;
     MentorDashboard: undefined;
+    ProfileScreen: undefined;
+    MenteeProgress: undefined;
+    EnrolledCoursesScreen: undefined;
+    FindMentorScreen: undefined;
+    MenteeRequests: undefined;
+
 
 
 };
