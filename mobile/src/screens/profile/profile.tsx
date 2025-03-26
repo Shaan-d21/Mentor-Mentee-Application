@@ -1,8 +1,23 @@
-import React from 'react';
-import { View, Text, TextInput, Button, StyleSheet, ScrollView, TouchableOpacity, Image } from 'react-native';
+import React, { useState } from 'react';
+import { View, Text, TextInput, Button, StyleSheet, ScrollView, TouchableOpacity, Image, FlatList } from 'react-native';
 import AppBar from '../../components/appbar_component';
 
 const ProfileScreen = () => {
+  const [domains, setDomains] = useState(['Python', 'Python', 'Python', 'Python']);
+  const [newDomain, setNewDomain] = useState('');
+
+  const addDomain = () => {
+    if (newDomain.trim()) {
+      setDomains([...domains, newDomain]);
+      setNewDomain('');
+    }
+  };
+
+  const removeDomain = (index: number) => {
+    const updatedDomains = domains.filter((_, i) => i !== index);
+    setDomains(updatedDomains);
+  };
+
   return (
     <ScrollView contentContainerStyle={styles.container}>
       <AppBar onProfilePress={() => {}} openDrawer={() => {}} />
@@ -23,24 +38,39 @@ const ProfileScreen = () => {
           <TextInput style={styles.infoText} value="Male" editable={false} />
         </View>
       </View>
+
       <View style={styles.domainsContainer}>
-      <TextInput style={styles.infoText} value="Promact Global PVT. LTD." editable={false} />
-      <TextInput style={styles.infoText} value="Github Id : abcd@1234" editable={false} />
+        <TextInput style={styles.infoText} value="Promact Global PVT. LTD." editable={false} />
+        <TextInput style={styles.infoText} value="Github Id : abcd@1234" editable={false} />
 
         <Text style={styles.domainsTitle}>Domains</Text>
-        <View style={styles.domainsList}>
-          {Array(12).fill('Python').map((domain, index) => (
-            <View key={index} style={styles.domainItem}>
-              <Text style={styles.domainText}>{domain}</Text>
-              <TouchableOpacity style={styles.removeButton}>
+        
+        {/* Domains List */}
+        <FlatList
+          data={domains}
+          keyExtractor={(item, index) => index.toString()}
+          numColumns={3}
+          renderItem={({ item, index }) => (
+            <View style={styles.domainItem}>
+              <Text style={styles.domainText}>{item}</Text>
+              <TouchableOpacity style={styles.removeButton} onPress={() => removeDomain(index)}>
                 <Text style={styles.removeButtonText}>x</Text>
               </TouchableOpacity>
             </View>
-          ))}
-        </View>
+          )}
+        />
+
+        {/* Add Domain Section */}
         <View style={styles.addDomainContainer}>
-          <TextInput style={styles.addDomainInput} placeholder="Add Domain..." />
-          <Button title="Add" onPress={() => {}} />
+          <TextInput
+            style={styles.addDomainInput}
+            placeholder="Add Domain..."
+            value={newDomain}
+            onChangeText={setNewDomain}
+          />
+          <TouchableOpacity style={styles.addButton} onPress={addDomain}>
+            <Text style={styles.addButtonText}>ADD</Text>
+          </TouchableOpacity>
         </View>
       </View>
     </ScrollView>
@@ -84,6 +114,7 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   infoText: {
+    fontSize:18,
     backgroundColor: '#eee',
     padding: 8,
     marginBottom: 8,
@@ -96,10 +127,6 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: 'bold',
     marginBottom: 8,
-  },
-  domainsList: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
   },
   domainItem: {
     flexDirection: 'row',
@@ -119,6 +146,7 @@ const styles = StyleSheet.create({
     color: 'red',
   },
   addDomainContainer: {
+    fontSize:18,
     flexDirection: 'row',
     alignItems: 'center',
     marginTop: 16,
@@ -130,6 +158,15 @@ const styles = StyleSheet.create({
     padding: 8,
     marginRight: 8,
     borderRadius: 4,
+  },
+  addButton: {
+    backgroundColor: '#007bff',
+    padding: 10,
+    borderRadius: 4,
+  },
+  addButtonText: {
+    color: '#fff',
+    fontWeight: 'bold',
   },
 });
 

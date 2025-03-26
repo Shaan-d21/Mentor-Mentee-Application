@@ -26,7 +26,7 @@ const AppContent: React.FC = () => {
       <StatusBar barStyle="dark-content" />
       <View style={{ flex: 1 }}>
         <Stack.Navigator
-          initialRouteName="MenteeDashboard"
+          initialRouteName="MentorDashboard"
           screenOptions={() => ({
             headerShown: false,
           })}

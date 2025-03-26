@@ -1,7 +1,7 @@
 import axios from "axios";
 import { setUserType, setEmail, setPassword, setName } from '../redux/slices/authSlices';
 
-const API_BASE_URL = "https://c59f-2a09-bac1-36c0-28-00-29e-fc.ngrok-free.app/docs#/authentication/login_for_access_token_authentication_login_post/";
+const API_BASE_URL = "http://127.0.0.1:8000/";
 
 export const api = axios.create({
     baseURL: API_BASE_URL,
