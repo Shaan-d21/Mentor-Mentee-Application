@@ -19,6 +19,7 @@ import CustomDrawerContent from './src/components/drawer_component';
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
 const AppContent: React.FC = () => {
+  console.log(process.env.API_URL);
   const { isDrawerOpen, toggleDrawer } = useDrawer();
 
   return (
