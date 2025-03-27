@@ -1,10 +1,11 @@
 import axios from "axios";
 import { setUserType, setEmail, setPassword, setName } from '../redux/slices/authSlices';
+import { API_URL} from '@env';
 
-const API_BASE_URL = "https://c59f-2a09-bac1-36c0-28-00-29e-fc.ngrok-free.app/docs#/authentication/login_for_access_token_authentication_login_post/";
+
 
 export const api = axios.create({
-    baseURL: API_BASE_URL,
+    baseURL: API_URL,
     headers: {
     "Content-Type": "application/json",
     },
