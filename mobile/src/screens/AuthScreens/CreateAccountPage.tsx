@@ -12,12 +12,11 @@ import {
 import { Dropdown } from 'react-native-element-dropdown';
 import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import { RootStackParamList } from '../../utils/navigation';
 import { useDispatch } from 'react-redux';
-import { setUserType, setEmail, setPassword, setName } from '../../redux/slices/authSlices';
+import { ScreenProps } from '../../navigation/types';
+// import { setUserType, setEmail, setPassword, setName } from '../../redux/slices/authSlices';
 
-const CreateAccountPage: React.FC = () => {
-  const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList, 'CreateAccountPage'>>();
+const CreateAccountPage: React.FC<ScreenProps<"CreateAccountPage">> = ({navigation}) => {
   const dispatch = useDispatch();
   const [userTypeLocal, setUserTypeLocal] = React.useState<string | null>(null);
   const [emailLocal, setEmailLocal] = React.useState('');
@@ -50,10 +49,10 @@ const CreateAccountPage: React.FC = () => {
       Alert.alert('Invalid Name');
       return;
     }
-    dispatch(setUserType(userTypeLocal));
-    dispatch(setEmail(emailLocal));
-    dispatch(setPassword(passwordLocal));
-    dispatch(setName(nameLocal));
+    // dispatch(setUserType(userTypeLocal));
+    // dispatch(setEmail(emailLocal));
+    // dispatch(setPassword(passwordLocal));
+    // dispatch(setName(nameLocal));
     Alert.alert('Account Created Successfully!');
   };
 
