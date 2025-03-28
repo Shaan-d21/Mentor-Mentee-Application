@@ -24,7 +24,7 @@ db_dependency =  Annotated[Session, Depends(get_db)]
 user_dependency = Annotated[dict, Depends(get_current_user)]
 
 
-@router.get('/get-approved-mentee',status_code=status.HTTP_200_OK)
+@router.get('/get-requests',status_code=status.HTTP_200_OK)
 def get_approved_mentee(user: user_dependency, db: db_dependency):
     if user is None or user.get('role') != 'mentor':
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Unauthorized Access")
@@ -35,7 +35,7 @@ def get_approved_mentee(user: user_dependency, db: db_dependency):
             User.name.label('name')
         )
         .join(MentorMentee_rel, MentorMentee_rel.mentee_id == User.id)
-        .where(and_(MentorMentee_rel.mentor_id == user.get('user_id'), MentorMentee_rel.approved.is_(True)))
+        .where(and_(MentorMentee_rel.mentor_id == user.get('user_id'), MentorMentee_rel.approved.is_(False)))
     )
     result = db.execute(query).fetchall()
     mentee_list = [{'mentee_id': row.id, 'mentee_name': row.name} for row in result]
