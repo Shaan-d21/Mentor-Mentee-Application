@@ -1,40 +1,39 @@
 import React, { useState } from "react";
 import api from "~/config/api";
 import OtpVerification from "./OTPVerification";
+import { toast } from "react-toastify";
+import { sendOtpEndpoint } from "~/config/endpoint";
 
-export default () => {
+const ForgotPasswordPage = () => {
   const [email, setEmail] = useState<string>("");
   const [step, setStep] = useState<"email" | "otp">("email");
-  const [status, setStatus] = useState<{ type: string; message: string }>({
-    type: "",
-    message: "",
-  });
 
   const handleEmailSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      // Make an API call to send the OTP (use your endpoint here)
-      const response = await api.post("/auth/send-otp", { email });
+      const normalizedEmail = email.trim().toLowerCase();
+      console.log("Sending email:", normalizedEmail);
+
+      const response = await api.post(sendOtpEndpoint, { email: normalizedEmail });
+      console.log("Response from /auth/send-otp:", response);
+
       if (response.status === 200) {
-        setStatus({ type: "success", message: "OTP sent successfully!" });
+        toast.success("OTP sent successfully!");
         setStep("otp");
+        console.log("Redirecting to OTP page...");
       } else {
-        setStatus({
-          type: "error",
-          message: "Failed to send OTP. Please try again.",
-        });
+        toast.error("Failed to send OTP. Please try again.");
       }
-    } catch (error) {
-      setStatus({
-        type: "error",
-        message: "Error sending OTP. Please try again later.",
-      });
+    } catch (error: any) {
+      console.error("Error sending OTP:", error);
+      const errorMessage =
+        error?.response?.data?.detail || "Failed to send OTP. Please try again.";
+      toast.error(errorMessage);
     }
   };
+
   const handleVerificationSuccess = () => {
-    setStatus({ type: "success", message: "OTP verified successfully!" });
-    // Add your redirect logic here, for example:
-    // history.push('/reset-password');
+    toast.success("OTP verified successfully!");
   };
 
   return (
@@ -46,18 +45,8 @@ export default () => {
               Password Reset
             </h2>
             <p className="text-center text-gray-600 mb-4">
-              Enter your registered email
+              Enter your registered email to receive an OTP.
             </p>
-
-            {status.message && (
-              <div
-                className={`text-center p-2 mb-4 text-sm ${
-                  status.type === "error" ? "text-red-600" : "text-green-600"
-                }`}
-              >
-                {status.message}
-              </div>
-            )}
 
             <form onSubmit={handleEmailSubmit} className="space-y-4">
               <input
@@ -75,17 +64,10 @@ export default () => {
                 Send OTP
               </button>
             </form>
-
-            <a
-              className="mt-4 text-center text-sm text-blue-500 cursor-pointer"
-              href="/auth/login"
-            >
-              Back to Login
-            </a>
           </div>
         ) : (
           <OtpVerification
-            email={email}
+            email={email.trim().toLowerCase()}
             onBack={() => setStep("email")}
             onVerificationSuccess={handleVerificationSuccess}
           />
@@ -94,3 +76,5 @@ export default () => {
     </div>
   );
 };
+
+export default ForgotPasswordPage;
