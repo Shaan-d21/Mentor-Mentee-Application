@@ -8,7 +8,7 @@ interface Mentee {
 interface MenteeRequestsState {
   pendingRequests: Mentee[];
   acceptedRequests: Mentee[];
-  rejectedRequests: { id: string; name: string; reason: string }[];
+  rejectedRequests: { id: string; name: string; }[];
 }
 
 const initialState: MenteeRequestsState = {
@@ -42,20 +42,24 @@ const menteeRequestsSlice = createSlice({
         state.pendingRequests = state.pendingRequests.filter(m => m.id !== action.payload);
       }
     },
-    rejectMenteeWithReason: (state, action: PayloadAction<{ id: string; reason: string }>) => {
-      const mentee = state.pendingRequests.find(m => m.id === action.payload.id);
+    rejectMentee: (state, action: PayloadAction<string>) => {
+      const mentee = state.pendingRequests.find(m => m.id === action.payload);
       if (mentee) {
-        state.rejectedRequests.push({ ...mentee, reason: action.payload.reason });
-        state.pendingRequests = state.pendingRequests.filter(m => m.id !== action.payload.id);
+        state.rejectedRequests.push({ id: mentee.id, name: mentee.name });
+        state.pendingRequests = state.pendingRequests.filter(m => m.id !== action.payload);
       }
+    
     },
-  },
-  extraReducers: (builder) => {
-    builder.addCase(fetchMenteeRequests.fulfilled, (state, action) => {
-      state.pendingRequests = action.payload;
-    });
-  },
+    
+},
+extraReducers: (builder) => {
+  builder.addCase(fetchMenteeRequests.fulfilled, (state, action) => {
+    state.pendingRequests = action.payload;
+  });
+}
+
+  
 });
 
-export const { acceptMentee, rejectMenteeWithReason } = menteeRequestsSlice.actions;
+export const { acceptMentee, rejectMentee} = menteeRequestsSlice.actions;
 export default menteeRequestsSlice.reducer;
