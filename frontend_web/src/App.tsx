@@ -1,16 +1,15 @@
-import ReactRouter from "./routes/ReactRouter";
-import { Toaster } from "react-hot-toast";
-import Navbar from "./components/Navbar";
+import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+import LoginPage from "./pages/auth/LoginPage";
+import DashboardPage from "./pages/DashboardPage";  // Remove duplicate import
 
-export default () => {
+
+export default function ReactRouter() {
   return (
-    <div className="min-h-screen">
-      <Navbar />
-      <div className="pt-0">
-        <ReactRouter />
-      </div>
-      {/* Configure Toaster to show messages at the top-center */}
-      <Toaster position="top-center" reverseOrder={false} />
-    </div>
+    <Router>
+      <Routes>
+        <Route path="/" element={<LoginPage />} />
+        <Route path="/dashboard" element={<DashboardPage />} />
+      </Routes>
+    </Router>
   );
-};
+}
