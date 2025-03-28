@@ -1,6 +1,6 @@
 import { createAsyncThunk, createSlice, PayloadAction } from '@reduxjs/toolkit';
 import { apiLoginUser } from '../../services/apiLogin';
-import { MMKV } from 'react-native-mmkv'
+// import { MMKV } from 'react-native-mmkv'
 
 enum currentStatus{idle= 'idle', loading= 'loading', success= 'success', failed= 'failed'}
 interface User {
