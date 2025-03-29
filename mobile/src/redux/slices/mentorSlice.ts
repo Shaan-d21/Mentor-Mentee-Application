@@ -1,4 +1,5 @@
 import { createSlice, PayloadAction, createAsyncThunk } from '@reduxjs/toolkit';
+import { getMenteeRequests, approveMentee } from '../../services/menteeRequestsApi';
 
 interface Mentee {
   id: string;
@@ -21,13 +22,20 @@ const initialState: MenteeRequestsState = {
 export const fetchMenteeRequests = createAsyncThunk(
   'menteeRequests/fetch',
   async () => {
-    console.log("fetches the data")
-    return [
-      { id: '1', name: 'John Doe' },
-      { id: '2', name: 'Jane Smith' },
-      { id: '3', name: 'Jane Smith' },
-
-    ];
+    const data = await getMenteeRequests();
+    console.log("Data:", data);
+    return data.object;
+  }
+);
+export const approveMenteeRequestThunk = createAsyncThunk(
+  'menteeRequests/approve', 
+  async (menteeId: string, { rejectWithValue }) => {
+    try {
+      await approveMentee(menteeId);
+      return menteeId;
+    } catch (error) {
+      return rejectWithValue("Error approving mentee");
+    }
   }
 );
 
@@ -54,12 +62,25 @@ const menteeRequestsSlice = createSlice({
 },
 extraReducers: (builder) => {
   builder.addCase(fetchMenteeRequests.fulfilled, (state, action) => {
-    state.pendingRequests = action.payload;
+    state.pendingRequests = action.payload.map((mentee: any) => ({
+      id: mentee.mentee_id,
+      name: mentee.mentee_name
+    }));
+  })
+  .addCase(approveMenteeRequestThunk.fulfilled, (state, action) => {
+    const mentee = state.pendingRequests.find(m => m.id === action.payload);
+    if (mentee) {
+      state.acceptedRequests.push(mentee);
+      state.pendingRequests = state.pendingRequests.filter(m => m.id !== action.payload);
+    }
+  })
+  .addCase(approveMenteeRequestThunk.rejected, (state, action) => {
+    console.error("Approval failed:", action.payload);
   });
 }
-
-  
 });
+  
 
-export const { acceptMentee, rejectMentee} = menteeRequestsSlice.actions;
+
+export const { acceptMentee, rejectMentee } = menteeRequestsSlice.actions;
 export default menteeRequestsSlice.reducer;
