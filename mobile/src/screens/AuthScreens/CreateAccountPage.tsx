@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import {
   Text,
   TextInput,
@@ -10,18 +10,19 @@ import {
   View,
 } from 'react-native';
 import { Dropdown } from 'react-native-element-dropdown';
-import { useNavigation } from '@react-navigation/native';
-import { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import { useDispatch } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
+import { AppDispatch, RootState } from '../../redux/store';
+import { registerUser } from '../../redux/slices/sliceRegister';
 import { ScreenProps } from '../../navigation/types';
-// import { setUserType, setEmail, setPassword, setName } from '../../redux/slices/authSlices';
 
-const CreateAccountPage: React.FC<ScreenProps<"CreateAccountPage">> = ({navigation}) => {
-  const dispatch = useDispatch();
+const CreateAccountPage: React.FC<ScreenProps<"CreateAccountPage">> = ({ navigation }) => {
+  const dispatch = useDispatch<AppDispatch>();
   const [userTypeLocal, setUserTypeLocal] = React.useState<string | null>(null);
   const [emailLocal, setEmailLocal] = React.useState('');
   const [passwordLocal, setPasswordLocal] = React.useState('');
   const [nameLocal, setNameLocal] = React.useState('');
+
+  const currentStatus = useSelector((state: RootState) => state.register.status);
 
   const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
 
@@ -49,12 +50,24 @@ const CreateAccountPage: React.FC<ScreenProps<"CreateAccountPage">> = ({navigati
       Alert.alert('Invalid Name');
       return;
     }
-    // dispatch(setUserType(userTypeLocal));
-    // dispatch(setEmail(emailLocal));
-    // dispatch(setPassword(passwordLocal));
-    // dispatch(setName(nameLocal));
-    Alert.alert('Account Created Successfully!');
+
+    // Dispatch the registerUser action
+    dispatch(registerUser({
+      email: emailLocal,
+      password: passwordLocal,
+      name: nameLocal,
+      role: userTypeLocal as "mentee" | "mentor",
+    }));
   };
+
+  useEffect(() => {
+    if (currentStatus === 'success') {
+      Alert.alert('Account Created Successfully!')
+      navigation.replace('SignInPage');
+    } else if (currentStatus === 'failed') {
+      Alert.alert('Registration Failed. Please try again.');
+    }
+  }, [currentStatus, navigation]);
 
   const userTypes = [
     { label: 'Register as Mentee', value: 'mentee' },
