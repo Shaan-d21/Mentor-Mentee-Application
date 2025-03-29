@@ -2,7 +2,8 @@ import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import React, { useState } from 'react';
 import { View, Text, Image, StyleSheet, Dimensions, TouchableOpacity, Animated, Button } from 'react-native';
-import { RootStackParamList } from '../utils/navigation';
+import { RootStackParamList } from '../navigation/types';
+
 
 const { width, height } = Dimensions.get('window');
 
@@ -15,21 +16,21 @@ const CustomDrawerContent = (props: CustomDrawerContentProps) => {
     const [drawerAnimation] = useState(new Animated.Value(0));
     const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
   
-    const openDrawer = () => {
+    const openDrawer = React.useCallback(() => {
       Animated.timing(drawerAnimation, {
         toValue: 1,
         duration: 300,
         useNativeDriver: true,
       }).start();
-    };
+    }, [drawerAnimation]);
   
-    const closeDrawer = () => {
+    const closeDrawer = React.useCallback(() => {
       Animated.timing(drawerAnimation, {
         toValue: 0,
         duration: 300,
         useNativeDriver: true,
       }).start();
-    };
+    }, [drawerAnimation]);
   
     const drawerTranslateX = drawerAnimation.interpolate({
       inputRange: [0, 1],
@@ -42,7 +43,7 @@ const CustomDrawerContent = (props: CustomDrawerContentProps) => {
       } else {
         closeDrawer();
       }
-    }, [props.isOpen]);
+    }, [props.isOpen, openDrawer, closeDrawer]);
   
     return (
       <Animated.View style={[styles.drawerContainer, { transform: [{ translateX: drawerTranslateX }] }]}>
@@ -71,6 +72,7 @@ const CustomDrawerContent = (props: CustomDrawerContentProps) => {
               title="Profile"
             />
           </View>
+          
           <View style={styles.menuItem}>
             <Button
               onPress={() => navigation.navigate('MenteeProgress')}
