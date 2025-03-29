@@ -1,13 +1,17 @@
 import { configureStore } from '@reduxjs/toolkit';
-import authReducer from './slices/authSlices';
+import loginReducer from './slices/sliceLogin';
+import registerReducer from './slices/sliceRegister';
+import menteeRequestsReducer from './slices/menteeRequestSlice';
 
-const store = configureStore({
+
+export const store = configureStore({
   reducer: {
-    auth: authReducer,
+    login: loginReducer,
+    register: registerReducer
+    menteeRequests: menteeRequestsReducer,
   },
+  middleware: (getDefaultMiddleware) => getDefaultMiddleware(),
 });
-console.log("Initial Auth State:", store.getState().auth);
+
 export type RootState = ReturnType<typeof store.getState>;
 export type AppDispatch = typeof store.dispatch;
-
-export default store;

@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import {
   Text,
   TextInput,
@@ -9,20 +9,18 @@ import {
   Alert,
   View,
 } from 'react-native';
-import { Dropdown } from 'react-native-element-dropdown';
-import { useNavigation } from '@react-navigation/native';
-import { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import { RootStackParamList } from '../../utils/navigation';
-import { useDispatch } from 'react-redux';
-import { setUserType, setEmail, setPassword } from '../../redux/slices/authSlices';
+import {useDispatch, useSelector} from 'react-redux';
+import { loginUser } from '../../redux/slices/sliceLogin';
+import { AppDispatch, RootState } from '../../redux/store';
+import { ScreenProps } from '../../navigation/types';
 
-const SignInPage: React.FC = () => {
-  const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList, 'SignInPage'>>();
-  const dispatch = useDispatch();
-  const [userTypeLocal, setUserTypeLocal] = React.useState<string | null>(null);
+const SignInPage: React.FC<ScreenProps<"SignInPage">> = ({navigation}) => {
+  const dispatch = useDispatch<AppDispatch>();
   const [emailLocal, setEmailLocal] = React.useState('');
   const [passwordLocal, setPasswordLocal] = React.useState('');
   const [isForgotPassword, setIsForgotPassword] = React.useState(false);
+  const userType= useSelector((state:RootState)=> state.login.response);
+  const currentStatus= useSelector((state:RootState)=> state.login.status);
 
   const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
 
@@ -42,38 +40,33 @@ const SignInPage: React.FC = () => {
       Alert.alert('Invalid Password');
       return;
     }
-    if (!userTypeLocal) {
-      Alert.alert('Invalid User Type');
-      return;
-    }
-    dispatch(setUserType(userTypeLocal));
-    dispatch(setEmail(emailLocal));
-    dispatch(setPassword(passwordLocal));
-    Alert.alert('Form Submitted Successfully!');
-  };
 
-  const userTypes = [
-    { label: 'Login as Mentee', value: 'mentee' },
-    { label: 'Login as Mentor', value: 'mentor' },
-    { label: 'Login as Admin', value: 'admin' },
-  ];
+    dispatch(loginUser({email:emailLocal, password:passwordLocal}));
+
+  };
+  
+  useEffect(() => {
+    if (currentStatus === 'success') {
+      switch (userType?.role) {
+        case 'mentor':
+          navigation.replace('MentorDashboard');
+          break;
+        case 'mentee':
+          navigation.replace('MenteeDashboard');
+          break;
+        default:
+          console.log('No user role found');
+          break;
+      }
+    }
+  }, [currentStatus, navigation]);
 
   return (
     <KeyboardAvoidingView
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-      style={styles.container}
-    >
+      style={styles.container}>
       <View style={styles.formContainer}>
         <Text style={styles.title}>Sign In</Text>
-        <Dropdown
-          style={styles.dropdown}
-          data={userTypes}
-          labelField="label"
-          valueField="value"
-          placeholder="Select Login Role"
-          value={userTypeLocal}
-          onChange={(item) => setUserTypeLocal(item.value)}
-        />
         <TextInput
           style={styles.input}
           placeholder="Email"
@@ -88,23 +81,19 @@ const SignInPage: React.FC = () => {
           value={passwordLocal}
           onChangeText={setPasswordLocal}
         />
-        <TouchableOpacity onPress={() => setIsForgotPassword(!isForgotPassword)}>
+        <TouchableOpacity
+          onPress={() => setIsForgotPassword(!isForgotPassword)}>
           <Text style={styles.toggleText}>Forgot your password?</Text>
         </TouchableOpacity>
         <TouchableOpacity style={styles.button} onPress={handleFormSubmit}>
           <Text style={styles.buttonText}>
-            {userTypeLocal === 'mentee'
-              ? 'Sign In as Mentee'
-              : userTypeLocal === 'mentor'
-              ? 'Sign In as Mentor'
-              : userTypeLocal === 'admin'
-              ? 'Sign In as Admin'
-              : 'Sign In'}
+            {'Sign In'}
           </Text>
         </TouchableOpacity>
-        <TouchableOpacity onPress={() => navigation.navigate('CreateAccountPage')}>
+        <TouchableOpacity
+          onPress={() => navigation.navigate('CreateAccountPage')}>
           <Text style={styles.toggleText}>
-            <Text style={{ color: 'gray' }}>Don't have an account? </Text>
+            <Text style={{color: 'gray'}}>Don't have an account? </Text>
             <Text style={styles.toggleText}>Sign Up</Text>
           </Text>
         </TouchableOpacity>
@@ -126,7 +115,7 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     backgroundColor: 'white',
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
+    shadowOffset: {width: 0, height: 2},
     shadowOpacity: 0.25,
     shadowRadius: 4,
     elevation: 5,
