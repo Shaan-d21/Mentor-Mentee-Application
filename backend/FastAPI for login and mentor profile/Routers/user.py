@@ -1,15 +1,15 @@
 from typing import Annotated, List
-from fastapi import APIRouter, Depends, HTTPException, Path
+from fastapi import APIRouter, Depends, HTTPException, Path, Query
 from pydantic import BaseModel, Field
 from database import SessionLocal
 from sqlalchemy.orm import Session
 from models import User,Skill, MentorSkill
-from .auth import get_current_user
+from .auth import get_current_user, Roles
 from passlib.context import CryptContext
 from starlette import status
 
 router = APIRouter(
-    prefix='/users',
+    prefix='/user',
     tags=['users']
 )
 
@@ -31,7 +31,13 @@ class CreateUserRequest(BaseModel):
     name : str
     mail : str
     pwd : str
-    role : str
+    role : Roles
+
+class RegisterRequest(BaseModel):
+    name: str
+    email: str
+    password: str
+    userType: str
 
 class CreateAdminRequest(BaseModel):
     name : str
@@ -56,20 +62,60 @@ async def create_admin(new_admin : CreateAdminRequest, db : db_dependency):
 
 
 @router.post('/register/User', status_code=200)
-async def create_user( db : db_dependency, new_user : CreateUserRequest): #user: user_dependency,
-    # if user is None or user.get('role')!='admin':
-        # return HTTPException(status_code=401, detail="Authentication Error")
-    user_model = User(
-        name = new_user.name,
-        mail = new_user.mail,
-        pwd = bcrypt_context.hash(new_user.pwd),
-        role = new_user.role
-    )
-    db.add(user_model)
-    db.commit()
-    return {"Message": "User Created", 'status_code': 200}
+async def create_user(db : db_dependency, new_user : CreateUserRequest):
+    try:
+        # Check if user already exists
+        existing_user = db.query(User).filter(User.mail == new_user.mail).first()
+        if existing_user:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Email already registered"
+            )
 
+        # Create new user
+        user_model = User(
+            name = new_user.name,
+            mail = new_user.mail,
+            pwd = bcrypt_context.hash(new_user.pwd),
+            role = new_user.role
+        )
+        db.add(user_model)
+        db.commit()
+        return {"Message": "User Created", 'status_code': 200}
+    except Exception as e:
+        db.rollback()
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"Error creating user: {str(e)}"
+        )
 
+@router.post('/register', status_code=200)
+async def register_user(db: db_dependency, register_data: RegisterRequest):
+    try:
+        # Check if user already exists
+        existing_user = db.query(User).filter(User.mail == register_data.email).first()
+        if existing_user:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Email already registered"
+            )
+
+        # Create new user
+        user_model = User(
+            name=register_data.name,
+            mail=register_data.email,
+            pwd=bcrypt_context.hash(register_data.password),
+            role=register_data.userType
+        )
+        db.add(user_model)
+        db.commit()
+        return {"Message": "User Created", 'status_code': 200}
+    except Exception as e:
+        db.rollback()
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"Error creating user: {str(e)}"
+        )
 
 @router.get('/all_users')
 async def view_all_users(db: db_dependency):
@@ -183,3 +229,17 @@ def mentor_profile(user: user_dependency, db: db_dependency):
         'Skill set' : skills_model
     }
     return profile_details
+
+# Add new endpoint to get user by email
+@router.get("/")
+async def get_user_by_email(email: str = Query(..., description="Email of the user"), db: db_dependency = None):
+    user = db.query(User).filter(User.mail == email).first()
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+    return {
+        "id": user.id,
+        "name": user.name,
+        "mail": user.mail,
+        "role": user.role,
+        "profile_completed": user.profile_completed
+    }

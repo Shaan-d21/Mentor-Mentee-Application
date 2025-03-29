@@ -21,6 +21,7 @@ class User(base):
     profile_pic_url = Column(String, nullable=True)
     contact = Column(String, unique=True, nullable=True)
     gender = Column(String, CheckConstraint("gender IN ('male', 'female', 'others')"), nullable=True)
+    profile_completed = Column(Boolean, default=False, nullable=False)
 
     # Relationships
     organization = relationship("Organization", back_populates="users")
@@ -171,6 +172,7 @@ class UserCreate(BaseModel):
     contact: Optional[str] = None
     mail: str
     gender: Optional[str] = None
+    profile_completed: Optional[bool] = False
 
     @validator('role')
     def validate_role(cls, v):

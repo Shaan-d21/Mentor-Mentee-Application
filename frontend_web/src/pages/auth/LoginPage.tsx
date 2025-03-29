@@ -56,11 +56,20 @@ export default () => {
 
     setIsLoading(true);
     try {
+      // Create form data
+      const formData = new URLSearchParams();
+      formData.append('username', email);
+      formData.append('password', password);
+      formData.append('scope', userType);
+
+      console.log('Attempting login with:', { email, userType });
+
       const response = await toast.promise(
-        api.post("/auth/login/api", {
-          email,
-          password,
-          userType,
+        api.post("/api/v1/authentication/login", formData, {
+          headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+          },
+          timeout: 30000, // 30 second timeout for login
         }),
         {
           loading: "Logging in...",
@@ -68,37 +77,46 @@ export default () => {
         }
       );
 
+      console.log('Login response:', response.data);
+
       if (response.status === 200 && response.data.access_token) {
         // Save the token
         localStorage.setItem("accessToken", response.data.access_token);
 
-        // Save user info if available
-        if (response.data.user) {
-          localStorage.setItem("userInfo", JSON.stringify(response.data.user));
-        }
+        // Save user info
+        const userInfo = {
+          email: email,
+          role: userType,
+          profileCompleted: false // This will be updated when profile is completed
+        };
+        localStorage.setItem("userInfo", JSON.stringify(userInfo));
 
-        // Navigate to dashboard
-        navigate("/dashboard");
+        // Navigate to appropriate page based on profile completion
+        navigate("/profile-completion");
       }
     } catch (error: any) {
       console.error("Authentication failed:", error);
+      console.error("Error response:", error?.response?.data);
 
       // Handle specific error messages from the backend
       const statusCode = error?.response?.status;
       const backendError = error?.response?.data?.detail;
 
-      if (statusCode === 404) {
-        // Case 3: User not registered
+      if (error.code === 'ECONNABORTED') {
+        toast.error("Request timed out. Please check your connection and try again.");
+      } else if (statusCode === 404) {
         toast.error("User not found. Please register first.");
       } else if (statusCode === 403) {
-        // Case 1: Wrong role
-        toast.error(backendError); // "This account is registered as [role], not as [role]"
+        toast.error(backendError || "Access denied. Please check your credentials.");
       } else if (statusCode === 401) {
-        // Case 2: Wrong credentials
         toast.error("Invalid credentials. Please try again.");
       } else {
-        // Unexpected error
-        toast.error("An unexpected error occurred. Please try again.");
+        console.error("Unexpected error details:", {
+          status: statusCode,
+          error: backendError,
+          fullError: error
+        });
+        toast.error(backendError || "An unexpected error occurred. Please try again.");
       }
     } finally {
       setIsLoading(false);
@@ -107,7 +125,7 @@ export default () => {
 
   return (
     <AuthLayout>
-      <form onSubmit={handleSubmit}>
+      <form onSubmit={handleSubmit} className="space-y-4">
         <h2 className="text-2xl font-bold text-center text-gray-800 mb-6">
           Log in
         </h2>
@@ -141,13 +159,11 @@ export default () => {
             onChange={handlePasswordChange}
             disabled={isLoading}
             required
-            minLength={8}
           />
           <button
             type="button"
-            className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-600 hover:text-gray-800"
             onClick={() => setShowPassword(!showPassword)}
-            aria-label={showPassword ? "Hide password" : "Show password"}
+            className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-gray-700"
           >
             {showPassword ? (
               <EyeSlashIcon className="h-5 w-5" />
@@ -157,31 +173,19 @@ export default () => {
           </button>
         </div>
         {passwordError && (
-          <p className="text-red-500 text-sm mb-2">{passwordError}</p>
+          <p className="text-red-500 text-sm mb-4">{passwordError}</p>
         )}
-        <a
-          href="/auth/forgot-password"
-          className="text-blue-500 hover:underline text-sm"
-        >
-          Forgot your password?
-        </a>
         <button
           type="submit"
-          className={`w-full p-3 mt-4 bg-blue-600 text-white rounded-lg hover:bg-blue-700 focus:outline-none ${
-            isLoading ? 'opacity-70 cursor-not-allowed' : ''
-          }`}
+          className={`w-full p-3 text-white rounded-lg ${
+            isLoading
+              ? 'bg-blue-400 cursor-not-allowed'
+              : 'bg-blue-600 hover:bg-blue-700'
+          } transition duration-200`}
           disabled={isLoading}
         >
-          {isLoading ? 'Logging in...' : `Login as ${userType.charAt(0).toUpperCase() + userType.slice(1)}`}
+          {isLoading ? "Logging in..." : "Log in"}
         </button>
-        {userType !== "admin" && (
-          <p className="mt-4 text-center text-gray-600">
-            Don't have an account?{" "}
-            <a href="/auth/register" className="text-blue-500 hover:underline">
-              Register
-            </a>
-          </p>
-        )}
       </form>
     </AuthLayout>
   );
