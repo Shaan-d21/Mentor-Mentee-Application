@@ -69,12 +69,12 @@ export default () => {
     try {
       const userData = {
         name: name.trim(),
-        email,
-        password,
-        userType,
+        email: email,
+        password: password,
+        userType: userType,
       };
 
-      const registerResponse = await api.post("/auth/register", userData);
+      const registerResponse = await api.post("/api/v1/user/register", userData);
 
       if (registerResponse && registerResponse.status === 200) {
         toast.success("Account created successfully!");

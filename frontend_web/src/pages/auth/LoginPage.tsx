@@ -56,17 +56,26 @@ export default () => {
 
     setIsLoading(true);
     try {
+      const formData = new URLSearchParams();
+      formData.append('username', email);
+      formData.append('password', password);
+      formData.append('scope', userType);
+
+      console.log('Attempting login with:', { email, userType });
+
       const response = await toast.promise(
-        api.post("/auth/login/api", {
-          email,
-          password,
-          userType,
+        api.post("/api/v1/authentication/login", formData, {
+          headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+          },
         }),
         {
           loading: "Logging in...",
           success: "Login successful!",
         }
       );
+
+      console.log('Login response:', response.data);
 
       if (response.status === 200 && response.data.access_token) {
         // Save the token
@@ -82,23 +91,25 @@ export default () => {
       }
     } catch (error: any) {
       console.error("Authentication failed:", error);
+      console.error("Error response:", error?.response?.data);
 
       // Handle specific error messages from the backend
       const statusCode = error?.response?.status;
       const backendError = error?.response?.data?.detail;
 
       if (statusCode === 404) {
-        // Case 3: User not registered
         toast.error("User not found. Please register first.");
       } else if (statusCode === 403) {
-        // Case 1: Wrong role
-        toast.error(backendError); // "This account is registered as [role], not as [role]"
+        toast.error(backendError);
       } else if (statusCode === 401) {
-        // Case 2: Wrong credentials
         toast.error("Invalid credentials. Please try again.");
       } else {
-        // Unexpected error
-        toast.error("An unexpected error occurred. Please try again.");
+        console.error("Unexpected error details:", {
+          status: statusCode,
+          error: backendError,
+          fullError: error
+        });
+        toast.error(backendError || "An unexpected error occurred. Please try again.");
       }
     } finally {
       setIsLoading(false);
