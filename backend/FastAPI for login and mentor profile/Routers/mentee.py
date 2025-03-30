@@ -3,7 +3,7 @@ from fastapi import APIRouter, Depends, HTTPException, Path
 from pydantic import BaseModel, Field
 from database import SessionLocal
 from sqlalchemy.orm import Session
-from models import User,Skill, MentorSkill, MentorMentee, Domain, MenteeSkill, Domains, MentorMentee_rel
+from models import User,Skill, MentorSkill, MentorMentee, Domain, MenteeSkill
 from .auth import get_current_user
 from starlette import status
 
@@ -60,7 +60,6 @@ async def mentor_profile_completion(user : user_dependency, db : db_dependency, 
 
 class Skillset(BaseModel):
     skill_name : str
-    proficiency : int = Field(gt=0, lt=3)
 
 class SkillAdd(BaseModel):
     skills : List[Skillset]
@@ -115,40 +114,3 @@ def mentee_profile(user: user_dependency, db: db_dependency):
         'Skill set' : skills_model
     }
     return profile_details
-
-
-class Req_model(BaseModel):
-    domain: str
-    mentor_id : int
-
-@router.post('/mentorship')
-async def request_mentorship(user: user_dependency, db : db_dependency, req: Req_model):
-    if user is None or user.get('role')!='mentee':
-        raise HTTPException(status_code=401, detail='User not Authorised')
-    domain_model = db.query(Domains).filter(Domains.name == req.domain).first()
-    if domain_model is None:
-        domain_model = Domains(
-            name = req.domain
-        )
-        db.add(domain_model)
-        db.commit()
-    domain_model = db.query(Domains).filter(Domains.name == req.domain).first()
-
-        
-    rel_model = MentorMentee_rel(
-        mentor_id = req.mentor_id,
-        mentee_id = user.get('user_id'),
-        domain_id = domain_model.id,
-        duration = 0,
-        approved = False
-    )
-    db.add(rel_model)
-    db.commit()
-    return { 'status_code': 200, "Message":'Request Sent'}
-
-@router.get('/Requests')
-async def show_sent_requests(user: user_dependency, db : db_dependency):
-    if user is None or user.get('role')!='mentee':
-        raise HTTPException(status_code=401, detail='User not Authorised')
-    req_model = db.query(MentorMentee_rel).filter(MentorMentee_rel.mentee_id == user.get('user_id')).all()
-    return req_model

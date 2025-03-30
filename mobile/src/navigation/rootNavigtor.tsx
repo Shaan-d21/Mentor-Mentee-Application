@@ -12,7 +12,7 @@ const Stack= createNativeStackNavigator<RootStackParamList>();
 export const RootNavigator: FC= ()=>{
     return (
         <Stack.Navigator
-            initialRouteName="CreateAccountPage"
+            initialRouteName="MentorDashboard"
             screenOptions={() => ({
                 headerShown: false,
             })}
@@ -22,7 +22,6 @@ export const RootNavigator: FC= ()=>{
             <Stack.Screen name="MenteeDashboard" component={MenteeDashboard} />
             <Stack.Screen name="MentorDashboard" component={MentorDashboard} />
             <Stack.Screen name="ProfileScreen" component={ProfileScreen} />
-            
         </Stack.Navigator>
     );
 }

@@ -1,0 +1,76 @@
+# name: React Native Android Build Check
+
+# on:
+#   pull_request:
+#     branches:
+#       - main  # Runs the workflow only on pushes to the main branch
+
+# jobs:
+#   build-android:
+#     name: Android Build
+#     runs-on: ubuntu-latest
+#     defaults:
+#       run:
+#         working-directory: ./frontEnd  # Set default working directory to frontEnd
+
+#     steps:
+#       # Step 1: Checkout the repository
+#       - name: Checkout repo
+#         uses: actions/checkout@v4
+
+#       # Step 2: Set up Node.js environment
+#       - name: Setup Node.js environment
+#         uses: actions/setup-node@v4
+#         with:
+#           node-version: '20'
+#           cache: 'yarn'
+#           cache-dependency-path: frontEnd/yarn.lock  # Ensures proper dependency caching
+
+#       # Step 3: Install Yarn globally
+#       - name: Install Yarn
+#         run: npm install -g yarn
+
+#       # Step 4: Enable corepack for Yarn v4
+#       - name: Enable corepack for Yarn v4
+#         run: corepack enable
+
+#       # Step 5: Cache Yarn dependencies to speed up installs
+#       - name: Cache Yarn dependencies
+#         uses: actions/cache@v3
+#         with:
+#           path: ~/.cache/yarn  # Updated correct Yarn cache path
+#           key: yarn-cache-${{ runner.os }}-${{ hashFiles('frontEnd/yarn.lock') }}
+#           restore-keys: |
+#             yarn-cache-${{ runner.os }}-
+
+#       # Step 6: Install project dependencies using Yarn
+#       - name: Install project dependencies
+#         run: yarn install
+
+#       # Step 7: Set up JDK 17 for Android build
+#       - name: Set up JDK 17
+#         uses: actions/setup-java@v4
+#         with:
+#           distribution: 'zulu'
+#           java-version: '17'
+
+#       # Step 8: Cache Gradle dependencies to avoid downloading them in every build
+#       - name: Cache Gradle dependencies
+#         uses: actions/cache@v3
+#         with:
+#           path: |
+#             ~/.gradle/caches
+#             ~/.gradle/wrapper
+#           key: gradle-${{ runner.os }}-${{ hashFiles('frontEnd/android/gradle/wrapper/gradle-wrapper.properties') }}
+#           restore-keys: |
+#             gradle-${{ runner.os }}-
+
+#       # Step 9: Grant execute permissions to the Gradle wrapper
+#       - name: Grant execute permissions to Gradle wrapper  
+#         run: chmod +x android/gradlew  # Fixed path
+
+#       # Step 10: Build Debug APK
+#       - name: Build Debug APK
+#         run: |
+#           cd android
+#           ./gradlew assembleDebug

@@ -73,13 +73,6 @@ class MenteeSkill(base):
     mentee = relationship("User", back_populates="mentee_skills")
     skill = relationship("Skill", back_populates="mentee_skills")
 
-class Domains(base):
-    __tablename__ = 'domains'
-    
-    id = Column(Integer, primary_key=True, index=True)
-    name = Column(String, unique=True, nullable=False)
-
-
 # Define the Domain model
 class Domain(base):
     __tablename__ = 'domain'
@@ -115,18 +108,6 @@ class MenteeCourse(base):
     mentee = relationship("User", foreign_keys=[mentee_id], back_populates="mentee_courses")
     mentor = relationship("User", foreign_keys=[mentor_id])
     course = relationship("Course", back_populates="mentee_courses")
-
-
-class MentorMentee_rel(base):
-    __tablename__ = 'mentor_mentee_rel'
-    
-    id = Column(Integer, primary_key=True, index=True)
-    mentor_id = Column(Integer, ForeignKey('user.id'))
-    mentee_id = Column(Integer, ForeignKey('user.id'))
-    domain_id = Column(Integer, ForeignKey('domains.id'))
-    duration = Column(Integer, nullable=False)
-    approved = Column(Boolean, nullable=False)
-
 
 # Define the MentorMentee model
 class MentorMentee(base):
@@ -193,4 +174,4 @@ class UserResponse(BaseModel):
     mail: str
 
     class Config:
-        orm_mode = True  # Enable ORM mode for Pydantic model
+        from_attributes = True  # Enable ORM mode for Pydantic model

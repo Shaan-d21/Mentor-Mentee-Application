@@ -1,0 +1,55 @@
+# name: React Native iOS Build Check
+
+# on:
+#   pull_request:
+#     branches:
+#       - main
+
+# jobs:
+#   build-ios:
+#     name: Build iOS App
+#     runs-on: macos-14
+
+#     steps:
+#       - name: Checkout repository
+#         uses: actions/checkout@v4
+
+      # - name: Set up Node.js
+      #   uses: actions/setup-node@v4
+      #   with:
+      #     node-version: 18
+      #     cache: 'npm'
+
+      # - name: Install Node dependencies
+      #   run: npm install
+      #   working-directory: frontEnd
+
+      # - name: Set up Ruby and Bundler
+      #   uses: ruby/setup-ruby@v1
+      #   with:
+      #     ruby-version: 3.1
+      #     bundler-cache: true
+
+      # - name: Install CocoaPods
+      #   run: sudo gem install cocoapods
+
+      # - name: Install CocoaPods dependencies
+      #   run: pod install --repo-update
+      #   working-directory: frontEnd/ios
+
+      # - name: Build iOS App for Simulator
+      #   run: |
+      #     xcodebuild clean build \
+      #       -workspace login.xcworkspace \
+      #       -scheme login \
+      #       -sdk iphonesimulator \
+      #       -configuration Debug \
+      #       -derivedDataPath build \
+      #       CODE_SIGNING_ALLOWED=NO
+      #   working-directory: frontEnd/ios
+
+      # - name: Upload iOS Build Artifacts
+      #   uses: actions/upload-artifact@v3
+      #   with:
+      #     name: ios-build
+      #     path: frontEnd/ios/build
