@@ -5,6 +5,7 @@ import { Avatar } from 'react-native-elements';
 import AppBar from '../../components/appbar_component';
 import { useSelector, useDispatch } from 'react-redux';
 import { RootState, AppDispatch } from '../../redux/store';
+
 import { fetchMenteeRequests, acceptMentee, rejectMentee } from '../../redux/slices/mentorSlice';
 
 const MentorDashboard = () => {
@@ -13,12 +14,14 @@ const MentorDashboard = () => {
   useEffect(() => {
     dispatch(fetchMenteeRequests());
   }, [dispatch]);
+  const userName = useSelector((state: RootState) => state.login.name);
+
 
   const { pendingRequests, acceptedRequests , rejectedRequests} = useSelector((state: RootState) => state.menteeRequests);
   console.log("Redux State:", useSelector((state: RootState) => state.menteeRequests));
   console.log("Pending Requests:", pendingRequests.length);
   console.log("Accepted Requests:", acceptedRequests.length);
-  console.log("Rejected Requests:", rejectedRequests.length);
+  
 
 
 
@@ -27,7 +30,7 @@ const MentorDashboard = () => {
       <AppBar onProfilePress={() => {}} openDrawer={() => {}} />
       
       <View style={styles.header}>
-        <Text style={styles.headerText}>Hello, Mentor 👋</Text>
+        <Text style={styles.headerText}>Hello,{userName} 👋</Text>
         <Avatar rounded icon={{ name: 'user', type: 'font-awesome' }} />
       </View>
 
@@ -42,11 +45,11 @@ const MentorDashboard = () => {
                   <TouchableOpacity style={[styles.button, styles.acceptButton]} onPress={() => dispatch(acceptMentee(mentee.id))}>
                     <Text style={styles.buttonText}>Accept</Text>
                   </TouchableOpacity>
-                  <TouchableOpacity 
+                  {/* <TouchableOpacity 
                     style={[styles.button, styles.rejectButton]} 
                     onPress={() => dispatch(rejectMentee(mentee.id))}>
                     <Text style={styles.buttonText}>Reject</Text>
-                  </TouchableOpacity>
+                  </TouchableOpacity> */}
                 </View>
               
             </View>

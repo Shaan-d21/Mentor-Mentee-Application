@@ -3,11 +3,12 @@ import axios from "axios";
 
 export const getMenteeRequests = async () => {
     const api = axios.create({
-        baseURL: "https://10b8-2a09-bac1-36a0-28-00-2a5-45.ngrok-free.app",
+         baseURL:process.env.API_URL ,
+        //  baseURL:"https://8984-2a09-bac5-3b0b-1a46-00-29e-ff.ngrok-free.app/" ,
         headers:{
                 
             "accept": "application/json",
-            "token":"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJyb290IiwiaWQiOjgzLCJyb2xlIjoibWVudG9yIiwiZXhwIjoxNzQzMjYzODM2fQ.YkG6QDRttzc5s-5h_pEbsh2SnZ9hOLYt1hk9ef51qn4"}
+            "token":"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJwcmFqd2FsIiwiaWQiOjQsInJvbGUiOiJtZW50b3IiLCJleHAiOjE4NjM0MTI0OTd9.EBsGs3SQXqtqJDkKgHHWdi0VI27cqDHjg1ZQg4RRHCI"}
         }
         
     );
@@ -23,11 +24,11 @@ export const getMenteeRequests = async () => {
 
 export const approveMentee = async (menteeId: string) => {
     const api = axios.create({
-        baseURL: "https://10b8-2a09-bac1-36a0-28-00-2a5-45.ngrok-free.app",
-        headers:{
+        baseURL:process.env.API_URL,
+                headers:{
                 
             "accept": "application/json",
-        "token":"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJyb290IiwiaWQiOjgzLCJyb2xlIjoibWVudG9yIiwiZXhwIjoxNzQzMjYzODM2fQ.YkG6QDRttzc5s-5h_pEbsh2SnZ9hOLYt1hk9ef51qn4"
+        "token":"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJwcmFqd2FsIiwiaWQiOjQsInJvbGUiOiJtZW50b3IiLCJleHAiOjE4NjM0MTI0OTd9.EBsGs3SQXqtqJDkKgHHWdi0VI27cqDHjg1ZQg4RRHCI"
     }
         });
     try {
