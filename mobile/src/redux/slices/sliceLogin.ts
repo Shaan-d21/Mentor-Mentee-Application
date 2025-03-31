@@ -8,12 +8,14 @@ interface User {
   email: string;
   password: string;
   status: currentStatus;
+  name: string;
 }
 
 const initialState: User = {
   response: [],
   email: '',
   password: '',
+  name:'',
   status: currentStatus.idle
 };
 
@@ -29,6 +31,7 @@ const sliceLogin = createSlice({
     }).addCase(loginUser.fulfilled, (state, action)=>{
       state.response= action.payload;
       state.status= currentStatus.success;
+      state.name= action.payload.name;
       // console.log('Current state is ', state.response);
 
     }).addCase(loginUser.rejected, (state, action)=>{

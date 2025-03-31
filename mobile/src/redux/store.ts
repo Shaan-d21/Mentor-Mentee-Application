@@ -1,7 +1,7 @@
 import { configureStore } from '@reduxjs/toolkit';
 import loginReducer from './slices/sliceLogin';
+import menteeRequestsReducer from './slices/mentorSlice';
 import registerReducer from './slices/sliceRegister';
-import menteeRequestsReducer from './slices/menteeRequestSlice';
 import menteeProfileReducer from './slices/menteeProfileSlice';
 
 export const store = configureStore({

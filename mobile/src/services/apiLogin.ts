@@ -2,6 +2,7 @@ import axios from "axios";
 
 
 
+
 export const apiLoginUser = async (credentials: { email: string; password: string }) => {
     const api = axios.create({
         baseURL: process.env.API_URL,
@@ -17,7 +18,7 @@ export const apiLoginUser = async (credentials: { email: string; password: strin
         formData.append("username", credentials.email);
         formData.append("password", credentials.password);
 
-        const response = await api.post("authentication/login", formData.toString());
+        const response = await api.post("/authentication/login", formData.toString());
 
         if (response.status === 200) {
             console.log(response.data);
