@@ -1,4 +1,4 @@
-import React, {useEffect, useState} from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   View,
   Text,
@@ -8,16 +8,17 @@ import {
   TouchableOpacity,
   Image,
 } from 'react-native';
-import {launchImageLibrary} from 'react-native-image-picker';
+import { launchImageLibrary } from 'react-native-image-picker';
 import AppBar from '../../components/appbar_component';
-import {Dropdown} from 'react-native-element-dropdown';
+import { Dropdown } from 'react-native-element-dropdown';
 import DropdownComponent from '../../components/Dropdown';
-import {apigetMenteeProfile} from '../../services/apimenteeprofile';
-import {AppDispatch, RootState} from '../../redux/store';
-import {useDispatch, useSelector} from 'react-redux';
-import {MenteeProfile} from '../../types/MenteeProfileTypes';
+import { apigetMenteeProfile, apiUpdateMenteeProfile } from '../../services/apimenteeprofile';
+import { AppDispatch, RootState } from '../../redux/store';
+import { useDispatch, useSelector } from 'react-redux';
+import { MenteeProfile } from '../../types/MenteeProfileTypes';
 import {
   getmenteeprofile,
+  updateProfileData,
   updateprofileskill,
 } from '../../redux/slices/menteeProfileSlice';
 
@@ -31,6 +32,9 @@ const MenteeProfileScreen = () => {
   const [githubId, setGithubId] = useState('');
   const [isFocused, setIsFocused] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
+  const [_imageUri, setImageUri] = useState(
+    'https://images.unsplash.com/photo-1511367461989-f85a21fda167?q=80&w=1931&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D',
+  );
 
   const currentStatus = useSelector(
     (state: RootState) => state.menteeProfile.status,
@@ -56,15 +60,22 @@ const MenteeProfileScreen = () => {
         setMobile(userType.contact);
         setGenderLocal(userType.gender);
         setGithubId(userType.github_id);
+        if (genderLocal == "female") {
+          setImageUri("https://cdn-icons-png.flaticon.com/512/146/146005.png");
+        }
+        else if (genderLocal == "male") {
+          setImageUri("https://cdn-icons-png.flaticon.com/512/146/146007.png");
+        }
+        else if (genderLocal == "other") {
+          setImageUri("https://cdn-icons-png.flaticon.com/512/149/149071.png");
+        }
       }
     } else if (currentStatus === 'failed') {
       console.log('Failed to fetch user profile data');
     }
   }, [currentStatus, userType]);
 
-  const [_imageUri, setImageUri] = useState(
-    'https://images.unsplash.com/photo-1511367461989-f85a21fda167?q=80&w=1931&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D',
-  );
+ 
 
   const pickImage = () => {
     launchImageLibrary(
@@ -125,7 +136,15 @@ const MenteeProfileScreen = () => {
     // If valid, close edit mode
     if (isValid) {
       setIsEditing(false);
-      console.log('Form valid, profile updated');
+      
+    dispatch(updateProfileData({
+      name:
+      fullName, 
+      github_id:
+      githubId,
+      contact: mobile,
+      gender:genderLocal
+    }));
     }
   };
 
@@ -133,7 +152,7 @@ const MenteeProfileScreen = () => {
 
   function handleDomainSelection(value: string): void {
     setSelectedDomain(value);
-    dispatch(updateprofileskill('Python'));
+    dispatch(updateprofileskill(value));
   }
 
   return currentStatus === 'loading' ? (
@@ -146,10 +165,10 @@ const MenteeProfileScreen = () => {
     </View>
   ) : (
     <ScrollView contentContainerStyle={styles.container}>
-      <AppBar onProfilePress={() => {}} openDrawer={() => {}} />
+      <AppBar onProfilePress={() => { }} openDrawer={() => { }} />
       <View style={styles.profileContainer}>
         <View style={styles.profileImageContainer}>
-          <Image style={styles.profileImage} source={{uri: _imageUri}} />
+          <Image style={styles.profileImage} source={{ uri: _imageUri }} />
         </View>
 
         <View style={styles.infoContainer}>
@@ -199,8 +218,9 @@ const MenteeProfileScreen = () => {
                 <Dropdown
                   style={styles.dropdown}
                   data={[
-                    {label: 'Male', value: 'male'},
-                    {label: 'Female', value: 'female'},
+                    { label: 'Male', value: 'male' },
+                    { label: 'Female', value: 'female' },
+                    { label: 'Other', value: 'other' },
                   ]}
                   labelField="label"
                   valueField="value"
@@ -230,10 +250,16 @@ const MenteeProfileScreen = () => {
       <View style={styles.dropdownContainer}>
         <DropdownComponent
           data={[
-            {label: 'Python', value: 'python'},
-            {label: 'JavaScript', value: 'javascript'},
-            {label: 'React', value: 'react'},
-            {label: 'Node.js', value: 'nodejs'},
+            { label: 'JavaScript', value: 'JavaScript' },
+            { label: 'Python', value: 'Python' },
+            { label: 'Java', value: 'Java' },
+            { label: 'C++', value: 'C++' },
+            { label: 'React', value: 'React' },
+            { label: 'Node.js', value: 'Node.js' },
+            { label: 'SQL', value: 'SQL' },
+            { label: 'Machine Learning', value: 'Machine Learning' },
+            { label: 'Data Science', value: 'Data Science' },
+            { label: 'Cybersecurity', value: 'Cybersecurity' },
           ]}
           selectedValue={selectedDomain || ''}
           onSelect={handleDomainSelection}

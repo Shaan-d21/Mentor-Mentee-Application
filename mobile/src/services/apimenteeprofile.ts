@@ -6,15 +6,15 @@ export const apigetMenteeProfile = async () => {
     
 
     const api = axios.create({
-        baseURL: process.env.API_URL,
+        baseURL: "https://bdcf-2a09-bac5-3b0b-1a46-00-29e-ff.ngrok-free.app/",
         headers: {
             "accept": "application/json",
-            "Authorization": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJzdHJpbmciLCJpZCI6MSwicm9sZSI6Im1lbnRlZSIsImV4cCI6MTg2MzM0MTU4MH0.EK7Pm7YyBBKdBWvi7yQ4U_5X11Vb5uZWY0fCjiYkI8s"
+            "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJtZW50ZWVzIiwiaWQiOjk3LCJyb2xlIjoibWVudGVlIiwiZXhwIjoxODYzNDEwNTU0fQ.zP8R7Jdt6av2i9HMKjSznjwVIiUDXXAXPBuqSMfj6uY"
         },
     });
     
     try {
-        console.log(process.env.API_URL)
+        console.log("https://bdcf-2a09-bac5-3b0b-1a46-00-29e-ff.ngrok-free.app/")
         const response = await api.get("mentee/mentee/profile");
 console.log(`Response from mentee/profile screen the server is `, response);
 console.log(`-------------------------------------------`, response.status);
@@ -34,26 +34,48 @@ console.log(`-------------------------------------------`, response.status);
 };
 
 
-export const apiUpdateMenteeProfile = async () => {
-    const api = axios.create({
-        baseURL: process.env.API_URL,
-        headers: {
-            "Content-Type": "application/json",
-            "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJtZW50ZWUiLCJpZCI6OTMsInJvbGUiOiJtZW50ZWUiLCJleHAiOjE3NDMyNTkyODB9.1Eysoj2FAUdRzS76jSoOxYvwlOWCtxnwNxzwfR-Pxzs"
-        },
-    });
-    
+export const apiUpdateMenteeProfile = async (name: string, exp: number, github_id: string, contact: string, gender: string) => {
+  const api = axios.create({
+    baseURL: process.env.API_URL,
+    headers: {
+      "Content-Type": "application/json",
+      "token": process.env.TOKEN
+    },
+  });
 
-    return 1;
+  try {
+    const data = {
+      "name": name,
+      "exp": exp,
+      "github_id": github_id,
+      "contact": contact,
+      "gender": gender
+    };
+
+    const response = await api.put("/mentee/mentee/profile_creation", data);
+    console.log(`Response from mentee/profile update screen the server is `, response);
+    console.log(`-------------------------------------------`, response.status);
+
+    if (response.status == 200) {
+      console.log(`-------------------------------------------`, response.data);
+      return 1;
+    }
+    else {
+      console.log('Something went wrong');
+      return 0;
+    }
+  } catch (error: any) {
+    console.error("mentee/profile update error: ", error);
+    return 0;
+  }
 }
 export const apiaddMenteeProfileSkill = async (skillName: string) => {
     const api = axios.create({
       baseURL: process.env.API_URL,
       headers: {
         accept: "application/json",
-        Authorization:
-          "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJzdHJpbmciLCJpZCI6MSwicm9sZSI6Im1lbnRlZSIsImV4cCI6MTg2MzM0MTU4MH0.EK7Pm7YyBBKdBWvi7yQ4U_5X11Vb5uZWY0fCjiYkI8s",
-        "Content-Type": "application/json",
+        token:
+        process.env.TOKEN,
       },
     });
   
