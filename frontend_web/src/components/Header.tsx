@@ -99,8 +99,12 @@ const Header: React.FC<HeaderProps> = ({ title, userRole }) => {
   };
 
   const handleViewProfile = () => {
-    navigate("/profile");
-  };
+    if (userRole === "mentee") {
+      navigate("/mentee/profile");
+    } else {
+      toast.error("Profile view is only available for mentees.");
+    }
+  };  
 
   const handleChangePassword = () => {
     navigate("/change-password");
