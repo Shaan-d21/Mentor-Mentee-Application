@@ -15,6 +15,7 @@ import 'react-native-gesture-handler';
 import { DrawerProvider, useDrawer } from './src/context/drawer_context';
 import ProfileScreen from './src/screens/profile/profile';
 import CustomDrawerContent from './src/components/drawer_component';
+import MenteeProfileScreen from './src/screens/profile/menteeprofile';
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
@@ -26,11 +27,12 @@ const AppContent: React.FC = () => {
       <StatusBar barStyle="dark-content" />
       <View style={{ flex: 1 }}>
         <Stack.Navigator
-          initialRouteName="MenteeDashboard"
+          initialRouteName="MenteeProfileScreen"
           screenOptions={() => ({
             headerShown: false,
           })}
         >
+          <Stack.Screen name ="MenteeProfileScreen" component={MenteeProfileScreen}/>
           <Stack.Screen name="SignInPage" component={SignInPage} />
           <Stack.Screen name="CreateAccountPage" component={CreateAccountPage} />
           <Stack.Screen name="MenteeDashboard" component={MenteeDashboard} />

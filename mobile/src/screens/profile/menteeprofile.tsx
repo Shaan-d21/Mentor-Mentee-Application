@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, TextInput, Button, StyleSheet, ScrollView,TouchableOpacity , Image } from 'react-native';
+import { View, Alert, Text, TextInput, Button, StyleSheet, ScrollView,TouchableOpacity , Image } from 'react-native';
 import { launchImageLibrary } from 'react-native-image-picker';
 import AppBar from '../../components/appbar_component';
 import { Dropdown } from 'react-native-element-dropdown';
@@ -15,7 +15,9 @@ const MenteeProfileScreen = () => {
   const [mobileError, setMobileError] = useState('');
   const [companyName, setCompanyName] = useState('');
 
-
+  // Removed duplicate validateEmail function
+  
+  
   const pickImage = () => {
     launchImageLibrary(
       {
@@ -50,25 +52,31 @@ const MenteeProfileScreen = () => {
 
   const handleSubmit = () => {
     let isValid = true;
-   
+    let errorMessage = '';
+  
     // Validate email
     if (!validateEmail(email)) {
-      setEmailError('Please enter a valid email address.');
+      setEmailError('Email must start with a lowercase letter and be valid.');
+      errorMessage += 'Invalid Email Format.\n';
       isValid = false;
     } else {
       setEmailError('');
     }
-
+  
     // Validate mobile number
     if (!validateMobile(mobile)) {
       setMobileError('Please enter a valid 10-digit mobile number.');
+      errorMessage += 'Invalid Mobile Number.\n';
       isValid = false;
     } else {
       setMobileError('');
     }
-
-    if (isValid) {
-      // Submit the form or proceed further
+  
+    // Show alert if validation fails
+    if (!isValid) {
+      Alert.alert(' Error', errorMessage);
+    } else {
+      Alert.alert('Success', 'Profile Updated Successfully!');
       console.log('Form is valid');
     }
   };
@@ -100,7 +108,8 @@ const MenteeProfileScreen = () => {
           <TextInput
             style={[styles.infoText, emailError && styles.inputError]}
             value={email}
-            onChangeText={setEmail} // Update the email dynamically
+            onChangeText={(text) => setEmail(text.toLowerCase())}
+            // onChangeText={setEmail} // Update the email dynamically
             placeholder="Email"
           />
           {emailError ? <Text style={styles.errorText}>{emailError}</Text> : null}
