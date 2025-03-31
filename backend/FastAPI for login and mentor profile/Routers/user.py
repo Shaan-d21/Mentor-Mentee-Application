@@ -1,10 +1,11 @@
 from typing import Annotated, List
-from fastapi import APIRouter, Depends, HTTPException, Path
+from fastapi import APIRouter, Depends, HTTPException, Header, Path
 from pydantic import BaseModel, Field
 from database import SessionLocal
 from sqlalchemy.orm import Session
 from models import User,Skill, MentorSkill
 from .auth import get_current_user
+from jose import jwt, JWTError
 from passlib.context import CryptContext
 from starlette import status
 
@@ -70,13 +71,28 @@ async def create_user( db : db_dependency, new_user : CreateUserRequest): #user:
     return {"Message": "User Created", 'status_code': 200}
 
 
+SECRET_KEY = 'f7458ea66f73cac978f1233a9c9622dd8795bc98a59b2bd26622b58872212385'
+ALGORITHM = 'HS256'
+# def secure(token):
+#     # if we want to sign/encrypt the JSON object: {"hello": "world"}, we can do it as follows
+#     # encoded = jwt.encode({"hello": "world"}, JWT_SECRET, algorithm=JWT_ALGORITHM)
+#     decoded_token = jwt.decode(token, SECRET_KEY, algorithms=ALGORITHM)
+#     # this is often used on the client side to encode the user's email address or other properties
+#     return decoded_token
+
+
 
 @router.get('/all_users')
 async def view_all_users(db: db_dependency):
-    users = db.query(User).all()
-    if users == []:
-        raise HTTPException(status_code=404, detail="Users not found...")
-    return users
+    # try:
+    #     decoded = secure(authorization)
+    # except:
+    #     return HTTPException(status_code=404, detail='Not found')
+    # else:
+        users = db.query(User).all()
+        if users == []:
+            raise HTTPException(status_code=404, detail="Users not found...")
+        return users
 
     
 @router.delete('/delete_user/{id}')

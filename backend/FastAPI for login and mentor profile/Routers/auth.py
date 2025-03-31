@@ -67,7 +67,7 @@ def user_access_token(email: str, user_id: int, role: str, expires_delta: timede
 #     except JWTError:
 #         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail='Invalid token')
 
-async def get_current_user(token: Annotated[str, Depends(o2auth_bearer)]):
+async def get_current_user(token: str = Header(None)):
     try:
         payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
         mail: str = payload.get('sub')
@@ -90,4 +90,4 @@ async def login_for_access_token(form_data : Annotated[OAuth2PasswordRequestForm
     if not user:
         raise HTTPException(status_code=404, detail='User not found')
     token = user_access_token(user.name, user.id, user.role, timedelta(minutes=20))
-    return {'access_token' : token, 'token_type' : 'bearer'}
+    return {'access_token' : token, 'token_type' : 'bearer', 'role': user.role}
