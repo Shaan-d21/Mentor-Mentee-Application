@@ -1,7 +1,8 @@
 import axios from "axios";
+import { MMKV } from "react-native-mmkv";
 
 
-
+const storage= new MMKV();
 export const apigetMenteeProfile = async () => {
     
 
@@ -9,7 +10,7 @@ export const apigetMenteeProfile = async () => {
         baseURL: "https://bdcf-2a09-bac5-3b0b-1a46-00-29e-ff.ngrok-free.app/",
         headers: {
             "accept": "application/json",
-            "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJtZW50ZWVzIiwiaWQiOjk3LCJyb2xlIjoibWVudGVlIiwiZXhwIjoxODYzNDEwNTU0fQ.zP8R7Jdt6av2i9HMKjSznjwVIiUDXXAXPBuqSMfj6uY"
+            "token": storage.getString("token")
         },
     });
     
@@ -39,7 +40,7 @@ export const apiUpdateMenteeProfile = async (name: string, exp: number, github_i
     baseURL: process.env.API_URL,
     headers: {
       "Content-Type": "application/json",
-      "token": process.env.TOKEN
+      "token": storage.getString("token")
     },
   });
 
@@ -75,7 +76,7 @@ export const apiaddMenteeProfileSkill = async (skillName: string) => {
       headers: {
         accept: "application/json",
         token:
-        process.env.TOKEN,
+        storage.getString("token"),
       },
     });
   
