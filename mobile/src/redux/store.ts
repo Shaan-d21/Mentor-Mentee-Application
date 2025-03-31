@@ -1,10 +1,14 @@
 import { configureStore } from '@reduxjs/toolkit';
 import loginReducer from './slices/sliceLogin';
 import menteeRequestsReducer from './slices/mentorSlice';
+import registerReducer from './slices/sliceRegister';
+import menteeProfileReducer from './slices/menteeProfileSlice';
 
 export const store = configureStore({
   reducer: {
     login: loginReducer,
+    register: registerReducer,
+    menteeProfile: menteeProfileReducer,
     menteeRequests: menteeRequestsReducer,
   },
   middleware: (getDefaultMiddleware) => getDefaultMiddleware(),

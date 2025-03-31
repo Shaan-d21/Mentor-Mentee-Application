@@ -1,0 +1,1 @@
+export const sendOtpEndpoint = "/auth/send-otp";

@@ -25,6 +25,7 @@ class User(base):
     # Relationships
     organization = relationship("Organization", back_populates="users")
     mentor_skills = relationship("MentorSkill", back_populates="mentor")
+    mentee_skills = relationship("MenteeSkill", back_populates="mentee")
     mentee_courses = relationship("MenteeCourse", foreign_keys="[MenteeCourse.mentee_id]", back_populates="mentee")
     mentor_mentees = relationship("MentorMentee", foreign_keys="[MentorMentee.mentor_id]", back_populates="mentor")
     feedback_sent = relationship("Feedback", foreign_keys="[Feedback.sender_id]", back_populates="sender")
@@ -47,6 +48,7 @@ class Skill(base):
     name = Column(String, unique=True, nullable=False)
     
     mentor_skills = relationship("MentorSkill", back_populates="skill")
+    mentee_skills = relationship("MenteeSkill", back_populates="skill")
 
 # Define the MentorSkill model
 class MentorSkill(base):
@@ -59,6 +61,24 @@ class MentorSkill(base):
 
     mentor = relationship("User", back_populates="mentor_skills")
     skill = relationship("Skill", back_populates="mentor_skills")
+
+# Define the MenteeSkill model
+class MenteeSkill(base):
+    __tablename__ = 'mentee_skill'
+    
+    id = Column(Integer, primary_key=True, index=True)
+    mentee_id = Column(Integer, ForeignKey('user.id'))
+    skill_id = Column(Integer, ForeignKey('skill.id'))
+
+    mentee = relationship("User", back_populates="mentee_skills")
+    skill = relationship("Skill", back_populates="mentee_skills")
+
+class Domains(base):
+    __tablename__ = 'domains'
+    
+    id = Column(Integer, primary_key=True, index=True)
+    name = Column(String, unique=True, nullable=False)
+
 
 # Define the Domain model
 class Domain(base):
@@ -95,6 +115,18 @@ class MenteeCourse(base):
     mentee = relationship("User", foreign_keys=[mentee_id], back_populates="mentee_courses")
     mentor = relationship("User", foreign_keys=[mentor_id])
     course = relationship("Course", back_populates="mentee_courses")
+
+
+class MentorMentee_rel(base):
+    __tablename__ = 'mentor_mentee_rel'
+    
+    id = Column(Integer, primary_key=True, index=True)
+    mentor_id = Column(Integer, ForeignKey('user.id'))
+    mentee_id = Column(Integer, ForeignKey('user.id'))
+    domain_id = Column(Integer, ForeignKey('domains.id'))
+    duration = Column(Integer, nullable=False)
+    approved = Column(Boolean, nullable=False)
+
 
 # Define the MentorMentee model
 class MentorMentee(base):
