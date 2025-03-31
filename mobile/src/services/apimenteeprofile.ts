@@ -3,12 +3,13 @@ import axios from "axios";
 
 
 export const apigetMenteeProfile = async () => {
-  
+    
+
     const api = axios.create({
         baseURL: process.env.API_URL,
         headers: {
-            "Content-Type": "application/json",
-            "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJtZW50ZWUiLCJpZCI6OTMsInJvbGUiOiJtZW50ZWUiLCJleHAiOjE3NDMyNjI4NTJ9.ZopqHz1vzIgpf_E4CPvuEmVWsULtSUllOSDCW9gQKrs"
+            "accept": "application/json",
+            "Authorization": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJzdHJpbmciLCJpZCI6MSwicm9sZSI6Im1lbnRlZSIsImV4cCI6MTg2MzM0MTU4MH0.EK7Pm7YyBBKdBWvi7yQ4U_5X11Vb5uZWY0fCjiYkI8s"
         },
     });
     
@@ -28,7 +29,7 @@ console.log(`-------------------------------------------`, response.status);
         }
     } catch (error: any) {
         console.error("mentee/profile error: ", error);
-        throw error;
+        // throw error;
     }
 };
 
@@ -45,6 +46,34 @@ export const apiUpdateMenteeProfile = async () => {
 
     return 1;
 }
-export const apiaddMenteeProfileSkill = async () => {
-    return 1;
-}
+export const apiaddMenteeProfileSkill = async (skillName: string) => {
+    const api = axios.create({
+      baseURL: process.env.API_URL,
+      headers: {
+        accept: "application/json",
+        Authorization:
+          "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJzdHJpbmciLCJpZCI6MSwicm9sZSI6Im1lbnRlZSIsImV4cCI6MTg2MzM0MTU4MH0.EK7Pm7YyBBKdBWvi7yQ4U_5X11Vb5uZWY0fCjiYkI8s",
+        "Content-Type": "application/json",
+      },
+    });
+  
+    try {
+      const data = {
+        skills: [
+          {
+            skill_name: skillName,
+            proficiency: 1,
+          },
+        ],
+      };
+      const response = await api.post("mentee/mentee/skills", data);
+      if (response.status !== 200) {
+  return 0;
+    }
+      else{
+        return 1;
+      }
+    } catch (error) {
+      console.error("Error adding mentee profile skill:", error);
+      return 0; }
+  };
