@@ -126,9 +126,9 @@ export default function MentorProfile() {
         </View>
       ) : (
     <ScrollView contentContainerStyle={styles.container}>
-      {/* <AppBar 
+      <AppBar 
       
-      onProfilePress={() => { }} openDrawer={() => { }} /> */}
+      onProfilePress={() => { }} openDrawer={() => { }} />
 
       <View style={styles.profileImageContainer}>
         <Image style={styles.profileImage} source={{ uri: imageUri }} />
@@ -243,7 +243,7 @@ export default function MentorProfile() {
 
 const styles = StyleSheet.create({
   container: {
-    flex:1,
+    flexGrow:1,
     alignItems: 'center',
     padding: 20,
     backgroundColor: '#CAF0F8',
