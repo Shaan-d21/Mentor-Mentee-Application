@@ -1,17 +1,29 @@
 from typing import Annotated, List
 from fastapi import APIRouter, Depends, HTTPException, Path
+from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, Field
 from database import SessionLocal
 from sqlalchemy.orm import Session
 from models import User,Skill, MentorSkill, MentorMentee, Domain, MenteeSkill, Domains, MentorMentee_rel
 from .auth import get_current_user
 from starlette import status
+from fastapi.responses import JSONResponse
 
 router = APIRouter(
     prefix='/mentee',
     tags=['mentee']
 )
 
+# Add direct CORS handling
+@router.options("/profile")
+async def options_profile():
+    headers = {
+        "Access-Control-Allow-Origin": "http://localhost:3000",
+        "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS",
+        "Access-Control-Allow-Headers": "Content-Type, Authorization",
+        "Access-Control-Allow-Credentials": "true",
+    }
+    return JSONResponse(content={}, headers=headers)
 
 def get_db():
     db = SessionLocal()
@@ -51,6 +63,7 @@ async def mentor_profile_completion(user : user_dependency, db : db_dependency, 
         # mentor_updates.profile_pic_url = mentor_updates.profile_pic_url
         mentee_updates.contact = mentee_pro.contact
         mentee_updates.gender = mentee_pro.gender
+        mentee_updates.profile_completed = True
         db.add(mentee_updates)
         db.commit()
     except:
@@ -92,29 +105,42 @@ async def update_skills(user : user_dependency, db : db_dependency, skills_list:
     else :
         return {"Message" : "Mentor skills updated",'status_code': 200}
         
-@router.get('/mentee/profile',status_code=status.HTTP_200_OK)
+@router.get('/profile',status_code=status.HTTP_200_OK)
 def mentee_profile(user: user_dependency, db: db_dependency):
-    if user is None or user.get('role') != 'mentee':
-        return HTTPException(status_code=401, detail="Authentication Error")
-    mentee_updates = db.query(User).filter(User.id == user.get('user_id')).first()
-    skill_id_model = db.query(MenteeSkill).filter(MenteeSkill.mentee_id == user.get('user_id')).all()
-    skills_model = []
-    for i in skill_id_model:
-        sk = {
-            'name': i.skill.name
+    try:
+        if user is None or user.get('role') != 'mentee':
+            raise HTTPException(status_code=401, detail="Authentication Error")
+        
+        mentee_updates = db.query(User).filter(User.id == user.get('user_id')).first()
+        skill_id_model = db.query(MenteeSkill).filter(MenteeSkill.mentee_id == user.get('user_id')).all()
+        skills_model = []
+        for i in skill_id_model:
+            sk = {
+                'name': i.skill.name
+            }
+            skills_model.append(sk)
+        profile_details = {
+            'name' : mentee_updates.name,
+            'mail' : mentee_updates.mail,
+            'role' : mentee_updates.role,
+            'exp' : mentee_updates.exp,
+            'github_id' : mentee_updates.github_id,
+            'contact' : mentee_updates.contact,
+            'gender' : mentee_updates.gender,
+            'Skill set' : skills_model
         }
-        skills_model.append(sk)
-    profile_details = {
-        'name' : mentee_updates.name,
-        'mail' : mentee_updates.mail,
-        'role' : mentee_updates.role,
-        'exp' : mentee_updates.exp,
-        'github_id' : mentee_updates.github_id,
-        'contact' : mentee_updates.contact,
-        'gender' : mentee_updates.gender,
-        'Skill set' : skills_model
-    }
-    return profile_details
+        
+        # Return with CORS headers
+        headers = {
+            "Access-Control-Allow-Origin": "http://localhost:3000",
+            "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS",
+            "Access-Control-Allow-Headers": "Content-Type, Authorization",
+            "Access-Control-Allow-Credentials": "true",
+        }
+        return JSONResponse(content=profile_details, headers=headers)
+    except Exception as e:
+        print(f"Error in mentee profile: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
 
 
 class Req_model(BaseModel):
@@ -152,3 +178,14 @@ async def show_sent_requests(user: user_dependency, db : db_dependency):
         raise HTTPException(status_code=401, detail='User not Authorised')
     req_model = db.query(MentorMentee_rel).filter(MentorMentee_rel.mentee_id == user.get('user_id')).all()
     return req_model
+
+@router.get('/debug', status_code=status.HTTP_200_OK)
+def debug_endpoint():
+    # Return with CORS headers
+    headers = {
+        "Access-Control-Allow-Origin": "http://localhost:3000",
+        "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS",
+        "Access-Control-Allow-Headers": "Content-Type, Authorization",
+        "Access-Control-Allow-Credentials": "true",
+    }
+    return JSONResponse(content={"status": "ok", "message": "Debug endpoint is working"}, headers=headers)

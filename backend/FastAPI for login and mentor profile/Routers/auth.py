@@ -10,14 +10,17 @@ from jose import jwt, JWTError
 from starlette import status
 from passlib.context import CryptContext
 from enum import Enum
+
 router = APIRouter(
     prefix='/authentication',
     tags=['authentication']
 )
+
 SECRET_KEY = 'f7458ea66f73cac978f1233a9c9622dd8795bc98a59b2bd26622b58872212385'
 ALGORITHM = 'HS256'
 bcrypt_context = CryptContext(schemes=['bcrypt'], deprecated='auto')
 o2auth_bearer = OAuth2PasswordBearer(tokenUrl='authentication/login')
+
 class Roles(str, Enum):
     mentor = 'mentor'
     mentee = 'mentee'
@@ -41,6 +44,7 @@ def get_db():
         yield db
     finally:
         db.close()
+
 db_dependency = Annotated[Session, Depends(get_db)]
 
 def authenticate_user(email: str, password: str, db: Session):
@@ -55,18 +59,6 @@ def user_access_token(email: str, user_id: int, role: str, expires_delta: timede
     encode.update({'exp': expiry})
     return jwt.encode(encode, SECRET_KEY, algorithm=ALGORITHM)
 
-# async def get_current_user(token: str = Depends(Header(...))):
-#     try:
-#         payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
-#         mail: str = payload.get('sub')
-#         user_id: int = payload.get('id')
-#         role: str = payload.get('role')
-#         if mail is None or user_id is None:
-#             raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail='User not found')
-#         return {'email': mail, 'user_id': user_id, 'role': role}
-#     except JWTError:
-#         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail='Invalid token')
-
 async def get_current_user(token: Annotated[str, Depends(o2auth_bearer)]):
     try:
         payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
@@ -79,15 +71,31 @@ async def get_current_user(token: Annotated[str, Depends(o2auth_bearer)]):
     except JWTError:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail='Invalid token')
 
-
-
-
-
-# Login form
-@router.post('/login', response_model= Token)
+@router.post('/login', response_model=Token)
 async def login_for_access_token(form_data : Annotated[OAuth2PasswordRequestForm, Depends()], db : db_dependency):
-    user = authenticate_user(form_data.username, form_data.password, db)
-    if not user:
-        raise HTTPException(status_code=404, detail='User not found')
-    token = user_access_token(user.name, user.id, user.role, timedelta(minutes=20))
-    return {'access_token' : token, 'token_type' : 'bearer'}
+    try:
+        print(f"Login attempt for username: {form_data.username}")
+        print(f"Scopes: {form_data.scopes}")
+        
+        user = authenticate_user(form_data.username, form_data.password, db)
+        if not user:
+            print("User not found or invalid credentials")
+            raise HTTPException(status_code=404, detail='User not found')
+        
+        print(f"Found user with role: {user.role}")
+        
+        # Get user type from scopes
+        user_type = form_data.scopes[0] if form_data.scopes else None
+        if user_type and user.role.lower() != user_type.lower():
+            print(f"Role mismatch. User role: {user.role}, Requested role: {user_type}")
+            raise HTTPException(
+                status_code=403,
+                detail=f"This account is registered as a {user.role}, not a {user_type}"
+            )
+        
+        token = user_access_token(user.name, user.id, user.role, timedelta(minutes=20))
+        print("Login successful, token generated")
+        return {'access_token' : token, 'token_type' : 'bearer'}
+    except Exception as e:
+        print(f"Error during login: {str(e)}")
+        raise

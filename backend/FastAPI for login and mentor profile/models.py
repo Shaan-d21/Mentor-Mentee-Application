@@ -21,6 +21,7 @@ class User(base):
     profile_pic_url = Column(String, nullable=True)
     contact = Column(String, unique=True, nullable=True)
     gender = Column(String, CheckConstraint("gender IN ('male', 'female', 'others')"), nullable=True)
+    profile_completed = Column(Boolean, default=False, nullable=False)
 
     # Relationships
     organization = relationship("Organization", back_populates="users")
@@ -69,6 +70,7 @@ class MenteeSkill(base):
     id = Column(Integer, primary_key=True, index=True)
     mentee_id = Column(Integer, ForeignKey('user.id'))
     skill_id = Column(Integer, ForeignKey('skill.id'))
+    proficiency = Column(Float, CheckConstraint("proficiency IN (1, 2, 3)"), nullable=False)
 
     mentee = relationship("User", back_populates="mentee_skills")
     skill = relationship("Skill", back_populates="mentee_skills")
@@ -171,6 +173,7 @@ class UserCreate(BaseModel):
     contact: Optional[str] = None
     mail: str
     gender: Optional[str] = None
+    profile_completed: Optional[bool] = False
 
     @validator('role')
     def validate_role(cls, v):

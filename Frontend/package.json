@@ -1,0 +1,44 @@
+{
+  "name": "my-app",
+  "private": true,
+  "version": "0.0.1",
+  "type": "module",
+  "scripts": {
+    "start": "vite",
+    "dev": "vite",
+    "build": "tsc -b && vite build",
+    "lint": "eslint .",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "@fortawesome/free-solid-svg-icons": "^6.7.2",
+    "@fortawesome/react-fontawesome": "^0.2.2",
+    "@heroicons/react": "^2.2.0",
+    "@tanstack/react-query": "^5.71.0",
+    "axios": "^1.8.4",
+    "lucide-react": "^0.485.0",
+    "react": "^19.1.0",
+    "react-dom": "^19.1.0",
+    "react-hot-toast": "^2.5.2",
+    "react-icons": "^5.5.0",
+    "react-router-dom": "^7.4.1",
+    "react-toastify": "^11.0.5",
+    "recharts": "^2.15.1"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.23.0",
+    "@tailwindcss/vite": "^4.0.15",
+    "@types/react": "^19.0.12",
+    "@types/react-dom": "^19.0.4",
+    "@types/react-toastify": "^4.0.2",
+    "@vitejs/plugin-react": "^4.3.4",
+    "eslint": "^9.23.0",
+    "eslint-plugin-react-hooks": "^5.2.0",
+    "eslint-plugin-react-refresh": "^0.4.19",
+    "globals": "^16.0.0",
+    "tailwindcss": "^4.0.15",
+    "typescript": "^5.8.2",
+    "typescript-eslint": "^8.27.0",
+    "vite": "^6.2.2"
+  }
+}
