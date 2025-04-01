@@ -13,6 +13,7 @@ export type RootStackParamList = {
     FindMentorScreen: undefined;
     MenteeRequests: undefined;
     MenteeProfileScreen : undefined;
+    MentorProfile: undefined;
 };
 
 export type ScreenProps<T extends keyof RootStackParamList> = NativeStackScreenProps<RootStackParamList, T>;

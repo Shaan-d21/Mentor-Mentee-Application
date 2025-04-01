@@ -1,180 +1,232 @@
-import React, {useState} from 'react';
+//// filepath: c:\Users\Kavan\Desktop\Mentor-Mentee-Application\mobile\src\screens\profile\mentorprofile.tsx
+import React, { useEffect, useState } from 'react';
 import {
   View,
   Text,
   StyleSheet,
   ScrollView,
-  Dimensions,
   TextInput,
   Button,
   Alert,
   TouchableOpacity,
   Modal,
+  Image,
 } from 'react-native';
 import RNPickerSelect from 'react-native-picker-select';
-import DropDownPicker from 'react-native-dropdown-picker';
+import DropdownComponent from '../../components/Dropdown';
+import { useDispatch, useSelector } from 'react-redux';
+import { AppDispatch, RootState } from '../../redux/store';
+import { getmentorprofile, updateMentorProfileData, updateMentorprofileskill } from '../../redux/slices/mentorProfileSlice';
+import { MentorProfiletype, Skill } from '../../types/MentorProfileTypes';
+import AppBar from '../../components/appbar_component';
 
-const skillsList = [
-  'React',
-  'Node.js',
-  'JavaScript',
-  'TypeScript',
-  'Redux',
-  'MongoDB',
-  'Express.js',
-  'SQL',
-  'Python',
-  'Flutter',
-];
-
-const {width} = Dimensions.get('window');
-
-interface Skill {
-  skill: string;
-  proficiency: number;
-}
-
-interface Profile {
+interface LocalMentorProfile {
   name: string;
-  email: string;
-  contacts: string;
-  experience: string;
-  githubId: string;
+  mail: string;
+  role: string;
+  exp: string;         // we'll convert numeric exp from server to string locally
+  github_id: string;
+  contact: string;
   gender: string;
-  skills: Skill[];
+  skillSet: Skill[];
 }
 
-const MentorProfile: React.FC = () => {
-  const [profile, setProfile] = useState<Profile>({
+export default function MentorProfile() {
+  const dispatch = useDispatch<AppDispatch>();
+  const currentStatus = useSelector((state: RootState) => state.mentorProfile.status);
+  const mentorData = useSelector((state: RootState) => state.mentorProfile.response);
+
+  const [profile, setProfile] = useState<LocalMentorProfile>({
     name: '',
-    email: '',
-    contacts: '',
-    experience: '',
-    githubId: '',
-    gender: '',
-    skills: [],
+    mail: '',
+    role: 'mentor',
+    exp: '0',
+    github_id: '',
+    contact: '',
+    gender: 'male',
+    skillSet: [],
   });
 
-  const [open, setOpen] = useState(false);
+  const [imageUri, setImageUri] = useState(
+    'https://images.unsplash.com/photo-1511367461989-f85a21fda167?q=80&w=1931&auto=format'
+  );
   const [selectedSkill, setSelectedSkill] = useState<string | null>(null);
   const [proficiencyModal, setProficiencyModal] = useState(false);
 
-  // Update profile state
-  const handleChange = (key: keyof Profile, value: string | Skill[]) => {
-    setProfile({...profile, [key]: value});
-  };
-  const [selectedValue, setSelectedValue] = useState<string | null>(null);
+  useEffect(() => {
+    dispatch(getmentorprofile());
+  }, [dispatch]);
 
-  // Handle skill selection and open proficiency modal
-  const handleSkillSelection = (skill: string) => {
+  useEffect(() => {
+    if (currentStatus === 'loading') {
+      console.log('Loading mentor profile data...');
+    } else if (currentStatus === 'success' && mentorData) {
+      // Convert numeric exp to a string for the text input
+      // and set default images by gender
+      const newExp = mentorData.exp !== null ? mentorData.exp.toString() : '0';
+      setProfile({
+        name: mentorData.name || '',
+        mail: mentorData.mail || '',
+        role: mentorData.role || 'mentor',
+        exp: newExp,
+        github_id: mentorData.github_id || '',
+        contact: mentorData.contact || '',
+        gender: mentorData.gender || '',
+        skillSet: mentorData.skillSet || [],
+      });
+
+      if (mentorData.gender === 'female') {
+        setImageUri('https://cdn-icons-png.flaticon.com/512/146/146005.png');
+      } else if (mentorData.gender === 'male') {
+        setImageUri('https://cdn-icons-png.flaticon.com/512/146/146007.png');
+      } else {
+        setImageUri('https://cdn-icons-png.flaticon.com/512/149/149071.png');
+      }
+    } else if (currentStatus === 'failed') {
+      console.log('Failed to fetch mentor profile data');
+    }
+  }, [currentStatus, mentorData]);
+
+  function handleChange<K extends keyof LocalMentorProfile>(key: K, value: LocalMentorProfile[K]) {
+    setProfile(prev => ({ ...prev, [key]: value }));
+  }
+
+  // Handle skill selection
+  function handleSkillSelection(skill: string) {
     setSelectedSkill(skill);
     setProficiencyModal(true);
-  };
+  }
 
-  // Save skill with proficiency
-  const handleProficiencySelection = (proficiency: number) => {
+  // Save skill with chosen proficiency
+  function handleProficiencySelection(proficiency: number) {
     if (selectedSkill) {
-      setProfile(prev => ({
-        ...prev,
-        skills: [
-          ...prev.skills.filter(item => item.skill !== selectedSkill), // Avoid duplicates
-          {skill: selectedSkill, proficiency},
-        ],
-      }));
+      dispatch(updateMentorprofileskill({ skill: selectedSkill, level: proficiency.toString() }));
     }
     setProficiencyModal(false);
     setSelectedSkill(null);
-    setSelectedValue(null);
-  };
+  }
+
+  // save method
+  function handleSaveChanges() {
+
+
+    dispatch(updateMentorProfileData({contact: profile.contact,
+      exp:profile.exp,
+      gender:profile.gender,github_id:profile.github_id,name:profile.name}));
+  }
 
   return (
+    currentStatus === 'loading' ? (
+        <View style={styles.container}>
+          <Text style={styles.loadingText}>Loading Profile...</Text>
+        </View>
+      ) : currentStatus === 'failed' ? (
+        <View style={styles.container}>
+          <Text style={styles.loadingText}>Failed to load Profile.</Text>
+        </View>
+      ) : (
     <ScrollView contentContainerStyle={styles.container}>
-      {/* Name & Email */}
+      {/* <AppBar 
+      
+      onProfilePress={() => { }} openDrawer={() => { }} /> */}
+
+      <View style={styles.profileImageContainer}>
+        <Image style={styles.profileImage} source={{ uri: imageUri }} />
+      </View>
+
       <Text style={styles.label}>Name</Text>
-      <TextInput style={styles.input} value={profile.name} editable={false} />
-
-      <Text style={styles.label}>Email</Text>
-      <TextInput style={styles.input} value={profile.email} editable={false} />
-
-      {/* Contacts */}
-      <Text style={styles.label}>Contacts</Text>
       <TextInput
         style={styles.input}
-        value={profile.contacts}
-        maxLength={10}
-        keyboardType="numeric"
-        placeholder="Enter Your Contact Number"
-        onChangeText={text => handleChange('contacts', text)}
+        value={profile.name}
+        onChangeText={txt => handleChange('name', txt)}
+        placeholder="Enter your name"
       />
 
-      {/* Experience */}
+      <Text style={styles.label}>Email</Text>
+      <TextInput
+        style={styles.input}
+        value={profile.mail}
+        onChangeText={txt => handleChange('mail', txt)}
+        placeholder="Enter your email"
+      />
+
+      <Text style={styles.label}>Contact</Text>
+      <TextInput
+        style={styles.input}
+        value={profile.contact}
+        keyboardType="numeric"
+        onChangeText={txt => handleChange('contact', txt)}
+        placeholder="Enter your contact number"
+      />
+
       <Text style={styles.label}>Experience (Years)</Text>
       <TextInput
         style={styles.input}
-        value={profile.experience}
+        value={profile.exp}
         keyboardType="numeric"
-        placeholder="Enter Your Experience"
-        onChangeText={text => handleChange('experience', text)}
+        onChangeText={txt => handleChange('exp', txt)}
+        placeholder="Enter your experience in years"
       />
 
-      {/* Github ID */}
       <Text style={styles.label}>Github ID</Text>
       <TextInput
         style={styles.input}
-        value={profile.githubId}
-        onChangeText={text => handleChange('githubId', text)}
+        value={profile.github_id}
+        onChangeText={txt => handleChange('github_id', txt)}
+        placeholder="Enter your GitHub username"
       />
 
-      {/* Gender Selection */}
       <Text style={styles.label}>Gender</Text>
       <RNPickerSelect
-        onValueChange={value => handleChange('gender', value)}
+        onValueChange={value => handleChange('gender', (value as string) || '')}
         items={[
-          {label: 'Male', value: 'Male'},
-          {label: 'Female', value: 'Female'},
-          {label: 'Other', value: 'Other'},
+          { label: 'Male', value: 'male' },
+          { label: 'Female', value: 'female' },
+          { label: 'Other', value: 'other' },
         ]}
+        placeholder={{ label: 'Select Gender', value: '' }}
         value={profile.gender}
       />
 
-      {/* Skills Dropdown */}
-      <Text style={styles.label}>Skills</Text>
-      <DropDownPicker
-        open={open}
-        value={selectedValue} // Ensure this state exists
-        items={skillsList.map(skill => ({label: skill, value: skill}))}
-        setOpen={setOpen}
-        setValue={setSelectedValue} // ✅ Add this prop
-        onChangeValue={value => handleSkillSelection(value as string)} // Fix: Now updates state properly
-        multiple={false} // If selecting only one value
-        placeholder="Select skills"
-        mode="BADGE"
-        style={styles.dropdown}
+      <Text style={styles.label}>Add a Skill</Text>
+      <DropdownComponent
+        data={[
+          { label: 'JavaScript', value: 'JavaScript' },
+          { label: 'Python', value: 'Python' },
+          { label: 'Java', value: 'Java' },
+          { label: 'C++', value: 'C++' },
+          { label: 'React', value: 'React' },
+          { label: 'Node.js', value: 'Node.js' },
+          { label: 'SQL', value: 'SQL' },
+          { label: 'Machine Learning', value: 'Machine Learning' },
+          { label: 'Data Science', value: 'Data Science' },
+          { label: 'Cybersecurity', value: 'Cybersecurity' },
+        ]}
+        selectedValue=""
+        onSelect={handleSkillSelection}
+        placeholder="Select a skill"
       />
 
-      {/* Display selected skills with proficiency */}
-      {profile.skills.length > 0 && (
+      {profile.skillSet.length > 0 && (
         <View style={styles.selectedSkillsContainer}>
-          {profile.skills.map((item, index) => (
+          {profile.skillSet.map((item, index) => (
             <Text key={index} style={styles.selectedSkillText}>
-              {item.skill} - Proficiency: {item.proficiency}
+              {item.name} — Level: {item.proficiency}
             </Text>
           ))}
         </View>
       )}
 
-      {/* Proficiency Modal */}
       <Modal visible={proficiencyModal} transparent animationType="slide">
         <View style={styles.modalBackground}>
           <View style={styles.modalContainer}>
-            <Text style={styles.modalTitle}>
-              Select Proficiency for {selectedSkill}
-            </Text>
+            <Text style={styles.modalTitle}>Select proficiency for {selectedSkill}</Text>
             {[1, 2, 3].map(level => (
               <TouchableOpacity
                 key={level}
                 style={styles.proficiencyButton}
-                onPress={() => handleProficiencySelection(level)}>
+                onPress={() => handleProficiencySelection(level)}
+              >
                 <Text style={styles.proficiencyText}>Level {level}</Text>
               </TouchableOpacity>
             ))}
@@ -182,21 +234,34 @@ const MentorProfile: React.FC = () => {
         </View>
       </Modal>
 
-      {/* ✅ Save Button */}
-      <Button
-        title="Save Changes"
-        onPress={() => Alert.alert('Profile Updated Successfully!')}
-      />
+      <View style={{ marginTop: 20 }}>
+        <Button title="Save Changes" onPress={handleSaveChanges} />
+      </View>
     </ScrollView>
-  );
-};
+  ));
+}
 
 const styles = StyleSheet.create({
   container: {
-    flexGrow: 1,
+    flex:1,
     alignItems: 'center',
     padding: 20,
     backgroundColor: '#CAF0F8',
+  },
+  appbar:{
+width: '100%'
+  },
+  label: {
+    width: '90%',
+    textAlign: 'left',
+    fontWeight: 'bold',
+    marginTop: 10,
+  },
+  
+  loadingText: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    marginBottom: 16,
   },
   input: {
     width: '90%',
@@ -205,17 +270,19 @@ const styles = StyleSheet.create({
     borderColor: '#ccc',
     borderRadius: 8,
     marginBottom: 10,
-    backgroundColor: 'white',
+    backgroundColor: '#fff',
   },
-  label: {
-    width: '90%',
-    textAlign: 'left',
-    fontWeight: 'bold',
-    marginTop: 10,
-  },
-  dropdown: {
-    width: '90%',
+  profileImageContainer: {
+    marginRight: 16,
+    alignItems: 'center',
+    position: 'relative',
     marginBottom: 10,
+  },
+  profileImage: {
+    width: 170,
+    height: 200,
+    marginTop: 16,
+    overflow: 'hidden',
   },
   selectedSkillsContainer: {
     width: '90%',
@@ -252,9 +319,7 @@ const styles = StyleSheet.create({
     borderRadius: 5,
   },
   proficiencyText: {
-    color: 'white',
+    color: '#fff',
     fontSize: 16,
   },
 });
-
-export default MentorProfile;

@@ -8,12 +8,13 @@ import MentorDashboard from "../screens/Dashboards/mentor_dashboard";
 import ProfileScreen from "../screens/profile/profile";
 import MenteeRequests from "../screens/match_screens/menteerequest";
 import MenteeProfileScreen from "../screens/profile/screenmenteeprofile";
+import MentorProfile from "../screens/profile/mentorprofile";
 
 const Stack= createNativeStackNavigator<RootStackParamList>();
 export const RootNavigator: FC= ()=>{
     return (
         <Stack.Navigator
-            initialRouteName="MenteeProfileScreen"
+            initialRouteName="MentorProfile"
             screenOptions={() => ({
                 headerShown: false,
             })}
@@ -24,6 +25,7 @@ export const RootNavigator: FC= ()=>{
             <Stack.Screen name="MentorDashboard" component={MentorDashboard} />
             <Stack.Screen name="ProfileScreen" component={ProfileScreen} />
             <Stack.Screen name="MenteeProfileScreen" component={MenteeProfileScreen} />
+            <Stack.Screen name="MentorProfile" component={MentorProfile} />
             
         </Stack.Navigator>
     );

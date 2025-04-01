@@ -7,6 +7,7 @@ import { useDrawer } from '../context/drawer_context';
 
 const styles = StyleSheet.create({
     header: {
+    width: '100%',
         flexDirection: 'row',
         justifyContent: 'space-between',
         alignItems: 'center',
