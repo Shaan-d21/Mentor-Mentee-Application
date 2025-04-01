@@ -31,7 +31,7 @@ const FindMentorScreen: React.FC = () => {
   );
 
   return (
-   <view>
+   <View>
      <SafeAreaView style={styles.container}>
       <View style={styles.headerContainer}>
         <Text style={styles.header}>Find your Mentor</Text>
@@ -52,7 +52,7 @@ const FindMentorScreen: React.FC = () => {
         </TouchableOpacity>
       </View>
     </SafeAreaView>
-   </view>
+   </View>
   );
 };
 

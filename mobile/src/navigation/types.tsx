@@ -1,6 +1,4 @@
-import { createNavigationContainerRef } from '@react-navigation/native';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
-
 
 export type RootStackParamList = {
     SignInPage: undefined;
@@ -12,6 +10,7 @@ export type RootStackParamList = {
     EnrolledCoursesScreen: undefined;
     FindMentorScreen: undefined;
     MenteeRequests: undefined;
+
     MenteeProfileScreen : undefined;
 };
 
