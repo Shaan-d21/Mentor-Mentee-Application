@@ -1,13 +1,14 @@
-import React, { useEffect, useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, Button, TextInput } from 'react-native';
+import React, { useEffect, useState, FC } from 'react';
+import { View, Text, StyleSheet, ScrollView, Button, TextInput, TouchableOpacity } from 'react-native';
 import { Avatar } from 'react-native-elements';
 import AppBar from '../../components/appbar_component';
 import { useSelector, useDispatch } from 'react-redux';
 import { RootState, AppDispatch } from '../../redux/store';
 import { Dropdown } from 'react-native-element-dropdown';
 import { getMentorList, sendMentorRequest } from '../../redux/slices/sliceMenteeDashboard';
+import { ScreenProps } from '../../navigation/types';
 
-const MentorDashboard = () => {  
+const MenteeDashboard: FC<ScreenProps<"MenteeDashboard">> = ({navigation}) => {  
   const dispatch = useDispatch<AppDispatch>();
 
   const data=[
@@ -43,7 +44,7 @@ const userName = useSelector((state: RootState) => state.login.name);
 
   return (
     <View style={styles.container}>
-      <AppBar onProfilePress={() => {}} openDrawer={() => {}} />
+      <AppBar onProfilePress={() => {navigation.navigate("MenteeProfileScreen")}} openDrawer={() => {}} />
       
       <View style={styles.header}>
         <Text style={styles.headerText}>Hello, {userName} 👋</Text>
@@ -52,6 +53,7 @@ const userName = useSelector((state: RootState) => state.login.name);
 
       {/*Dropdown button for selecting the domain.*/}
       <Dropdown 
+        style= {{marginHorizontal: 20}}
         data={data} 
         labelField={"label"}
         valueField="value"
@@ -61,9 +63,20 @@ const userName = useSelector((state: RootState) => state.login.name);
       />
 
       <Button 
-        title="Submit"
+        title="Find Mentors"
         onPress= {submitDomain}
       />
+        {/* <Button
+              title="Logout"
+              onPress={()=>{
+                console.log("Navigation from mentee dashboard")
+                navigation.replace('SignInPage')}}/> */}
+
+                 {/* <TouchableOpacity onPress={()=> navigation.navigate("SignInPage")} >
+                  <Text>
+                    Log Out
+                    </Text>
+                  </TouchableOpacity> */}
 
       {/* List of the Mentors */}
       <ScrollView contentContainerStyle={styles.content}>
@@ -75,7 +88,7 @@ const userName = useSelector((state: RootState) => state.login.name);
         (
           mentorList.map(mentor => (
             <View key={mentor.id} style={styles.menteeRequest}>
-              <Text style={styles.text}>Connect with {mentor.name}</Text>
+              <Text style={styles.text}>{mentor.name}</Text>
               {
                 requestMentorId=== mentor.id ?(
                   <Text style={{ color: "blue", marginTop: 5 }}>Pending</Text>
@@ -105,6 +118,7 @@ const styles = StyleSheet.create({
   
   menteeRequest: { 
     flexDirection: "row",
+    alignItems: "center",
     justifyContent: "space-between",
     marginBottom: 15, 
     padding: 15, 
@@ -145,4 +159,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default MentorDashboard;
+export default MenteeDashboard;

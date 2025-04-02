@@ -1,21 +1,21 @@
 import { createSlice, PayloadAction, createAsyncThunk } from '@reduxjs/toolkit';
-import { getMenteeRequests, approveMentee } from '../../services/menteeRequestsApi';
+import { getMenteeRequests, approveMentee } from '../../services/apigetMenteeRequest';
 
 interface Mentee {
-  id: string;
+  id: number;
   name: string;
 }
 
 interface MenteeRequestsState {
   pendingRequests: Mentee[];
   acceptedRequests: Mentee[];
-  rejectedRequests: { id: string; name: string; }[];
+  // rejectedRequests: { id: string; name: string; }[];
 }
 
 const initialState: MenteeRequestsState = {
   pendingRequests: [],
   acceptedRequests: [],
-  rejectedRequests: [],
+  // rejectedRequests: [],
 };
 
 // Async Thunk for Fetching Mentees
@@ -29,7 +29,8 @@ export const fetchMenteeRequests = createAsyncThunk(
 );
 export const approveMenteeRequestThunk = createAsyncThunk(
   'menteeRequests/approve', 
-  async (menteeId: string, { rejectWithValue }) => {
+  // async (menteeId: string, { rejectWithValue }) => {
+  async (menteeId:number, { rejectWithValue }) => {
     try {
       await approveMentee(menteeId);
       return menteeId;
@@ -43,21 +44,21 @@ const menteeRequestsSlice = createSlice({
   name: 'menteeRequests',
   initialState,
   reducers: {
-    acceptMentee: (state, action: PayloadAction<string>) => {
+    acceptMentee: (state, action: PayloadAction<number>) => {
       const mentee = state.pendingRequests.find(m => m.id === action.payload);
       if (mentee) {
         state.acceptedRequests.push(mentee);
         state.pendingRequests = state.pendingRequests.filter(m => m.id !== action.payload);
       }
     },
-    rejectMentee: (state, action: PayloadAction<string>) => {
-      const mentee = state.pendingRequests.find(m => m.id === action.payload);
-      if (mentee) {
-        state.rejectedRequests.push({ id: mentee.id, name: mentee.name });
-        state.pendingRequests = state.pendingRequests.filter(m => m.id !== action.payload);
-      }
+    // rejectMentee: (state, action: PayloadAction<string>) => {
+    //   const mentee = state.pendingRequests.find(m => m.id === action.payload);
+    //   if (mentee) {
+    //     state.rejectedRequests.push({ id: mentee.id, name: mentee.name });
+    //     state.pendingRequests = state.pendingRequests.filter(m => m.id !== action.payload);
+    //   }
     
-    },
+    // },
     
 },
 extraReducers: (builder) => {
@@ -82,5 +83,5 @@ extraReducers: (builder) => {
   
 
 
-export const { acceptMentee, rejectMentee } = menteeRequestsSlice.actions;
+export const { acceptMentee } = menteeRequestsSlice.actions;
 export default menteeRequestsSlice.reducer;

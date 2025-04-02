@@ -8,6 +8,11 @@ import { DrawerProvider, useDrawer } from './src/context/drawer_context';
 import CustomDrawerContent from './src/components/drawer_component';
 import { RootNavigator } from './src/navigation/rootNavigtor';
 
+import { LogBox } from "react-native";
+
+LogBox.ignoreAllLogs(); // Disable all warnings and errors
+
+
 const AppContent: React.FC = () => {
   const { isDrawerOpen, toggleDrawer } = useDrawer();
 

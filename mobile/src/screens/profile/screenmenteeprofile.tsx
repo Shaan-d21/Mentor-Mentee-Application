@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { FC, useEffect, useState } from 'react';
 import {
   View,
   Text,
@@ -21,8 +21,9 @@ import {
   updateProfileData,
   updateprofileskill,
 } from '../../redux/slices/menteeProfileSlice';
+import { ScreenProps } from '../../navigation/types';
 
-const MenteeProfileScreen = () => {
+const MenteeProfileScreen: FC<ScreenProps<"MenteeProfileScreen">> = ({navigation}) => {
   const [fullName, setFullName] = useState('');
   const [email, setEmail] = useState('');
   const [mobile, setMobile] = useState('');
@@ -32,6 +33,7 @@ const MenteeProfileScreen = () => {
   const [githubId, setGithubId] = useState('');
   const [isFocused, setIsFocused] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
+
   const [_imageUri, setImageUri] = useState(
     'https://images.unsplash.com/photo-1511367461989-f85a21fda167?q=80&w=1931&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D',
   );
@@ -60,15 +62,15 @@ const MenteeProfileScreen = () => {
         setMobile(userType.contact);
         setGenderLocal(userType.gender);
         setGithubId(userType.github_id);
-        if (genderLocal == "female") {
-          setImageUri("https://cdn-icons-png.flaticon.com/512/146/146005.png");
-        }
-        else if (genderLocal == "male") {
-          setImageUri("https://cdn-icons-png.flaticon.com/512/146/146007.png");
-        }
-        else if (genderLocal == "other") {
-          setImageUri("https://cdn-icons-png.flaticon.com/512/149/149071.png");
-        }
+        // if (genderLocal == "female") {
+        //   setImageUri("https://cdn-icons-png.flaticon.com/512/146/146005.png");
+        // }
+        // else if (genderLocal == "male") {
+        //   setImageUri("https://cdn-icons-png.flaticon.com/512/146/146007.png");
+        // }
+        // else if (genderLocal == "other") {
+        //   setImageUri("https://cdn-icons-png.flaticon.com/512/149/149071.png");
+        // }
       }
     } else if (currentStatus === 'failed') {
       console.log('Failed to fetch user profile data');
@@ -91,7 +93,7 @@ const MenteeProfileScreen = () => {
           console.log('ImagePicker Error: ', response.errorCode);
         } else if (response.assets) {
           const selectedImage = response.assets[0]?.uri || '';
-          setImageUri(selectedImage);
+          // setImageUri(selectedImage);
         }
       },
     );
@@ -115,7 +117,7 @@ const MenteeProfileScreen = () => {
   };
 
   // Validates and saves data
-  const handleSubmit = () => {
+  const handleSubmit= () => {
     setIsFocused(true);
     let isValid = true;
 
@@ -165,7 +167,8 @@ const MenteeProfileScreen = () => {
     </View>
   ) : (
     <ScrollView contentContainerStyle={styles.container}>
-      <AppBar onProfilePress={() => { }} openDrawer={() => { }} />
+      {/* <AppBar onProfilePress={() => { }} openDrawer={() => { }} /> */}
+      
       <View style={styles.profileContainer}>
         <View style={styles.profileImageContainer}>
           <Image style={styles.profileImage} source={{ uri: _imageUri }} />
@@ -182,12 +185,14 @@ const MenteeProfileScreen = () => {
             </>
           ) : (
             <>
+            <Text >Full Name</Text>
               <TextInput
                 style={styles.infoText}
                 value={fullName}
                 onChangeText={setFullName}
                 placeholder="Full Name"
               />
+            <Text >Email</Text>
               <TextInput
                 style={[styles.infoText, emailError && styles.inputError]}
                 value={email}
@@ -197,6 +202,7 @@ const MenteeProfileScreen = () => {
               {emailError ? (
                 <Text style={styles.errorText}>{emailError}</Text>
               ) : null}
+                <Text >Mobile</Text>
               <TextInput
                 style={[styles.infoText, mobileError && styles.inputError]}
                 value={mobile}
@@ -207,6 +213,7 @@ const MenteeProfileScreen = () => {
               {mobileError ? (
                 <Text style={styles.errorText}>{mobileError}</Text>
               ) : null}
+              <Text >GitHub </Text>
               <TextInput
                 style={styles.infoText}
                 value={githubId}
@@ -214,13 +221,13 @@ const MenteeProfileScreen = () => {
                 placeholder="GitHub ID"
               />
 
-              <View style={styles.genderPickerContainer}>
+              {/* <View style={styles.genderPickerContainer}>
                 <Dropdown
                   style={styles.dropdown}
                   data={[
                     { label: 'Male', value: 'male' },
                     { label: 'Female', value: 'female' },
-                    { label: 'Other', value: 'other' },
+                    // { label: 'Other', value: 'other' },
                   ]}
                   labelField="label"
                   valueField="value"
@@ -228,13 +235,13 @@ const MenteeProfileScreen = () => {
                   value={genderLocal}
                   onChange={item => setGenderLocal(item.value)}
                 />
-              </View>
+              </View> */}
             </>
           )}
         </View>
       </View>
 
-      {!!userType?.skillSet?.length && (
+      {/* {!!userType?.skillSet?.length && (
         <View style={styles.domainsContainer}>
           <Text style={styles.domainsTitle}>Skills</Text>
           <View style={styles.domainsList}>
@@ -245,7 +252,19 @@ const MenteeProfileScreen = () => {
             ))}
           </View>
         </View>
-      )}
+      )} */}
+      {!!userType?.skillSet?.length && (
+        <View style={styles.domainsContainer}>
+          <Text style={styles.domainsTitle}>Skills</Text>
+          <View style={styles.domainsList}>
+            {[...new Set(userType.skillSet)].map((skill: any, index: number) => (
+              <View key={index} style={styles.domainItem}>
+                <Text style={styles.domainText}>{skill}</Text>
+              </View>
+            ))}
+        </View>
+      </View>
+)}
 
       <View style={styles.dropdownContainer}>
         <DropdownComponent
@@ -280,6 +299,17 @@ const MenteeProfileScreen = () => {
           {isEditing ? 'Save Profile' : 'Update Profile'}
         </Text>
       </TouchableOpacity>
+      <TouchableOpacity
+        style={styles.button}
+        onPress={() => {
+          navigation.navigate('MenteeDashboard');
+        }}  
+      >
+        <Text style={styles.buttonText}>
+          Go Back
+        </Text>
+      </TouchableOpacity>
+      
     </ScrollView>
   );
 };
@@ -399,6 +429,7 @@ const styles = StyleSheet.create({
     borderRadius: 4,
   },
   button: {
+    marginBottom: 10,
     backgroundColor: '#3498db',
     paddingVertical: 12,
     paddingHorizontal: 20,

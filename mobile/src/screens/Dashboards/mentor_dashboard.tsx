@@ -1,14 +1,15 @@
 
-import React, { useEffect, useState } from 'react';
+import React, { FC, useEffect, useState } from 'react';
 import { View, Text, StyleSheet, ScrollView, TextInput, TouchableOpacity } from 'react-native';
-import { Avatar } from 'react-native-elements';
+import { Avatar, Button } from 'react-native-elements';
 import AppBar from '../../components/appbar_component';
 import { useSelector, useDispatch } from 'react-redux';
 import { RootState, AppDispatch } from '../../redux/store';
 
-import { fetchMenteeRequests, acceptMentee, rejectMentee } from '../../redux/slices/mentorSlice';
+import { fetchMenteeRequests, acceptMentee } from '../../redux/slices/mentorSlice';
+import { ScreenProps } from '../../navigation/types';
 
-const MentorDashboard = () => {
+const MentorDashboard: FC<ScreenProps<"MentorDashboard">> = ({navigation}) => {
   const dispatch = useDispatch<AppDispatch>();
   
   useEffect(() => {
@@ -17,7 +18,7 @@ const MentorDashboard = () => {
   const userName = useSelector((state: RootState) => state.login.name);
 
 
-  const { pendingRequests, acceptedRequests , rejectedRequests} = useSelector((state: RootState) => state.menteeRequests);
+  const { pendingRequests, acceptedRequests } = useSelector((state: RootState) => state.menteeRequests);
   console.log("Redux State:", useSelector((state: RootState) => state.menteeRequests));
   console.log("Pending Requests:", pendingRequests.length);
   console.log("Accepted Requests:", acceptedRequests.length);
@@ -27,7 +28,7 @@ const MentorDashboard = () => {
 
   return (
     <View style={styles.container}>
-      <AppBar onProfilePress={() => {}} openDrawer={() => {}} />
+      <AppBar onProfilePress={() => {navigation.navigate("MentorProfileScreen")}} openDrawer={() => {}} />
       
       <View style={styles.header}>
         <Text style={styles.headerText}>Hello,{userName} 👋</Text>
@@ -65,6 +66,7 @@ const MentorDashboard = () => {
           </>
         )}
       </ScrollView>
+    
     </View>
   );
 };
