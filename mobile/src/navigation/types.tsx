@@ -10,6 +10,9 @@ export type RootStackParamList = {
     EnrolledCoursesScreen: undefined;
     FindMentorScreen: undefined;
     MenteeRequests: undefined;
+    MentorProfileScreen: undefined;
+    // CustomDrawerContent: undefined;
+    temp: undefined;
 
     MenteeProfileScreen : undefined;
 };

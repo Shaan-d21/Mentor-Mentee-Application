@@ -45,6 +45,7 @@ const sliceLogin = createSlice({
 export const loginUser= createAsyncThunk("userLogin/login", async({email, password}: {email:string, password:string})=>{
   const response= await apiLoginUser({email, password});
   storage.set("token", response.access_token);
+  console.log(response.access_token);
   // console.log(`Response in the slice is `, response.access_token);
   console.log("token is ", storage.getString("token"));
   return response;
