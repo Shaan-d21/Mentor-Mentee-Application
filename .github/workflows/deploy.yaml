@@ -1,0 +1,39 @@
+name: Deploy Application
+
+on:
+  push:
+    branches:
+      - deploy/dev
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    defaults:
+      run:
+        working-directory: "./backend/FastAPI for login and mentor profile"
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Copy Code
+        uses: appleboy/scp-action@master
+        with:
+          host: ${{ secrets.PROMACT_SERVER_IP }}
+          username: ${{ secrets.PROMACT_SERVER_USERNAME }}
+          key: ${{ secrets.PROMACT_SERVER_SSH_PRIVATE_KEY }}
+          source: "."
+          target: "Internship-2025/Mentor-Mentee-App/"
+
+      - name: Deploy on Server
+        uses: appleboy/ssh-action@v1.2.2
+        with:
+          host: ${{ secrets.PROMACT_SERVER_IP }}
+          username: ${{ secrets.PROMACT_SERVER_USERNAME }}
+          key: ${{ secrets.PROMACT_SERVER_SSH_PRIVATE_KEY }}
+          script: |
+            cd /home/intern/Internship-2025/Mentor-Mentee-App
+            docker compose down
+            docker compose up -d --build
+            docker system prune -af
