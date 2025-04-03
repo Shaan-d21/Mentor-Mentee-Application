@@ -1,31 +1,26 @@
-# Stage 1: Build Dependencies
-FROM python:3.12-slim AS build
+# Stage 1: Dependencies
+FROM python:3.12-slim AS base
 
 WORKDIR /app
 
-# Copy only requirements first for better caching
-COPY requirements.txt .
+COPY requirements.txt ./
+RUN apt-get update && apt-get install -y gcc g++ libpq-dev && \
+    python -m venv /app/venv && \
+    /app/venv/bin/pip install --upgrade pip && \
+    /app/venv/bin/pip install torch sentence-transformers && \
+    rm -rf /root/.cache/pip
 
-# Create virtual environment and install dependencies
-RUN python -m venv /app/venv && \
-    /app/venv/bin/pip install --no-cache-dir -r requirements.txt
-
-# Stage 2: Application Image
-FROM python:3.12-slim 
+# Stage 2: Application
+FROM python:3.12-slim
 
 WORKDIR /app
 
-# Copy virtual environment from build stage
-COPY --from=build /app/venv /app/venv
-
-# Copy application code
+COPY --from=base /app/venv /app/venv
 COPY . .
 
-# Set environment variable for virtual environment
 ENV PATH="/app/venv/bin:$PATH"
 
-# Expose the application port
 EXPOSE 8000
 
-# Use exec form of CMD to properly handle signals
-CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000"]
+# Apply migrations before starting the server (Replace alembic command if you're using something else)
+CMD ["/bin/sh", "-c", "/app/venv/bin/alembic upgrade head && uvicorn main:app --host 0.0.0.0 --port 8000"]
