@@ -1,8 +1,9 @@
+import enum
 from typing import Annotated
 from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel
 from sqlalchemy.orm import Session
-from models import MentorMentee, MentorMentee_rel
+from models import MentorMentee
 from database import SessionLocal
 from .auth import get_current_user
 
@@ -22,8 +23,13 @@ def get_db():
 db_dependency =  Annotated[Session, Depends(get_db)]
 user_dependency = Annotated[dict, Depends(get_current_user)]
 
+
+class MentorMenteeStatus(enum.Enum):
+    approved = "approved"
+    not_approved = "not approved"
+    
 class MentorApprovalRequest(BaseModel):
-    approved: bool
+    status : MentorMenteeStatus
     mentee_id: int
 
 
@@ -32,14 +38,14 @@ class MentorApprovalRequest(BaseModel):
 def approve_mentee(current_user: user_dependency, db : db_dependency, approval_request: MentorApprovalRequest):
     if current_user["role"] != "mentor":
         raise HTTPException(status_code=403, detail="Only mentors can approve requests.")
-    req_model = db.query(MentorMentee_rel).filter(MentorMentee_rel.mentor_id == current_user.get('user_id')).filter(MentorMentee_rel.mentee_id == approval_request.mentee_id).first()
+    req_model = db.query(MentorMentee).filter(MentorMentee.mentor_id == current_user.get('user_id')).filter(MentorMentee.mentee_id == approval_request.mentee_id).first()
     if req_model is None:
             raise  HTTPException(status_code=404, detail='Mentee not found')  
-    req_model.approved = approval_request.approved
+    req_model.status = approval_request.status.name
     db.add(req_model)
     db.commit()
     
-    return {'status_code': 200, 'Message': f'Accept {req_model.approved} '}    
+    return {'status_code': 200, 'Message': f'Accept {req_model.status} '}    
 
 
 
