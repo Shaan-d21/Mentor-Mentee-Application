@@ -1,0 +1,53 @@
+version: "3.8"
+
+services:
+  db:
+    image: postgres:17
+    container_name: mentor_mentee_db
+    restart: always
+    ports:
+      - "5430:5432" 
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+    volumes:
+      - mentor_mentee_pg_data:/var/lib/postgresql/data
+    networks:
+      - mentor_mentee_network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
+      interval: 5s
+      retries: 5
+
+  backend:
+    build: "./backend/FastAPI for login and mentor profile"
+    container_name: mentor_mentee_backend
+    restart: always
+    ports:
+      - "8080:8000" 
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      DATABASE_URL: postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB}
+    networks:
+      - mentor_mentee_network
+
+  frontend:
+    build: ./frontend_web
+    container_name: mentor_mentee_frontend
+    restart: always
+    ports:
+      - "8081:80" 
+    networks:
+      - mentor_mentee_network
+    depends_on:
+      - backend
+
+networks:
+  mentor_mentee_network:
+    name: mentor_mentee_network
+
+volumes:
+  mentor_mentee_pg_data:
