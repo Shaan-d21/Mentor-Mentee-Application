@@ -47,6 +47,7 @@ services:
 
 networks:
   mentor_mentee_network:
+    name: mentor_mentee_network
 
 volumes:
   mentor_mentee_pg_data:
