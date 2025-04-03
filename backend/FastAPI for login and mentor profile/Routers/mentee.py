@@ -27,8 +27,10 @@ user_dependency = Annotated[dict, Depends(get_current_user)]
 
 class Mentee_Profile(BaseModel):
     name : str
+    exp : int
+    github_id : str
     contact : str
-
+    gender : str
 
 @router.put("/mentee/profile_creation", status_code=200)
 async def mentor_profile_completion(user : user_dependency, db : db_dependency, mentee_pro : Mentee_Profile):  
@@ -38,9 +40,17 @@ async def mentor_profile_completion(user : user_dependency, db : db_dependency, 
         mentee_updates = db.query(User).filter(User.id == user.get('user_id')).first()
         if mentee_updates is None:
             raise  HTTPException(status_code=404, detail='Mentee not found')
+        # mentor_updates.id = mentor_updates.id
         mentee_updates.name = mentee_pro.name
+        # mentor_updates.mail = mentor_pro.mail
+        # mentor_updates.pwd = mentor_updates.pwd
+        # mentor_updates.role = mentor_updates.role
+        # mentor_updates.pwd = mentor_updates.organization_id
+        mentee_updates.exp = mentee_pro.exp
+        mentee_updates.github_id = mentee_pro.github_id
+        # mentor_updates.profile_pic_url = mentor_updates.profile_pic_url
         mentee_updates.contact = mentee_pro.contact
-        mentee_updates.is_profile_complete = True
+        mentee_updates.gender = mentee_pro.gender
         db.add(mentee_updates)
         db.commit()
     except:
@@ -97,43 +107,10 @@ def mentee_profile(user: user_dependency, db: db_dependency):
         'name' : mentee_updates.name,
         'mail' : mentee_updates.mail,
         'role' : mentee_updates.role,
+        'exp' : mentee_updates.exp,
+        'github_id' : mentee_updates.github_id,
         'contact' : mentee_updates.contact,
+        'gender' : mentee_updates.gender,
         'Skill set' : skills_model
     }
     return profile_details
-
-
-class Req_model(BaseModel):
-    domain: str
-    mentor_id : int
-
-@router.post('/mentorship')
-async def request_mentorship(user: user_dependency, db : db_dependency, req: Req_model):
-    if user is None or user.get('role')!='mentee':
-        raise HTTPException(status_code=401, detail='User not Authorised')
-    domain_model = db.query(Domain).filter(Domain.name == req.domain).first()
-    if domain_model is None:
-        domain_model = Domain(
-            name = req.domain
-        )
-        db.add(domain_model)
-        db.commit()
-    domain_model = db.query(Domain).filter(Domain.name == req.domain).first()
-
-        
-    rel_model = MentorMentee(
-        mentor_id = req.mentor_id,
-        mentee_id = user.get('user_id'),
-        domain_id = domain_model.id,
-        status = 'pending'
-    )
-    db.add(rel_model)
-    db.commit()
-    return { 'status_code': 200, "Message":'Request Sent'}
-
-@router.get('/Requests')
-async def show_sent_requests(user: user_dependency, db : db_dependency):
-    if user is None or user.get('role')!='mentee':
-        raise HTTPException(status_code=401, detail='User not Authorised')
-    req_model = db.query(MentorMentee).filter(MentorMentee.mentee_id == user.get('user_id')).all()
-    return req_model

@@ -1,58 +1,67 @@
-
-import React, { FC, useEffect, useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, TextInput, TouchableOpacity } from 'react-native';
-import { Avatar, Button } from 'react-native-elements';
+import React, { useEffect, useState } from 'react';
+import { View, Text, StyleSheet, ScrollView, Button, TextInput } from 'react-native';
+import { Avatar } from 'react-native-elements';
 import AppBar from '../../components/appbar_component';
 import { useSelector, useDispatch } from 'react-redux';
 import { RootState, AppDispatch } from '../../redux/store';
+import { fetchMenteeRequests, acceptMentee, rejectMenteeWithReason } from '../../redux/slices/menteeRequestSlice';
 
-import { fetchMenteeRequests, acceptMentee } from '../../redux/slices/mentorSlice';
-import { ScreenProps } from '../../navigation/types';
-
-const MentorDashboard: FC<ScreenProps<"MentorDashboard">> = ({navigation}) => {
+const MentorDashboard = () => {
   const dispatch = useDispatch<AppDispatch>();
   
   useEffect(() => {
     dispatch(fetchMenteeRequests());
   }, [dispatch]);
-  const userName = useSelector((state: RootState) => state.login.name);
-
 
   const { pendingRequests, acceptedRequests } = useSelector((state: RootState) => state.menteeRequests);
-  console.log("Redux State:", useSelector((state: RootState) => state.menteeRequests));
-  console.log("Pending Requests:", pendingRequests.length);
-  console.log("Accepted Requests:", acceptedRequests.length);
-  
 
+  const [rejectionReasons, setRejectionReasons] = useState<{ [key: string]: string }>({});
+  const [showInput, setShowInput] = useState<{ [key: string]: boolean }>({});
 
+  const handleReject = (menteeId: string) => {
+    if (rejectionReasons[menteeId]) {
+      dispatch(rejectMenteeWithReason({ id: menteeId, reason: rejectionReasons[menteeId] }));
+      setShowInput(prev => ({ ...prev, [menteeId]: false }));
+    }
+  };
 
   return (
     <View style={styles.container}>
-      <AppBar onProfilePress={() => {navigation.navigate("MentorProfileScreen")}} openDrawer={() => {}} />
+      <AppBar onProfilePress={() => {}} openDrawer={() => {}} />
       
       <View style={styles.header}>
-        <Text style={styles.headerText}>Hello,{userName} 👋</Text>
+        <Text style={styles.headerText}>Hello, Mentor 👋</Text>
         <Avatar rounded icon={{ name: 'user', type: 'font-awesome' }} />
       </View>
 
       <ScrollView contentContainerStyle={styles.content}>
-        {pendingRequests && pendingRequests.length === 0 ? (
+        {pendingRequests.length === 0 ? (
           <Text style={styles.noRequestsText}>No requests at the moment</Text>
         ) : (
           pendingRequests.map(mentee => (
             <View key={mentee.id} style={styles.menteeRequest}>
               <Text style={styles.text}>{mentee.name} has requested to connect</Text>
-                <View style={styles.buttons}>
-                  <TouchableOpacity style={[styles.button, styles.acceptButton]} onPress={() => dispatch(acceptMentee(mentee.id))}>
-                    <Text style={styles.buttonText}>Accept</Text>
-                  </TouchableOpacity>
-                  {/* <TouchableOpacity 
-                    style={[styles.button, styles.rejectButton]} 
-                    onPress={() => dispatch(rejectMentee(mentee.id))}>
-                    <Text style={styles.buttonText}>Reject</Text>
-                  </TouchableOpacity> */}
-                </View>
               
+              {showInput[mentee.id] ? (
+                <>
+                  <TextInput
+                    style={styles.input}
+                    placeholder="Enter rejection reason..."
+                    value={rejectionReasons[mentee.id] || ''}
+                    onChangeText={(text) => setRejectionReasons(prev => ({ ...prev, [mentee.id]: text }))}
+                  />
+                  <Button title="Send" color="red" onPress={() => handleReject(mentee.id)} />
+                </>
+              ) : (
+                <View style={styles.buttons}>
+                  <Button title="Accept" onPress={() => dispatch(acceptMentee(mentee.id))} />
+                  <Button 
+                    title="Reject" 
+                    color="red" 
+                    onPress={() => setShowInput(prev => ({ ...prev, [mentee.id]: true }))} 
+                  />
+                </View>
+              )}
             </View>
           ))
         )}
@@ -66,7 +75,6 @@ const MentorDashboard: FC<ScreenProps<"MentorDashboard">> = ({navigation}) => {
           </>
         )}
       </ScrollView>
-    
     </View>
   );
 };
@@ -102,19 +110,6 @@ const styles = StyleSheet.create({
   },
 
   buttons: { flexDirection: 'row', justifyContent: 'space-between', marginTop: 10 },
-
-  button: {
-    padding: 10,
-    borderRadius: 8,
-    alignItems: 'center',
-    justifyContent: 'center',
-    flex: 1,
-    marginHorizontal: 5,
-  },
-
-  acceptButton: { backgroundColor: '#4CAF50' },
-  rejectButton: { backgroundColor: '#F44336' },
-  buttonText: { color: 'white', fontWeight: 'bold', fontSize: 16 },
 
   acceptedTitle: { fontSize: 20, fontWeight: 'bold', marginTop: 20 },
   acceptedMentee: { 

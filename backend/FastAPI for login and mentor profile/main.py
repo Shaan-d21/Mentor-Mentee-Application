@@ -1,16 +1,31 @@
 from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
 import models
 from database import engine
-from Routers import auth, user, mentee, mentor_approval,get_approved_mentees,get_requests, api
+from Routers import auth, user, mentee
 
 
 app = FastAPI()
-app.include_router(auth.router)
-app.include_router(user.router)
-app.include_router(mentee.router)
-app.include_router(mentor_approval.router)
-app.include_router(get_approved_mentees.router)
-app.include_router(get_requests.router)
-app.include_router(api.router)
 
-models.Base.metadata.create_all(bind = engine)
+# Add CORS middleware
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["http://localhost:8081", "http://frontend:80", "http://181.214.44.15:8081"],  # Frontend URLs
+    allow_credentials=True,
+    allow_methods=["*"],  # Allow all methods
+    allow_headers=["*"],  # Allow all headers
+)
+
+# Define a root route
+@app.get("/")
+def read_root():
+    return {"message": "Welcome to the Mentor-Mentee Application API!"}
+
+# API version prefix
+app.include_router(auth.router, prefix="/api/v1")
+app.include_router(user.router, prefix="/api/v1")
+app.include_router(mentee.router, prefix="/api/v1")
+# app.include_router(participant.router)
+
+
+models.base.metadata.create_all(bind = engine)

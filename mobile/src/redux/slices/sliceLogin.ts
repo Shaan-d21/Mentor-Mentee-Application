@@ -1,8 +1,6 @@
 import { createAsyncThunk, createSlice, PayloadAction } from '@reduxjs/toolkit';
 import { apiLoginUser } from '../../services/apiLogin';
-import { MMKV } from 'react-native-mmkv'
-
-const storage= new MMKV();
+// import { MMKV } from 'react-native-mmkv'
 
 enum currentStatus{idle= 'idle', loading= 'loading', success= 'success', failed= 'failed'}
 interface User {
@@ -10,14 +8,12 @@ interface User {
   email: string;
   password: string;
   status: currentStatus;
-  name: string;
 }
 
 const initialState: User = {
   response: [],
   email: '',
   password: '',
-  name:'',
   status: currentStatus.idle
 };
 
@@ -33,7 +29,6 @@ const sliceLogin = createSlice({
     }).addCase(loginUser.fulfilled, (state, action)=>{
       state.response= action.payload;
       state.status= currentStatus.success;
-      state.name= action.payload.name;
       // console.log('Current state is ', state.response);
 
     }).addCase(loginUser.rejected, (state, action)=>{
@@ -44,10 +39,7 @@ const sliceLogin = createSlice({
 
 export const loginUser= createAsyncThunk("userLogin/login", async({email, password}: {email:string, password:string})=>{
   const response= await apiLoginUser({email, password});
-  storage.set("token", response.access_token);
-  console.log(response.access_token);
-  // console.log(`Response in the slice is `, response.access_token);
-  console.log("token is ", storage.getString("token"));
+  // console.log(`Response in the slice is `, response);
   return response;
 });
 

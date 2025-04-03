@@ -4,7 +4,7 @@ import { View, Text, StyleSheet, TouchableOpacity, SafeAreaView } from 'react-na
 const MenteeRequests: React.FC = () => {
   return (
     
-    <View>
+    <view>
       
       <SafeAreaView style={styles.container}>
       {/* Header */}
@@ -28,7 +28,7 @@ const MenteeRequests: React.FC = () => {
         </View>
       </View>
     </SafeAreaView>
-    </View>
+    </view>
   );
 };
 

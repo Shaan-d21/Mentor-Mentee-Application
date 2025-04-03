@@ -24,34 +24,10 @@ const SignInPage: React.FC<ScreenProps<"SignInPage">> = ({navigation}) => {
 
   const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
 
-  // const handleFormSubmit = () => {
-  //   const isEmailValid = emailRegex.test(emailLocal);
-  //   const isPasswordValid = passwordLocal.length >= 6;
-
-  //   if (!isEmailValid && !isPasswordValid) {
-  //     Alert.alert('Invalid Username and Password');
-  //     return;
-  //   }
-  //   if (!isEmailValid) {
-  //     Alert.alert('Invalid Email');
-  //     return;
-  //   }
-  //   if (!isPasswordValid) {
-  //     Alert.alert('Invalid Password');
-  //     return;
-  //   }
-  //   // setEmailLocal(emailLocal.toLowerCase());
-    
-  //   const email= emailLocal.toLowerCase();
-
-  //   dispatch(loginUser({email:email, password:passwordLocal}));
-
-  // };
-  
-  const handleFormSubmit = async () => {
+  const handleFormSubmit = () => {
     const isEmailValid = emailRegex.test(emailLocal);
     const isPasswordValid = passwordLocal.length >= 6;
-  
+
     if (!isEmailValid && !isPasswordValid) {
       Alert.alert('Invalid Username and Password');
       return;
@@ -64,38 +40,26 @@ const SignInPage: React.FC<ScreenProps<"SignInPage">> = ({navigation}) => {
       Alert.alert('Invalid Password');
       return;
     }
-  
-    const email = emailLocal.toLowerCase();
-    await dispatch(loginUser({ email, password: passwordLocal }));
-  
-    // Manually handle navigation after dispatching
-    if (currentStatus === 'success') {
-      if (userType?.role === 'mentor') {
-        navigation.replace('MentorDashboard');
-      } else if (userType?.role === 'mentee') {
-        navigation.replace('MenteeDashboard');
-      } else {
-        console.log('No user role found');
-      }
-    }
+
+    dispatch(loginUser({email:emailLocal, password:passwordLocal}));
+
   };
   
-
-  // useEffect(() => {
-  //   if (currentStatus === 'success') {
-  //     switch (userType?.role) {
-  //       case 'mentor':
-  //         navigation.replace('MentorDashboard');
-  //         break;
-  //       case 'mentee':
-  //         navigation.replace('MenteeDashboard');
-  //         break;
-  //       default:
-  //         console.log('No user role found');
-  //         break;
-  //     }
-  //   }
-  // }, [currentStatus, navigation]);
+  useEffect(() => {
+    if (currentStatus === 'success') {
+      switch (userType?.role) {
+        case 'mentor':
+          navigation.replace('MentorDashboard');
+          break;
+        case 'mentee':
+          navigation.replace('MenteeDashboard');
+          break;
+        default:
+          console.log('No user role found');
+          break;
+      }
+    }
+  }, [currentStatus, navigation]);
 
   return (
     <KeyboardAvoidingView
@@ -121,7 +85,6 @@ const SignInPage: React.FC<ScreenProps<"SignInPage">> = ({navigation}) => {
           onPress={() => setIsForgotPassword(!isForgotPassword)}>
           <Text style={styles.toggleText}>Forgot your password?</Text>
         </TouchableOpacity>
-        
         <TouchableOpacity style={styles.button} onPress={handleFormSubmit}>
           <Text style={styles.buttonText}>
             {'Sign In'}
