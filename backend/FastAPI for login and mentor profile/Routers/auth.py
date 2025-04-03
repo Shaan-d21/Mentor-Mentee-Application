@@ -27,10 +27,7 @@ class Create_User_Request(BaseModel):
     mail: str
     pwd: str
     role: Roles
-class Token(BaseModel):
-    access_token: str
-    token_type: str
-
+    
 class Login_Request(BaseModel):
     email : str
     password: str
@@ -50,7 +47,7 @@ def authenticate_user(email: str, password: str, db: Session):
     return user
 
 def user_access_token(email: str, user_id: int, role: str, expires_delta: timedelta):
-    encode = {'sub': email, 'id': user_id, 'role': role}
+    encode = {'sub': email, 'id': user_id, 'role': role.value}
     expiry = datetime.now(timezone.utc) + expires_delta
     encode.update({'exp': expiry})
     return jwt.encode(encode, SECRET_KEY, algorithm=ALGORITHM)
@@ -67,7 +64,7 @@ def user_access_token(email: str, user_id: int, role: str, expires_delta: timede
 #     except JWTError:
 #         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail='Invalid token')
 
-async def get_current_user(token: Annotated[str, Depends(o2auth_bearer)]):
+async def get_current_user(token: str = Header(None)):
     try:
         payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
         mail: str = payload.get('sub')
@@ -84,10 +81,10 @@ async def get_current_user(token: Annotated[str, Depends(o2auth_bearer)]):
 
 
 # Login form
-@router.post('/login', response_model= Token)
+@router.post('/login')
 async def login_for_access_token(form_data : Annotated[OAuth2PasswordRequestForm, Depends()], db : db_dependency):
     user = authenticate_user(form_data.username, form_data.password, db)
     if not user:
         raise HTTPException(status_code=404, detail='User not found')
-    token = user_access_token(user.name, user.id, user.role, timedelta(minutes=20))
-    return {'access_token' : token, 'token_type' : 'bearer'}
+    token = user_access_token(user.name, user.id, user.role, timedelta(minutes=20000))
+    return {'access_token' : token, 'token_type' : 'bearer', 'role': user.role, 'user_name' : user.name, 'status_code' : 200, 'profile_status': user.is_profile_complete}

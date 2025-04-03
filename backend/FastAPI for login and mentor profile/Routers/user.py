@@ -1,10 +1,12 @@
+from enum import Enum
 from typing import Annotated, List
-from fastapi import APIRouter, Depends, HTTPException, Path
+from fastapi import APIRouter, Depends, HTTPException, Header, Path
 from pydantic import BaseModel, Field
 from database import SessionLocal
 from sqlalchemy.orm import Session
 from models import User,Skill, MentorSkill
 from .auth import get_current_user
+from jose import jwt, JWTError
 from passlib.context import CryptContext
 from starlette import status
 
@@ -63,20 +65,36 @@ async def create_user( db : db_dependency, new_user : CreateUserRequest): #user:
         name = new_user.name,
         mail = new_user.mail,
         pwd = bcrypt_context.hash(new_user.pwd),
-        role = new_user.role
+        role = new_user.role,
+        is_profile_complete = False
     )
     db.add(user_model)
     db.commit()
     return {"Message": "User Created", 'status_code': 200}
 
 
+SECRET_KEY = 'f7458ea66f73cac978f1233a9c9622dd8795bc98a59b2bd26622b58872212385'
+ALGORITHM = 'HS256'
+# def secure(token):
+#     # if we want to sign/encrypt the JSON object: {"hello": "world"}, we can do it as follows
+#     # encoded = jwt.encode({"hello": "world"}, JWT_SECRET, algorithm=JWT_ALGORITHM)
+#     decoded_token = jwt.decode(token, SECRET_KEY, algorithms=ALGORITHM)
+#     # this is often used on the client side to encode the user's email address or other properties
+#     return decoded_token
+
+
 
 @router.get('/all_users')
 async def view_all_users(db: db_dependency):
-    users = db.query(User).all()
-    if users == []:
-        raise HTTPException(status_code=404, detail="Users not found...")
-    return users
+    # try:
+    #     decoded = secure(authorization)
+    # except:
+    #     return HTTPException(status_code=404, detail='Not found')
+    # else:
+        users = db.query(User).all()
+        if users == []:
+            raise HTTPException(status_code=404, detail="Users not found...")
+        return users
 
     
 @router.delete('/delete_user/{id}')
@@ -92,10 +110,9 @@ async def del_user(user: user_dependency, db : db_dependency, id : int = Path(gt
 
 class Mentor_Profile(BaseModel):
     name : str
+    designation : str
     exp : int
-    github_id : str
     contact : str
-    gender : str
 
 @router.put("/mentor/profile_creation", status_code=200)
 async def mentor_profile_completion(user : user_dependency, db : db_dependency, mentor_pro : Mentor_Profile):  
@@ -105,17 +122,11 @@ async def mentor_profile_completion(user : user_dependency, db : db_dependency, 
         mentor_updates = db.query(User).filter(User.id == user.get('user_id')).first()
         if mentor_updates is None:
             raise  HTTPException(status_code=404, detail='Mentor not found')
-        # mentor_updates.id = mentor_updates.id
         mentor_updates.name = mentor_pro.name
-        # mentor_updates.mail = mentor_pro.mail
-        # mentor_updates.pwd = mentor_updates.pwd
-        # mentor_updates.role = mentor_updates.role
-        # mentor_updates.pwd = mentor_updates.organization_id
+        mentor_updates.designation = mentor_pro.designation
         mentor_updates.exp = mentor_pro.exp
-        mentor_updates.github_id = mentor_pro.github_id
-        # mentor_updates.profile_pic_url = mentor_updates.profile_pic_url
         mentor_updates.contact = mentor_pro.contact
-        mentor_updates.gender = mentor_pro.gender
+        mentor_updates.is_profile_complete = True
         db.add(mentor_updates)
         db.commit()
     except:
@@ -123,9 +134,14 @@ async def mentor_profile_completion(user : user_dependency, db : db_dependency, 
     else:
         return {"Message" : "Mentor profile updated", 'status_code': 200}
 
+class ProficiencyLevel(Enum):
+    beginner = 1
+    intermediate = 2
+    advanced = 3
+
 class Skillset(BaseModel):
     skill_name : str
-    proficiency : int = Field(gt=0, lt=6)
+    proficiency : ProficiencyLevel
 
 class SkillAdd(BaseModel):
     skills : List[Skillset]
@@ -133,7 +149,7 @@ class SkillAdd(BaseModel):
 
 @router.post('/mentor/skills')
 async def update_skills(user : user_dependency, db : db_dependency, skills_list: SkillAdd): # user : user_dependency
-    try:
+    # try:
         if user is None or user.get('role') != 'mentor':
             return HTTPException(status_code=401, detail="Authentication Error")
         skills_list = skills_list.skills
@@ -147,17 +163,20 @@ async def update_skills(user : user_dependency, db : db_dependency, skills_list:
                 db.add(skill_model)
                 db.commit()
             skill_model = db.query(Skill).filter(Skill.name == skill.skill_name).first()
+            proficiency_enum = ProficiencyLevel(skill.proficiency)
+            print(skill.proficiency)
+            print(proficiency_enum.value)
             skill_assign = MentorSkill(
                 mentor_id = user.get('user_id'),
                 skill_id = skill_model.id,
-                proficiency = skill.proficiency
+                proficiency = proficiency_enum.name
             )
             db.add(skill_assign)
             db.commit()
-    except :
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail='error')
-    else :
-        return {"Message" : "Mentor skills updated",'status_code': 200}
+    # except :
+        # raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail='error')
+    # else :
+    #     return {"Message" : "Mentor skills updated",'status_code': 200}
         
 @router.get('/mentor/profile',status_code=status.HTTP_200_OK)
 def mentor_profile(user: user_dependency, db: db_dependency):
@@ -177,9 +196,8 @@ def mentor_profile(user: user_dependency, db: db_dependency):
         'mail' : mentor_updates.mail,
         'role' : mentor_updates.role,
         'exp' : mentor_updates.exp,
-        'github_id' : mentor_updates.github_id,
+        'designation' : mentor_updates.designation,
         'contact' : mentor_updates.contact,
-        'gender' : mentor_updates.gender,
         'Skill set' : skills_model
     }
     return profile_details

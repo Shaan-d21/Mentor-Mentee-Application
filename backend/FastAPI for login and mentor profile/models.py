@@ -1,196 +1,247 @@
-# Import necessary modules from SQLAlchemy
-from sqlalchemy import Column, Integer, String, Float, Boolean, ForeignKey, CheckConstraint
+from sqlalchemy import Column, Integer, String, ForeignKey, Text, Boolean, DateTime, CheckConstraint, Enum, func
 from sqlalchemy.orm import relationship
-from sqlalchemy.ext.declarative import declarative_base
+from database import Base
+import enum
 
-# Create a base class for declarative models
-from database import base
+# Define enum classes for constrained fields
+class UserRole(enum.Enum):
+    mentor = "mentor"
+    mentee = "mentee"
+    admin = "admin"
 
-# Define the User model
-class User(base):
-    __tablename__ = 'user'
-    
+class Gender(enum.Enum):
+    male = "male"
+    female = "female"
+    others = "others"
+
+class ProficiencyLevel(enum.Enum):
+    beginner = 1
+    intermediate = 2
+    advanced = 3
+
+class TopicStatus(enum.Enum):
+    assigned = "assigned"
+    marked = "marked"
+    completed = "completed"
+
+class MentorMenteeStatus(enum.Enum):
+    approved = "approved"
+    pending = "pending"
+    not_approved = "not approved"
+
+# User model
+class User(Base):
+    __tablename__ = "user"
+
     id = Column(Integer, primary_key=True, index=True)
-    name = Column(String, nullable=False)
     mail = Column(String, unique=True, nullable=False)
-    pwd = Column(String, nullable=False)
-    role = Column(String, CheckConstraint("role IN ('mentor', 'mentee', 'admin')"), nullable=False)
-    organization_id = Column(Integer, ForeignKey('organization.id'), nullable=True)
+    name = Column(String, nullable=False)
+    pwd = Column(String, nullable=False)  # Kept as original
+    role = Column(Enum(UserRole), nullable=False)
+    organization_id = Column(Integer, ForeignKey("organization.id", ondelete="CASCADE"), nullable=True)
+    domain_id = Column(Integer, ForeignKey("domain.id", ondelete="CASCADE"), nullable=True)
+    designation = Column(String, nullable=True)
     exp = Column(Integer, nullable=True)
-    github_id = Column(String, unique=True, nullable=True)
     profile_pic_url = Column(String, nullable=True)
     contact = Column(String, unique=True, nullable=True)
-    gender = Column(String, CheckConstraint("gender IN ('male', 'female', 'others')"), nullable=True)
+    
+    is_profile_complete = Column(Boolean, nullable=False, default=False)
+    created_at = Column(DateTime, nullable=False, server_default=func.now())
+    updated_at = Column(DateTime, nullable=False, server_default=func.now(), onupdate=func.now())
 
     # Relationships
     organization = relationship("Organization", back_populates="users")
-    mentor_skills = relationship("MentorSkill", back_populates="mentor")
-    mentee_skills = relationship("MenteeSkill", back_populates="mentee")
-    mentee_courses = relationship("MenteeCourse", foreign_keys="[MenteeCourse.mentee_id]", back_populates="mentee")
-    mentor_mentees = relationship("MentorMentee", foreign_keys="[MentorMentee.mentor_id]", back_populates="mentor")
-    feedback_sent = relationship("Feedback", foreign_keys="[Feedback.sender_id]", back_populates="sender")
-    feedback_received = relationship("Feedback", foreign_keys="[Feedback.receiver_id]", back_populates="receiver")
+    domain = relationship("Domain", back_populates="users")
+    mentor_skills = relationship("MentorSkill", back_populates="mentor", cascade="all, delete-orphan")
+    mentee_skills = relationship("MenteeSkill", back_populates="mentee", cascade="all, delete-orphan")
+    mentorships = relationship("MentorMentee", back_populates="mentor", foreign_keys="[MentorMentee.mentor_id]", cascade="all, delete-orphan")
+    menteeships = relationship("MentorMentee", back_populates="mentee", foreign_keys="[MentorMentee.mentee_id]", cascade="all, delete-orphan")
+    feedback_sent = relationship("Feedback", back_populates="sender", foreign_keys="[Feedback.sender_id]", cascade="all, delete-orphan")
+    feedback_received = relationship("Feedback", back_populates="receiver", foreign_keys="[Feedback.receiver_id]", cascade="all, delete-orphan")
 
-# Define the Organization model
-class Organization(base):
-    __tablename__ = 'organization'
-    
+    def __repr__(self):
+        return f"<User {self.id}: {self.name} ({self.role.name})>"
+
+
+# Organization model
+class Organization(Base):
+    __tablename__ = "organization"
+
     id = Column(Integer, primary_key=True, index=True)
-    name = Column(String, nullable=False)
-    
-    users = relationship("User", back_populates="organization")
+    name = Column(String, nullable=False, unique=True)
+    created_at = Column(DateTime, nullable=False, server_default=func.now())
+    updated_at = Column(DateTime, nullable=False, server_default=func.now(), onupdate=func.now())
 
-# Define the Skill model
-class Skill(base):
-    __tablename__ = 'skill'
-    
+    # Relationship
+    users = relationship("User", back_populates="organization", cascade="all, delete-orphan")
+
+    def __repr__(self):
+        return f"<Organization {self.id}: {self.name}>"
+
+
+# Skill model
+class Skill(Base):
+    __tablename__ = "skill"
+
     id = Column(Integer, primary_key=True, index=True)
-    name = Column(String, unique=True, nullable=False)
-    
-    mentor_skills = relationship("MentorSkill", back_populates="skill")
-    mentee_skills = relationship("MenteeSkill", back_populates="skill")
+    name = Column(String, unique=True, nullable=False, index=True)
+    created_at = Column(DateTime, nullable=False, server_default=func.now())
+    updated_at = Column(DateTime, nullable=False, server_default=func.now(), onupdate=func.now())
 
-# Define the MentorSkill model
-class MentorSkill(base):
-    __tablename__ = 'mentor_skill'
-    
-    id = Column(Integer, primary_key=True, index=True)
-    mentor_id = Column(Integer, ForeignKey('user.id'))
-    skill_id = Column(Integer, ForeignKey('skill.id'))
-    proficiency = Column(Float, CheckConstraint("proficiency IN (1, 2, 3)"), nullable=False)
+    # Relationships
+    domain_skills = relationship("DomainSkill", back_populates="skill", cascade="all, delete-orphan")
+    mentor_skills = relationship("MentorSkill", back_populates="skill", cascade="all, delete-orphan")
+    mentee_skills = relationship("MenteeSkill", back_populates="skill", cascade="all, delete-orphan")
 
+    def __repr__(self):
+        return f"<Skill {self.id}: {self.name}>"
+
+
+# MentorSkill model
+class MentorSkill(Base):
+    __tablename__ = "mentor_skill"
+
+    mentor_id = Column(Integer, ForeignKey("user.id", ondelete="CASCADE"), primary_key=True)
+    skill_id = Column(Integer, ForeignKey("skill.id", ondelete="CASCADE"), primary_key=True)
+    proficiency = Column(Enum(ProficiencyLevel), nullable=False)
+    created_at = Column(DateTime, nullable=False, server_default=func.now())
+    updated_at = Column(DateTime, nullable=False, server_default=func.now(), onupdate=func.now())
+
+    # Relationships
     mentor = relationship("User", back_populates="mentor_skills")
     skill = relationship("Skill", back_populates="mentor_skills")
 
-# Define the MenteeSkill model
-class MenteeSkill(base):
-    __tablename__ = 'mentee_skill'
-    
-    id = Column(Integer, primary_key=True, index=True)
-    mentee_id = Column(Integer, ForeignKey('user.id'))
-    skill_id = Column(Integer, ForeignKey('skill.id'))
+    def __repr__(self):
+        return f"<MentorSkill: Mentor {self.mentor_id}, Skill {self.skill_id}>"
 
+
+# MenteeSkill model
+class MenteeSkill(Base):
+    __tablename__ = "mentee_skill"
+
+    mentee_id = Column(Integer, ForeignKey("user.id", ondelete="CASCADE"), primary_key=True)
+    skill_id = Column(Integer, ForeignKey("skill.id", ondelete="CASCADE"), primary_key=True)
+    created_at = Column(DateTime, nullable=False, server_default=func.now())
+    updated_at = Column(DateTime, nullable=False, server_default=func.now(), onupdate=func.now())
+
+    # Relationships
     mentee = relationship("User", back_populates="mentee_skills")
     skill = relationship("Skill", back_populates="mentee_skills")
 
-class Domains(base):
-    __tablename__ = 'domains'
-    
+    def __repr__(self):
+        return f"<MenteeSkill: Mentee {self.mentee_id}, Skill {self.skill_id}>"
+
+
+# Domain model
+class Domain(Base):
+    __tablename__ = "domain"
+
     id = Column(Integer, primary_key=True, index=True)
-    name = Column(String, unique=True, nullable=False)
+    name = Column(String, unique=True, nullable=False, index=True)
+    created_at = Column(DateTime, nullable=False, server_default=func.now())
+    updated_at = Column(DateTime, nullable=False, server_default=func.now(), onupdate=func.now())
+
+    # Relationships
+    users = relationship("User", back_populates="domain")
+    domain_skills = relationship("DomainSkill", back_populates="domain", cascade="all, delete-orphan")
+    roadmaps = relationship("Roadmap", back_populates="domain", cascade="all, delete-orphan")
+
+    def __repr__(self):
+        return f"<Domain {self.id}: {self.name}>"
 
 
-# Define the Domain model
-class Domain(base):
-    __tablename__ = 'domain'
-    
+# DomainSkill model
+class DomainSkill(Base):
+    __tablename__ = "domain_skill"
+
+    # id = Column(Integer, primary_key=True, index=True)
+    domain_id = Column(Integer, ForeignKey("domain.id", ondelete="CASCADE"), primary_key=True, nullable=False)
+    skill_id = Column(Integer, ForeignKey("skill.id", ondelete="CASCADE"), nullable=False, primary_key=True)
+    created_at = Column(DateTime, nullable=False, server_default=func.now())
+    updated_at = Column(DateTime, nullable=False, server_default=func.now(), onupdate=func.now())
+
+    # Relationships
+    domain = relationship("Domain", back_populates="domain_skills")
+    skill = relationship("Skill", back_populates="domain_skills")
+
+    def __repr__(self):
+        return f"<DomainSkill {self.id}: Domain {self.domain_id}, Skill {self.skill_id}>"
+
+
+# Roadmap model
+class Roadmap(Base):
+    __tablename__ = "roadmap"
+
     id = Column(Integer, primary_key=True, index=True)
-    name = Column(String, unique=True, nullable=False)
+    domain_id = Column(Integer, ForeignKey("domain.id", ondelete="CASCADE"), nullable=False)
+    name = Column(String, nullable=False)  # Added name field which was missing
+    created_at = Column(DateTime, nullable=False, server_default=func.now())
+    updated_at = Column(DateTime, nullable=False, server_default=func.now(), onupdate=func.now())
 
-    courses = relationship("Course", back_populates="domain")
+    # Relationships
+    domain = relationship("Domain", back_populates="roadmaps")
+    topics = relationship("Topic", back_populates="roadmap", cascade="all, delete-orphan")
+    mentorships = relationship("MentorMentee", back_populates="roadmap", cascade="all, delete-orphan")
 
-# Define the Course model
-class Course(base):
-    __tablename__ = 'course'
-    
+    def __repr__(self):
+        return f"<Roadmap {self.id}: {self.name} (Domain {self.domain_id})>"
+
+
+# Topic model
+class Topic(Base):
+    __tablename__ = "topic"
+
     id = Column(Integer, primary_key=True, index=True)
-    domain_id = Column(Integer, ForeignKey('domain.id'))
+    roadmap_id = Column(Integer, ForeignKey("roadmap.id", ondelete="CASCADE"), nullable=False)
     name = Column(String, nullable=False)
-    link = Column(String, nullable=False)
+    status = Column(Enum(TopicStatus), nullable=False, default=TopicStatus.assigned)
+    created_at = Column(DateTime, nullable=False, server_default=func.now())
+    updated_at = Column(DateTime, nullable=False, server_default=func.now(), onupdate=func.now())
 
-    domain = relationship("Domain", back_populates="courses")
-    mentee_courses = relationship("MenteeCourse", back_populates="course")
-    mentor_mentees = relationship("MentorMentee", back_populates="course")
+    # Relationships
+    roadmap = relationship("Roadmap", back_populates="topics")
 
-# Define the MenteeCourse model
-class MenteeCourse(base):
-    __tablename__ = 'mentee_course'
-    
+    def __repr__(self):
+        return f"<Topic {self.id}: {self.name} ({self.status.name})>"
+
+
+# MentorMentee model
+class MentorMentee(Base):
+    __tablename__ = "mentor_mentee"
+
+    mentor_id = Column(Integer, ForeignKey("user.id", ondelete="CASCADE"), primary_key=True)
+    mentee_id = Column(Integer, ForeignKey("user.id", ondelete="CASCADE"), primary_key=True)
+    roadmap_id = Column(Integer, ForeignKey("roadmap.id", ondelete="CASCADE"))
+    domain_id = Column(Integer, ForeignKey("domain.id", ondelete="CASCADE"), nullable=False)
+    status = Column(Enum(MentorMenteeStatus), nullable=False, default=MentorMenteeStatus.pending)
+    comment = Column(String, nullable=True)
+    created_at = Column(DateTime, nullable=False, server_default=func.now())
+    updated_at = Column(DateTime, nullable=False, server_default=func.now(), onupdate=func.now())
+
+    # Relationships
+    roadmap = relationship("Roadmap", back_populates="mentorships")
+    mentor = relationship("User", back_populates="mentorships", foreign_keys=[mentor_id])
+    mentee = relationship("User", back_populates="menteeships", foreign_keys=[mentee_id])
+
+    def __repr__(self):
+        return f"<MentorMentee: Mentor {self.mentor_id}, Mentee {self.mentee_id}, Status {self.status.name}>"
+
+
+# Feedback model
+class Feedback(Base):
+    __tablename__ = "feedback"
+
     id = Column(Integer, primary_key=True, index=True)
-    mentee_id = Column(Integer, ForeignKey('user.id'))
-    mentor_id = Column(Integer, ForeignKey('user.id'))
-    course_id = Column(Integer, ForeignKey('course.id'))
-    rating = Column(Float, nullable=False)
+    sender_id = Column(Integer, ForeignKey("user.id", ondelete="CASCADE"), nullable=False)
+    receiver_id = Column(Integer, ForeignKey("user.id", ondelete="CASCADE"), nullable=False)
+    feedback = Column(Text, nullable=False)
+    sender_role = Column(Enum(UserRole), nullable=False)
+    created_at = Column(DateTime, nullable=False, server_default=func.now())
+    updated_at = Column(DateTime, nullable=False, server_default=func.now(), onupdate=func.now())
 
-    mentee = relationship("User", foreign_keys=[mentee_id], back_populates="mentee_courses")
-    mentor = relationship("User", foreign_keys=[mentor_id])
-    course = relationship("Course", back_populates="mentee_courses")
+    # Relationships
+    sender = relationship("User", back_populates="feedback_sent", foreign_keys=[sender_id])
+    receiver = relationship("User", back_populates="feedback_received", foreign_keys=[receiver_id])
 
-
-class MentorMentee_rel(base):
-    __tablename__ = 'mentor_mentee_rel'
-    
-    id = Column(Integer, primary_key=True, index=True)
-    mentor_id = Column(Integer, ForeignKey('user.id'))
-    mentee_id = Column(Integer, ForeignKey('user.id'))
-    domain_id = Column(Integer, ForeignKey('domains.id'))
-    duration = Column(Integer, nullable=False)
-    approved = Column(Boolean, nullable=False)
-
-
-# Define the MentorMentee model
-class MentorMentee(base):
-    __tablename__ = 'mentor_mentee'
-    
-    id = Column(Integer, primary_key=True, index=True)
-    mentor_id = Column(Integer, ForeignKey('user.id'))
-    mentee_id = Column(Integer, ForeignKey('user.id'))
-    course_id = Column(Integer, ForeignKey('course.id'))
-    duration = Column(Integer, nullable=False)
-    approved = Column(Boolean, nullable=False)
-
-    mentor = relationship("User", foreign_keys=[mentor_id], back_populates="mentor_mentees")
-    mentee = relationship("User", foreign_keys=[mentee_id])
-    course = relationship("Course", back_populates="mentor_mentees")
-
-# Define the Feedback model
-class Feedback(base):
-    __tablename__ = 'feedback'
-    
-    id = Column(Integer, primary_key=True, index=True)
-    sender_id = Column(Integer, ForeignKey('user.id'))
-    receiver_id = Column(Integer, ForeignKey('user.id'))
-    feedback = Column(String, nullable=False)
-    sender_role = Column(String, CheckConstraint("sender_role IN ('mentor', 'mentee')"), nullable=False)
-
-    sender = relationship("User", foreign_keys=[sender_id], back_populates="feedback_sent")
-    receiver = relationship("User", foreign_keys=[receiver_id], back_populates="feedback_received")
-
-# Pydantic models for request and response validation
-from pydantic import BaseModel, validator
-from typing import Optional
-
-class UserCreate(BaseModel):
-    organization_id: Optional[int] = None
-    name: str
-    pwd: str
-    role: str
-    exp: Optional[int] = None
-    github_id: Optional[str] = None
-    profile_pic_url: Optional[str] = None
-    contact: Optional[str] = None
-    mail: str
-    gender: Optional[str] = None
-
-    @validator('role')
-    def validate_role(cls, v):
-        allowed_roles = {'mentor', 'mentee', 'admin'}
-        if v not in allowed_roles:
-            raise ValueError("Role must be 'mentor', 'mentee', or 'admin'")
-        return v
-
-    @validator('gender')
-    def validate_gender(cls, v):
-        allowed_genders = {'male', 'female', 'others'}
-        if v and v not in allowed_genders:
-            raise ValueError("Gender must be 'male', 'female', or 'others'")
-        return v
-
-class UserResponse(BaseModel):
-    id: int
-    name: str
-    role: str
-    mail: str
-
-    class Config:
-        orm_mode = True  # Enable ORM mode for Pydantic model
+    def __repr__(self):
+        return f"<Feedback {self.id}: From {self.sender_id} To {self.receiver_id}>"
