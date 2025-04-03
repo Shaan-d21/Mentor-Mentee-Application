@@ -12,7 +12,7 @@ RUN npm ci
 
 # Copy the rest of the frontend code
 COPY . .
-ENV VITE_SERVER_ENDPOINT=http://localhost:8080/api/v1/
+ENV VITE_SERVER_ENDPOINT=http://181.214.44.15:8080/api/v1/
 # Build the React app (Vite output goes to dist/)
 RUN npm run build && ls -l /app/dist
 
