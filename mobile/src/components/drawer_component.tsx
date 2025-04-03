@@ -3,6 +3,7 @@ import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import React, { useState } from 'react';
 import { View, Text, Image, StyleSheet, Dimensions, TouchableOpacity, Animated, Button } from 'react-native';
 import { RootStackParamList } from '../navigation/types';
+import { MMKV } from 'react-native-mmkv';
 
 
 const { width, height } = Dimensions.get('window');
@@ -13,6 +14,7 @@ interface CustomDrawerContentProps {
 }
 
 const CustomDrawerContent = (props: CustomDrawerContentProps) => {
+    const storage= new MMKV();
     const [drawerAnimation] = useState(new Animated.Value(0));
     const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
   
@@ -97,6 +99,25 @@ const CustomDrawerContent = (props: CustomDrawerContentProps) => {
               title="Mentee Requests"
             />
           </View>
+
+          {/*Logout Button */}
+          <View style={styles.menuItem}>
+  <Button
+    onPress={() => {
+      props.toggleDrawer(); // Close the drawer first
+      navigation.navigate('SignInPage'); // Then navigate to SignInPage
+    }}
+    title="Logout"
+  />
+</View>
+          {/* <View style={styles.menuItem}>
+            <TouchableOpacity onPress={()=> navigation.navigate("SignInPage")} >
+                              <Text>
+                                Log Out
+                                </Text>
+                              </TouchableOpacity>
+          </View> */}
+        
         </View>
       </Animated.View>
     );

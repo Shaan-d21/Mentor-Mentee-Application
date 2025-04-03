@@ -5,14 +5,16 @@ import CreateAccountPage from "../screens/AuthScreens/CreateAccountPage";
 import { FC } from "react";
 import MenteeDashboard from "../screens/Dashboards/mentee_dashboard";
 import MentorDashboard from "../screens/Dashboards/mentor_dashboard";
-import ProfileScreen from "../screens/profile/profile";
-import MenteeRequests from "../screens/match_screens/menteerequest";
+import MenteeProfileScreen from "../screens/profile/screenmenteeprofile";
+import MentorProfile from "../screens/profile/mentorprofile";
+import CustomDrawerContent from "../components/drawer_component";
+import temp from "../screens/temp";
 
 const Stack= createNativeStackNavigator<RootStackParamList>();
 export const RootNavigator: FC= ()=>{
     return (
         <Stack.Navigator
-            initialRouteName="MentorDashboard"
+            initialRouteName="SignInPage"
             screenOptions={() => ({
                 headerShown: false,
             })}
@@ -21,7 +23,13 @@ export const RootNavigator: FC= ()=>{
             <Stack.Screen name="CreateAccountPage" component={CreateAccountPage} />
             <Stack.Screen name="MenteeDashboard" component={MenteeDashboard} />
             <Stack.Screen name="MentorDashboard" component={MentorDashboard} />
-            <Stack.Screen name="ProfileScreen" component={ProfileScreen} />
+            <Stack.Screen name="MentorProfileScreen" component={MentorProfile} />
+
+            <Stack.Screen name="temp" component={temp} />
+            {/* <Stack.Screen name="CustomDrawerContent" component={CustomDrawerContent} /> */}
+
+            <Stack.Screen name="MenteeProfileScreen" component={MenteeProfileScreen} />
+            
         </Stack.Navigator>
     );
 }
