@@ -26,7 +26,17 @@ const initialState: User = {
 const sliceLogin = createSlice({
   name: 'userLogin',
   initialState,
-  reducers: {},
+  reducers: {
+    logout(state){
+      state.response= [];
+      state.email= '';
+      state.password=  '';
+      state.name= '';
+      state.role= '';
+      state.status= currentStatus.idle; 
+      // state.currentStatus.idle
+    }
+  },
 
   extraReducers(builder){
     builder.addCase(loginUser.pending, (state, action)=>{
@@ -50,12 +60,13 @@ const sliceLogin = createSlice({
 export const loginUser= createAsyncThunk("userLogin/login", async({email, password}: {email:string, password:string})=>{
   const response= await apiLoginUser({email, password});
   storage.set("token", response.access_token);
-  console.log(response.access_token);
+  // console.log(response.access_token);
   storage.set("role", response.role);
   // console.log(`Response in the slice is `, response.access_token);
-  console.log("token is ", storage.getString("token"));
-  console.log("role:", storage.getString("role")); 
+  // console.log("token is ", storage.getString("token"));
+  // console.log("role:", storage.getString("role")); 
   return response;
 });
 
+export const { logout }= sliceLogin.actions;
 export default sliceLogin.reducer;

@@ -13,13 +13,14 @@ import {useDispatch, useSelector} from 'react-redux';
 import { loginUser } from '../../redux/slices/sliceLogin';
 import { AppDispatch, RootState } from '../../redux/store';
 import { ScreenProps } from '../../navigation/types';
+import { current } from '@reduxjs/toolkit';
 
 const SignInPage: React.FC<ScreenProps<"SignInPage">> = ({navigation}) => {
   const dispatch = useDispatch<AppDispatch>();
   const [emailLocal, setEmailLocal] = React.useState('');
   const [passwordLocal, setPasswordLocal] = React.useState('');
   const [isForgotPassword, setIsForgotPassword] = React.useState(false);
-  const userType= useSelector((state:RootState)=> state.login.response);
+  const userType= useSelector((state:RootState)=> state.login.role);
   const currentStatus= useSelector((state:RootState)=> state.login.status);
 
   const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
@@ -40,51 +41,17 @@ const SignInPage: React.FC<ScreenProps<"SignInPage">> = ({navigation}) => {
       Alert.alert('Invalid Password');
       return;
     }
-    // setEmailLocal(emailLocal.toLowerCase());
     
     const email= emailLocal.toLowerCase();
 
     dispatch(loginUser({email:email, password:passwordLocal}));
-
   };
-  
-  // const handleFormSubmit = async () => {
-  //   const isEmailValid = emailRegex.test(emailLocal);
-  //   const isPasswordValid = passwordLocal.length >= 6;
-  
-  //   if (!isEmailValid && !isPasswordValid) {
-  //     Alert.alert('Invalid Username and Password');
-  //     return;
-  //   }
-  //   if (!isEmailValid) {
-  //     Alert.alert('Invalid Email');
-  //     return;
-  //   }
-  //   if (!isPasswordValid) {
-  //     Alert.alert('Invalid Password');
-  //     return;
-  //   }
-  
-  //   const email = emailLocal.toLowerCase();
-  //   await dispatch(loginUser({ email, password: passwordLocal }));
-  
-  //   // Manually handle navigation after dispatching
-  //   if (currentStatus === 'success') {
-  //     if (userType?.role === 'mentor') {
-  //       navigation.replace('MentorDashboard');
-  //     } else if (userType?.role === 'mentee') {
-  //       navigation.replace('MenteeDashboard');
-  //     } else {
-  //       console.log('No user role found');
-  //     }
-  //   }
-  // };
-  
 
-  useEffect(() => {
+  useEffect(()=>{
     if (currentStatus === 'success') {
-      switch (userType?.role) {
+      switch (userType) {
         case 'mentor':
+          // userType.role=
           navigation.navigate('MentorDashboard');
           break;
         case 'mentee':
@@ -95,16 +62,70 @@ const SignInPage: React.FC<ScreenProps<"SignInPage">> = ({navigation}) => {
           break;
       }
     }
-  }, [currentStatus, navigation]);
+    else if(currentStatus === 'failed'){
+      Alert.alert(
+        'Alert Title',
+        'Invalid Credentials',
+        [
+          {
+            text: 'OK',
+            onPress: () => {
+              navigation.pop()
+              console.log('Cancel Pressed')
+              setEmailLocal('')
+              setPasswordLocal('')
+            },
+          }
+        ]
+      )
+    }
+  },[userType, currentStatus])
+  
+  // useEffect(() => {
+  //   console.log('useEffect');
+  //   console.log(userType);
+  //   if (currentStatus === 'success') {
+  //     switch (userType) {
+  //       case 'mentor':
+  //         // userType.role=
+  //         navigation.navigate('MentorDashboard');
+  //         break;
+  //       case 'mentee':
+  //         navigation.navigate('MenteeDashboard');
+  //         break;
+  //       default:
+  //         console.log('No user role found');
+  //         break;
+  //     }
+  //   }
+  // }, [userType]);
+  
+  
+  //If the user is not present in the database
+  // useEffect(()=>{
+  //   if(currentStatus === 'failed'){
+  //     Alert.alert(
+  //       'Alert Title',
+  //       'Invalid Credentials',
+  //       [
+  //         {
+  //           text: 'OK',
+  //           onPress: () => {
+  //             navigation.pop()
+  //             console.log('Cancel Pressed')
+  //             setEmailLocal('')
+  //             setPasswordLocal('')
+  //           },
+  //         }
+  //       ]
+  //     )
+  //   }
+  // },[currentStatus]);
 
   return (
     currentStatus === 'loading' ? (
         <View style={styles.container}>
           <Text style={styles.loadingText}>Loading Profile...</Text>
-        </View>
-      ) : currentStatus === 'failed' ? (
-        <View style={styles.container}>
-          <Text style={styles.loadingText}>Failed to load Profile.</Text>
         </View>
       ) : (
     <KeyboardAvoidingView
