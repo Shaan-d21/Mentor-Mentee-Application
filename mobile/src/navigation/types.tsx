@@ -11,6 +11,8 @@ export type RootStackParamList = {
     FindMentorScreen: undefined;
     MenteeRequests: undefined;
     MentorProfileScreen: undefined;
+    MenteeRoadmap:undefined;
+    RoadmapScreen: undefined;
     // CustomDrawerContent: undefined;
     temp: undefined;
     viewRoadmap: undefined;

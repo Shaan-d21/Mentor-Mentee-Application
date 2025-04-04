@@ -5,6 +5,7 @@ import registerReducer from './slices/sliceRegister';
 import menteeProfileReducer from './slices/menteeProfileSlice';
 import mentorProfileReducer from './slices/mentorProfileSlice';
 import sliceMenteeDashboard from './slices/sliceMenteeDashboard';
+import menteeRoadmapReducer from './slices/sliceMenteeRoadmap';
 
 
 export const store = configureStore({
@@ -15,6 +16,7 @@ export const store = configureStore({
     menteeDashboard: sliceMenteeDashboard,
     menteeProfile: menteeProfileReducer,
     mentorProfile: mentorProfileReducer,
+    menteeRoadmap:menteeRoadmapReducer
   },
   middleware: (getDefaultMiddleware) => getDefaultMiddleware(),
 });
