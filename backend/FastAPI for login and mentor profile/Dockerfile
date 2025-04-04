@@ -5,7 +5,9 @@ WORKDIR /app
 
 COPY requirements.txt ./
 
-RUN apt-get update && apt-get install -y gcc g++ libpq-dev && \
+# Install required system packages including the missing Perl module
+RUN apt-get update && \
+    apt-get install -y gcc g++ libpq-dev libterm-readline-perl-perl && \   
     python -m venv /app/venv && \
     /app/venv/bin/pip install --upgrade pip && \
     /app/venv/bin/pip install -r requirements.txt && \
