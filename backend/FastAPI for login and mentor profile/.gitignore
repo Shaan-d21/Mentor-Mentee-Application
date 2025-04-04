@@ -71,3 +71,4 @@ Frontend/build/
 Frontend/dist/
 Frontend/.temp/
 Frontend/.tmp/
+/.env
