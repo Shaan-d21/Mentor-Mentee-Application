@@ -11,6 +11,7 @@ interface User {
   password: string;
   status: currentStatus;
   name: string;
+  role: 'mentee' | 'mentor' |'';
 }
 
 const initialState: User = {
@@ -18,6 +19,7 @@ const initialState: User = {
   email: '',
   password: '',
   name:'',
+  role:'',
   status: currentStatus.idle
 };
 
@@ -34,7 +36,9 @@ const sliceLogin = createSlice({
       state.response= action.payload;
       state.status= currentStatus.success;
       state.name= action.payload.name;
-      // console.log('Current state is ', state.response);
+      state.role = action.payload.role;
+      storage.set("role", action.payload.role); 
+      console.log('Current state is ', state.response);
 
     }).addCase(loginUser.rejected, (state, action)=>{
       state.status= currentStatus.failed;
@@ -46,8 +50,10 @@ export const loginUser= createAsyncThunk("userLogin/login", async({email, passwo
   const response= await apiLoginUser({email, password});
   storage.set("token", response.access_token);
   console.log(response.access_token);
+  storage.set("role", response.role);
   // console.log(`Response in the slice is `, response.access_token);
   console.log("token is ", storage.getString("token"));
+  console.log("role:", storage.getString("role")); 
   return response;
 });
 

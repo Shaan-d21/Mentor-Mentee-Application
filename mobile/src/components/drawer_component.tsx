@@ -1,12 +1,11 @@
-import { useNavigation } from '@react-navigation/native';
-import { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import React, { useState } from 'react';
-import { View, Text, Image, StyleSheet, Dimensions, TouchableOpacity, Animated, Button } from 'react-native';
-import { RootStackParamList } from '../navigation/types';
-import { MMKV } from 'react-native-mmkv';
+import { useNavigation } from "@react-navigation/native";
+import { NativeStackNavigationProp } from "@react-navigation/native-stack";
+import React, { useState, useEffect } from "react";
+import { View, Text, StyleSheet, Dimensions, TouchableOpacity, Animated, Button } from "react-native";
+import { RootStackParamList } from "../navigation/types";
+import { MMKV } from "react-native-mmkv";
 
-
-const { width, height } = Dimensions.get('window');
+const { width, height } = Dimensions.get("window");
 
 interface CustomDrawerContentProps {
   isOpen: boolean;
@@ -14,139 +13,125 @@ interface CustomDrawerContentProps {
 }
 
 const CustomDrawerContent = (props: CustomDrawerContentProps) => {
-    const storage= new MMKV();
-    const [drawerAnimation] = useState(new Animated.Value(0));
-    const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
-  
-    const openDrawer = React.useCallback(() => {
-      Animated.timing(drawerAnimation, {
-        toValue: 1,
-        duration: 300,
-        useNativeDriver: true,
-      }).start();
-    }, [drawerAnimation]);
-  
-    const closeDrawer = React.useCallback(() => {
-      Animated.timing(drawerAnimation, {
-        toValue: 0,
-        duration: 300,
-        useNativeDriver: true,
-      }).start();
-    }, [drawerAnimation]);
-  
-    const drawerTranslateX = drawerAnimation.interpolate({
-      inputRange: [0, 1],
-      outputRange: [-width * 0.8, 0],
-    });
-  
-    React.useEffect(() => {
-      if (props.isOpen) {
-        openDrawer();
-      } else {
-        closeDrawer();
-      }
-    }, [props.isOpen, openDrawer, closeDrawer]);
-  
-    return (
-      <Animated.View style={[styles.drawerContainer, { transform: [{ translateX: drawerTranslateX }] }]}>
-        <TouchableOpacity style={styles.overlay} onPress={props.toggleDrawer} />
-        <View style={styles.drawerContent}>
-          <View style={styles.profileContainer}>
-            <View style={[styles.profileIcon, { backgroundColor: 'gray' }]} />
-            <Text style={styles.profileName}>John Doe</Text>
-          </View>
-          <View style={styles.separator} />
-          <View style={styles.menuItem}>
-            <Button
-              onPress={() => navigation.navigate('MentorDashboard')}
-              title="Mentor Dashboard"
-            />
-          </View>
-          <View style={styles.menuItem}>
-            <Button
-              onPress={() => navigation.navigate('MenteeDashboard')}
-              title="Mentee Dashboard"
-            />
-          </View>
-          <View style={styles.menuItem}>
-            <Button
-              onPress={() => navigation.navigate('ProfileScreen')}
-              title="Profile"
-            />
-          </View>
-          
-          <View style={styles.menuItem}>
-            <Button
-              onPress={() => navigation.navigate('MenteeProgress')}
-              title="Mentee Progress"
-            />
-          </View>
-          <View style={styles.menuItem}>
-            <Button
-              onPress={() => navigation.navigate('EnrolledCoursesScreen')}
-              title="Enrolled Courses"
-            />
-          </View>
-          <View style={styles.menuItem}>
-            <Button
-              onPress={() => navigation.navigate('FindMentorScreen')}
-              title="Find Mentor"
-            />
-          </View>
-          <View style={styles.menuItem}>
-            <Button
-              onPress={() => navigation.navigate('MenteeRequests')}
-              title="Mentee Requests"
-            />
-          </View>
+  const storage = new MMKV();
+  const [drawerAnimation] = useState(new Animated.Value(0));
+  const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
+  const [userRole, setUserRole] = useState<string | null>(null);
 
-          {/*Logout Button */}
-          <View style={styles.menuItem}>
-  <Button
-    onPress={() => {
-      props.toggleDrawer(); // Close the drawer first
-      navigation.navigate('SignInPage'); // Then navigate to SignInPage
-    }}
-    title="Logout"
-  />
-</View>
-          {/* <View style={styles.menuItem}>
-            <TouchableOpacity onPress={()=> navigation.navigate("SignInPage")} >
-                              <Text>
-                                Log Out
-                                </Text>
-                              </TouchableOpacity>
-          </View> */}
-        
-        </View>
-      </Animated.View>
-    );
-  };
+  useEffect(() => {
+    const role = storage.getString("role") || null; 
+    setUserRole(role); 
+  }, []);
   
+  const openDrawer = React.useCallback(() => {
+    Animated.timing(drawerAnimation, {
+      toValue: 1,
+      duration: 300,
+      useNativeDriver: true,
+    }).start();
+  }, [drawerAnimation]);
+
+  const closeDrawer = React.useCallback(() => {
+    Animated.timing(drawerAnimation, {
+      toValue: 0,
+      duration: 300,
+      useNativeDriver: true,
+    }).start();
+  }, [drawerAnimation]);
+
+  const drawerTranslateX = drawerAnimation.interpolate({
+    inputRange: [0, 1],
+    outputRange: [-width * 0.8, 0],
+  });
+
+  useEffect(() => {
+    if (props.isOpen) {
+      openDrawer();
+    } else {
+      closeDrawer();
+    }
+  }, [props.isOpen, openDrawer, closeDrawer]);
+
+  // Logout function
+  const handleLogout = () => {
+    storage.delete("role"); // Clear role from storage
+    storage.delete("token"); // Clear token if stored
+    props.toggleDrawer(); // Close drawer
+    navigation.navigate("SignInPage"); // Navigate to login page
+  };
+
+  return (
+    <Animated.View style={[styles.drawerContainer, { transform: [{ translateX: drawerTranslateX }] }]}>
+      <TouchableOpacity style={styles.overlay} onPress={props.toggleDrawer} />
+      <View style={styles.drawerContent}>
+        <View style={styles.profileContainer}>
+          <View style={[styles.profileIcon, { backgroundColor: "gray" }]} />
+          <Text style={styles.profileName}>John Doe</Text>
+        </View>
+        <View style={styles.separator} />
+
+        {/* Conditional Navigation Based on Role */}
+        {userRole === "mentee" && (
+          <>
+            <View style={styles.menuItem}>
+              <Button onPress={() => navigation.navigate("MenteeDashboard")} title="Mentee Dashboard" />
+            </View>
+            <View style={styles.menuItem}>
+              <Button onPress={() => navigation.navigate("MenteeProfileScreen")} title="Mentee Profile" />
+            </View>
+            <View style={styles.menuItem}>
+              <Button onPress={() => navigation.navigate("FindMentorScreen")} title="Find Mentor" />
+            </View>
+          </>
+        )}
+
+        {userRole === "mentor" && (
+          <>
+            <View style={styles.menuItem}>
+              <Button onPress={() => navigation.navigate("MentorDashboard")} title="Mentor Dashboard" />
+            </View>
+            <View style={styles.menuItem}>
+              <Button onPress={() => navigation.navigate("MentorProfileScreen")} title="Mentor Profile" />
+            </View>
+            <View style={styles.menuItem}>
+              <Button onPress={() => navigation.navigate("MenteeRequests")} title="Mentee Requests" />
+            </View>
+          </>
+        )}
+
+        {/* Logout Button */}
+        <View style={styles.menuItem}>
+          <Button onPress={handleLogout} title="Logout" />
+        </View>
+      </View>
+    </Animated.View>
+  );
+};
+
 const styles = StyleSheet.create({
   drawerContainer: {
-    position: 'absolute',
+    position: "absolute",
     top: 0,
     left: 0,
     width: width,
     height: height,
     zIndex: 1000,
     elevation: 4,
-    flexDirection: 'row',
+    flexDirection: "row",
   },
   overlay: {
     flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    backgroundColor: "rgba(0, 0, 0, 0.5)",
   },
   drawerContent: {
     width: width * 0.8,
-    height: '100%',
-    backgroundColor: 'white',
+    height: "100%",
+    backgroundColor: "white",
     padding: 16,
   },
   profileContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     padding: 16,
   },
   profileIcon: {
@@ -157,18 +142,15 @@ const styles = StyleSheet.create({
   },
   profileName: {
     fontSize: 18,
-    fontWeight: 'bold',
+    fontWeight: "bold",
   },
   separator: {
     height: 1,
-    backgroundColor: '#ccc',
+    backgroundColor: "#ccc",
     marginVertical: 8,
   },
   menuItem: {
     paddingVertical: 12,
-  },
-  menuItemText: {
-    fontSize: 16,
   },
 });
 
