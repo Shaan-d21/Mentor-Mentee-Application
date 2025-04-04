@@ -79,9 +79,9 @@ const CustomDrawerContent = (props: CustomDrawerContentProps) => {
             <View style={styles.menuItem}>
               <Button onPress={() => navigation.navigate("MenteeProfileScreen")} title="Mentee Profile" />
             </View>
-            <View style={styles.menuItem}>
+            {/* <View style={styles.menuItem}>
               <Button onPress={() => navigation.navigate("FindMentorScreen")} title="Find Mentor" />
-            </View>
+            </View> */}
           </>
         )}
 
@@ -93,9 +93,9 @@ const CustomDrawerContent = (props: CustomDrawerContentProps) => {
             <View style={styles.menuItem}>
               <Button onPress={() => navigation.navigate("MentorProfileScreen")} title="Mentor Profile" />
             </View>
-            <View style={styles.menuItem}>
+            {/* <View style={styles.menuItem}>
               <Button onPress={() => navigation.navigate("MenteeRequests")} title="Mentee Requests" />
-            </View>
+            </View> */}
           </>
         )}
 

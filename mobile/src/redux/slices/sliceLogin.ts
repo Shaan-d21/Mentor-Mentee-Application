@@ -35,10 +35,11 @@ const sliceLogin = createSlice({
     }).addCase(loginUser.fulfilled, (state, action)=>{
       state.response= action.payload;
       state.status= currentStatus.success;
-      state.name= action.payload.name;
+      state.name= action.payload.user_name;
       state.role = action.payload.role;
-      storage.set("role", action.payload.role); 
+
       console.log('Current state is ', state.response);
+      storage.set("role", state.role); 
 
     }).addCase(loginUser.rejected, (state, action)=>{
       state.status= currentStatus.failed;

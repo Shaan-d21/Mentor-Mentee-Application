@@ -30,20 +30,13 @@ export const RootNavigator: React.FC = () => {
       <Stack.Screen name="CreateAccountPage" component={CreateAccountPage} />
 
       {/* Mentee Screens */}
-      {userRole === "mentee" && (
-        <>
           <Stack.Screen name="MenteeDashboard" component={MenteeDashboard} />
           <Stack.Screen name="MenteeProfileScreen" component={MenteeProfileScreen} />
-        </>
-      )}
+
 
       {/* Mentor Screens */}
-      {userRole === "mentor" && (
-        <>
           <Stack.Screen name="MentorDashboard" component={MentorDashboard} />
           <Stack.Screen name="MentorProfileScreen" component={MentorProfile} />
-        </>
-      )}
     </Stack.Navigator>
   );
 };
