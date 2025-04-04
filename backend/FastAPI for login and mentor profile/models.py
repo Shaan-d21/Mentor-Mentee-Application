@@ -174,7 +174,7 @@ class Roadmap(Base):
 
     id = Column(Integer, primary_key=True, index=True)
     domain_id = Column(Integer, ForeignKey("domain.id", ondelete="CASCADE"), nullable=False)
-    name = Column(String, nullable=False)  # Added name field which was missing
+    name = Column(Text, nullable=False)  # Added name field which was missing
     created_at = Column(DateTime, nullable=False, server_default=func.now())
     updated_at = Column(DateTime, nullable=False, server_default=func.now(), onupdate=func.now())
 
