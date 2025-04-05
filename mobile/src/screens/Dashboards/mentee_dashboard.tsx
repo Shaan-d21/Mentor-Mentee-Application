@@ -1,162 +1,279 @@
-import React, { useEffect, useState, FC } from 'react';
-import { View, Text, StyleSheet, ScrollView, Button, TextInput, TouchableOpacity } from 'react-native';
+import React, { FC, useEffect, useState } from 'react';
+import {
+  View,
+  Text,
+  StyleSheet,
+  ScrollView,
+  TouchableOpacity,
+  Alert,
+  FlatList
+} from 'react-native';
 import { Avatar } from 'react-native-elements';
 import AppBar from '../../components/appbar_component';
 import { useSelector, useDispatch } from 'react-redux';
 import { RootState, AppDispatch } from '../../redux/store';
 import { Dropdown } from 'react-native-element-dropdown';
-import { getMentorList, sendMentorRequest } from '../../redux/slices/sliceMenteeDashboard';
+import { setMentorList } from '../../redux/slices/sliceMenteeDashboard';
 import { ScreenProps } from '../../navigation/types';
+import fetchMentors from '../../services/apimentordomain'; // Import the fetchMentors function
 
-const MenteeDashboard: FC<ScreenProps<"MenteeDashboard">> = ({navigation}) => {  
+const COLUMN_WIDTH = 140;
+
+const MenteeDashboard: FC<ScreenProps<'MenteeDashboard'>> = ({ navigation }) => {
   const dispatch = useDispatch<AppDispatch>();
+  const userName = useSelector((state: RootState) => state.login.name);
+  const { mentorList } = useSelector((state: RootState) => state.menteeDashboard);
 
-  const data=[
-    {label: "Programming Languages", value: "Programming Languages"},
-    {label: "Database & Backend", value: "Database & Backend"},
-    {label: "Cloud Computing", value: "Cloud Computing"},
-    {label: "DevOps & Deployment", value: "DevOps & Deployment"},
-    {label: "Artificial Intelligence & Machine Learning", value: "Artificial Intelligence & Machine Learning"},
-    {label: "Data Science & Analytics", value: "Data Science & Analytics"},
-    {label: "Project & Team Management", value: "Project & Team Management"},
-    {label: "Software Development", value: "Software Development"},
-    {label: "Soft Skills", value: "Soft Skills"},
-    {label: "Web Development", value: "Web Development"}
+  const [selectedDomain, setSelectedDomain] = useState('');
+  const [filteredList, setFilteredList] = useState<any[]>([]);
+  const [showDropdown, setShowDropdown] = useState(false);
+  const [showCompatibilityColumns, setShowCompatibilityColumns] = useState(false);
+
+  const domainOptions = [
+    { label: 'Programming Languages', value: 'Programming Languages' },
+    { label: 'Database & Backend', value: 'Database & Backend' },
+    { label: 'Cloud Computing', value: 'Cloud Computing' },
+    { label: 'DevOps & Deployment', value: 'DevOps & Deployment' },
+    { label: 'AI & ML', value: 'Artificial Intelligence & Machine Learning' },
+    { label: 'Data Science', value: 'Data Science' },
+    { label: 'Software Development', value: 'Software Development' },
   ];
-  const {mentorList, requestMentorId}= useSelector((state:RootState)=> state.menteeDashboard)
 
-  const [value, setValue] = useState('');
-  // useEffect(()=>{console.log(`value is ${JSON.stringify(value)}`)}, [value]);
+  useEffect(() => {
+      const value = fetchMentors();
+      console.log('Fetched mentors:', value);
+    // Initially fetch all mentors (mocked compatibility API response)
+    const response = {
+      domain_mentors: [
+        {
+          name: 'Mentor Two',
+          id: 102,
+          mail: 'mentor2@example.com',
+          designation: 'AI Researcher',
+          domain: 'Artificial Intelligence & Machine Learning',
+          score: 78,
+          reason:
+            'Belongs to the AI/ML domain. Has strong skills in Deep Learning (advanced), Machine Learning (intermediate), and Generative AI (intermediate), which contribute to a high score with the domain bonus.'
+        },
+        {
+          name: 'Alice AI',
+          id: 103,
+          mail: 'alice.ai@example.com',
+          designation: 'AI Engineer',
+          domain: 'Artificial Intelligence & Machine Learning',
+          score: 0,
+          reason:
+            'Belongs to the AI/ML domain, but has no matching skills, resulting in a base score of 0. No skills to evaluate.'
+        },
+        {
+          name: 'Bob ML',
+          id: 104,
+          mail: 'bob.ml@example.com',
+          designation: 'ML Researcher',
+          domain: 'Artificial Intelligence & Machine Learning',
+          score: 0,
+          reason:
+            'Belongs to the AI/ML domain, but has no matching skills, resulting in a base score of 0. No skills to evaluate.'
+        },
+        {
+          name: 'Mentor Three',
+          id: 105,
+          mail: 'mentor3@example.com',
+          designation: 'None',
+          domain: 'Artificial Intelligence & Machine Learning',
+          score: 0,
+          reason:
+            'Belongs to the AI/ML domain, but has no matching skills, resulting in a base score of 0. No skills to evaluate.'
+        }
+      ],
+      other_domain_mentors: [
+        {
+          name: 'Charlie Web',
+          id: 106,
+          mail: 'charlie.web@example.com',
+          designation: 'Frontend Dev',
+          domain: 'Web Development',
+          score: 0,
+          reason:
+            'Does not belong to the AI/ML domain. No skills to evaluate, resulting in a score of 0.'
+        },
+        {
+          name: 'Diana Cyber',
+          id: 107,
+          mail: 'diana.cyber@example.com',
+          designation: 'Cyber Analyst',
+          domain: 'Database & Backend',
+          score: 0,
+          reason:
+            'Does not belong to the AI/ML domain. No skills to evaluate, resulting in a score of 0.'
+        }
+      ]
+    };
 
-const userName = useSelector((state: RootState) => state.login.name);
+    const formattedMentors = [...response.domain_mentors, ...response.other_domain_mentors].map((mentor) => ({
+      id: mentor.id,
+      name: mentor.name,
+      email: mentor.mail,
+      role: mentor.domain,
+      designation: mentor.designation,
+      techStack: mentor.domain,
+      score: mentor.score,
+      action: 'Send Request',
+      comment: mentor.reason
+    }));
 
-  
-  const submitDomain= ()=>{
-    dispatch(getMentorList(value));
-    // console.log(`Users are : ${JSON.stringify(mentorList)}`);
-  }
-  const sendRequest= (id:number, domain:string)=>{
-    // console.log(`id is ${id} and domain is ${domain}`);
-    dispatch(sendMentorRequest({id, domain}));
-    console.log("send request");
-  }
+    dispatch(setMentorList(formattedMentors));
+    setFilteredList(formattedMentors); // initially show all
+  }, [dispatch]);
 
+  const handleSendRequest = (_mentorId: number) => {
+    if (!selectedDomain) {
+      Alert.alert('Please select a domain');
+      return;
+    }
+    Alert.alert('Request Sent');
+    // dispatch(sendMentorRequest({ mentorId, domain: selectedDomain }, dispatch));
+  };
+
+  const handleCheckCompatibility = () => {
+    setShowDropdown(true);
+  };
+
+  const handleDomainSelect = (value: string) => {
+    setSelectedDomain(value);
+    setShowCompatibilityColumns(true);
+
+    const filtered = mentorList.filter((mentor) =>
+      mentor.techStack.toLowerCase().includes(value.toLowerCase())
+    );
+    setFilteredList(filtered);
+  };
+
+  const renderMentorRow = ({ item }: { item: any }) => (
+    <View style={styles.row}>
+      <Text style={styles.cell}>{item.name}</Text>
+      <Text style={styles.cell}>{item.email}</Text>
+      {showCompatibilityColumns && <Text style={styles.cell}>{item.role}</Text>}
+      <Text style={styles.cell}>{item.designation}</Text>
+      <Text style={styles.cell}>{item.techStack}</Text>
+      {showCompatibilityColumns && <Text style={styles.cell}>{item.score}</Text>}
+      {showCompatibilityColumns && (
+        <TouchableOpacity onPress={() => handleSendRequest(item.id)} style={styles.cell}>
+          <Text style={styles.actionText}>{item.action}</Text>
+        </TouchableOpacity>
+      )}
+      {showCompatibilityColumns && <Text style={styles.cell}>{item.comment}</Text>}
+    </View>
+  );
 
   return (
     <View style={styles.container}>
-      <AppBar onProfilePress={() => {navigation.navigate("MenteeProfileScreen")}} openDrawer={() => {}} />
-      
+      <AppBar onProfilePress={() => navigation.navigate('MenteeProfileScreen')} openDrawer={() => {}} />
+
       <View style={styles.header}>
         <Text style={styles.headerText}>Hello, {userName} 👋</Text>
         <Avatar rounded icon={{ name: 'user', type: 'font-awesome' }} />
       </View>
 
-      {/*Dropdown button for selecting the domain.*/}
-      <Dropdown 
-        style= {{marginHorizontal: 20}}
-        data={data} 
-        labelField={"label"}
-        valueField="value"
-        value={value}
-        placeholder="Select Domain"
-        onChange= {(item)=>{setValue(item.value)}}
-      />
+      <TouchableOpacity style={styles.checkButton} onPress={handleCheckCompatibility}>
+        <Text style={styles.checkButtonText}>Check Compatibility</Text>
+      </TouchableOpacity>
 
-      <Button 
-        title="Find Mentors"
-        onPress= {submitDomain}
-      />
-        {/* <Button
-              title="Logout"
-              onPress={()=>{
-                console.log("Navigation from mentee dashboard")
-                navigation.replace('SignInPage')}}/> */}
+      {showDropdown && (
+        <Dropdown
+          style={styles.dropdown}
+          data={domainOptions}
+          labelField="label"
+          valueField="value"
+          value={selectedDomain}
+          placeholder="Select Domain"
+          onChange={(item: { value: string; label: string }) => handleDomainSelect(item.value)}
+        />
+      )}
 
-                 {/* <TouchableOpacity onPress={()=> navigation.navigate("SignInPage")} >
-                  <Text>
-                    Log Out
-                    </Text>
-                  </TouchableOpacity> */}
+      <ScrollView horizontal>
+        <View>
+          <View style={styles.headerRow}>
+            <Text style={styles.headerCell}>Mentor Name</Text>
+            <Text style={styles.headerCell}>Email</Text>
+            {showCompatibilityColumns && <Text style={styles.headerCell}>Domain</Text>}
+            <Text style={styles.headerCell}>Designation</Text>
+            <Text style={styles.headerCell}>Tech Stack</Text>
+            {showCompatibilityColumns && <Text style={styles.headerCell}>Score</Text>}
+            {showCompatibilityColumns && <Text style={styles.headerCell}>Actions</Text>}
+            {showCompatibilityColumns && <Text style={styles.headerCell}>Comments</Text>}
+          </View>
 
-      {/* List of the Mentors */}
-      <ScrollView contentContainerStyle={styles.content}>
-        /* If there are not mentors then */
-        {mentorList=== null || mentorList.length === 0 ? (
-          <Text style={styles.noRequestsText}>No mentors found at this moment</Text>
-        ) : 
-        /* List all the mentors */
-        (
-          mentorList.map(mentor => (
-            <View key={mentor.id} style={styles.menteeRequest}>
-              <Text style={styles.text}>{mentor.name}</Text>
-              {
-                requestMentorId=== mentor.id ?(
-                  <Text style={{ color: "blue", marginTop: 5 }}>Pending</Text>
-                ) : (
-                  <Button
-                title="Request"
-                onPress={() => sendRequest(mentor.id, value)}
-                disabled={requestMentorId !== null} // Disable all other buttons
-              />
-                )
-              }
-              {/* <Button title="Request" onPress= {()=>{sendRequest(mentor.id, mentor.domain)}}/> */}
-            </View>
-          ))
-        )}
+          <FlatList
+            data={filteredList}
+            keyExtractor={(item) => item.id.toString()}
+            renderItem={renderMentorRow}
+          />
+        </View>
       </ScrollView>
     </View>
   );
 };
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#FAFAFA' },
-  header: { padding: 20, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
-  headerText: { fontSize: 24, fontWeight: 'bold', color: '#333' },
-  content: { flexGrow: 1, padding: 20 },
-  noRequestsText: { textAlign: 'center', color: '#888', fontSize: 16 },
-  
-  menteeRequest: { 
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    marginBottom: 15, 
-    padding: 15, 
-    borderRadius: 10, 
-    elevation: 3, 
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.2,
-    shadowRadius: 4,
-    backgroundColor: '#FFF9C4',
+  container: { flex: 1, backgroundColor: '#F5F5F5', padding: 20 },
+  header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 15 },
+  headerText: { fontSize: 22, fontWeight: 'bold', color: '#333' },
+
+  dropdown: {
+    marginBottom: 15,
+    backgroundColor: '#FFF',
+    padding: 10,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: '#CCC'
   },
 
-  text: { fontSize: 18, fontWeight: '600' },
+  checkButton: {
+    backgroundColor: '#28a745',
+    padding: 10,
+    borderRadius: 5,
+    alignItems: 'center',
+    marginBottom: 10
+  },
+  checkButtonText: { color: '#FFF', fontWeight: 'bold' },
 
-  input: { 
-    borderWidth: 1, 
-    borderColor: '#ccc', 
-    borderRadius: 8, 
-    padding: 10, 
-    marginVertical: 5, 
-    backgroundColor: '#fff' 
+  // Table
+  headerRow: {
+    flexDirection: 'row',
+    backgroundColor: '#444',
+    borderTopLeftRadius: 6,
+    borderTopRightRadius: 6
+  },
+  headerCell: {
+    width: COLUMN_WIDTH,
+    color: '#FFF',
+    fontWeight: 'bold',
+    padding: 10,
+    textAlign: 'center',
+    borderRightWidth: 1,
+    borderColor: '#333'
   },
 
-  buttons: { flexDirection: 'row', justifyContent: 'space-between', marginTop: 10 },
-
-  acceptedTitle: { fontSize: 20, fontWeight: 'bold', marginTop: 20 },
-  acceptedMentee: { 
-    fontSize: 18, 
-    fontWeight: 'bold', 
-    color: '#333', 
-    padding: 12, 
-    marginVertical: 5, 
-    borderRadius: 8, 
-    borderWidth: 2, 
-    borderColor: '#4CAF50', 
-    backgroundColor: '#E8F5E9',
-    textAlign: 'center' 
+  row: {
+    flexDirection: 'row',
+    backgroundColor: '#FFF',
+    borderBottomWidth: 1,
+    borderColor: '#EEE'
   },
+  cell: {
+    width: COLUMN_WIDTH,
+    padding: 10,
+    textAlign: 'center',
+    borderRightWidth: 1,
+    borderColor: '#EEE',
+    color: '#333'
+  },
+
+  actionText: {
+    color: '#007BFF',
+    fontWeight: 'bold'
+  }
 });
 
 export default MenteeDashboard;
