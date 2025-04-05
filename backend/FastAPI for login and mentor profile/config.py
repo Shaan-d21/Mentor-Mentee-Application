@@ -19,7 +19,7 @@ GEMINI_MODEL_NAME = 'models/gemini-1.5-flash-8b-exp-0827'
 # PostgreSQL Configuration
 DATABASE_USER = os.getenv("POSTGRES_USER")
 DATABASE_PASSWORD = os.getenv("POSTGRES_PASSWORD")
-DATABASE_HOST = os.getenv("POSTGRES_HOST", "localhost")
+DATABASE_HOST = os.getenv("POSTGRES_HOST", "db")
 DATABASE_PORT = os.getenv("POSTGRES_PORT", 5432)
 DATABASE_NAME = os.getenv("POSTGRES_DB")
 
