@@ -2,7 +2,8 @@ name: Deploy Application
 on:
   push:
     branches:
-      - deployment/dev2
+      # - feature/backend/fixxed-tokken
+
 jobs:
   deploy:
     runs-on: ubuntu-latest
@@ -20,6 +21,7 @@ jobs:
           key: ${{ secrets.PROMACT_SERVER_SSH_PRIVATE_KEY }}
           source: "."
           target: "Internship-2025/Mentor-Mentee-App/"
+
       - name: Create or Overwrite .env File
         uses: appleboy/ssh-action@master
         with:
@@ -38,6 +40,7 @@ jobs:
             GOOGLE_API_KEY=${{ secrets.GOOGLE_API_KEY }}
             EOL
             echo ".env file created/updated successfully."
+
       - name: Deploy on Server
         uses: appleboy/ssh-action@v1.2.2
         with:

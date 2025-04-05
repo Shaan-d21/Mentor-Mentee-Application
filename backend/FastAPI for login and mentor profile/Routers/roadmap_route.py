@@ -16,7 +16,7 @@ class GenerateRoadmapRequest(BaseModel):
     mentee_id: int
 
 # Set up the router
-router = APIRouter(prefix="/roadmaps", tags=["roadmaps"])
+router = APIRouter(prefix="/mentor", tags=["roadmap"])
 def get_db():
     db = SessionLocal()
     try:
@@ -29,7 +29,7 @@ db_dependency =  Annotated[Session, Depends(get_db)]
 user_dependency = Annotated[dict, Depends(get_current_user)]
 
 # ----- AI-Generated Roadmap -----
-@router.post("/generate/", response_model=Dict[str, Any])
+@router.post("/generate-roadmap", response_model=Dict[str, Any])
 async def generate_roadmap(request: GenerateRoadmapRequest, db: db_dependency, user: user_dependency):
     # Check if domain exists
     # if user is None or user.get("role") != UserRole.mentor:
