@@ -1,16 +1,31 @@
 import ReactRouter from "./routes/ReactRouter";
 import { Toaster } from "react-hot-toast";
 import Navbar from "./components/Navbar";
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { useLocation } from 'react-router-dom';
+import MyMentors from './pages/mentee/MyMentors';
 
-export default () => {
+const queryClient = new QueryClient();
+
+function App() {
+  const location = useLocation();
+  
+  // Check if the current path is a dashboard path to avoid double navigation components
+  const isDashboardPath = 
+    location.pathname.startsWith('/mentor/dashboard') || 
+    location.pathname.startsWith('/mentee/dashboard');
+  
   return (
-    <div className="min-h-screen">
-      <Navbar />
-      <div className="pt-0">
-        <ReactRouter />
+    <QueryClientProvider client={queryClient}>
+      <div className="min-h-screen">
+        {!isDashboardPath && <Navbar />}
+        <div className={!isDashboardPath ? "pt-0" : ""}>
+          <ReactRouter />
+        </div>
       </div>
-      {/* Configure Toaster to show messages at the top-center */}
       <Toaster position="top-center" reverseOrder={false} />
-    </div>
+    </QueryClientProvider>
   );
-};
+}
+
+export default App;
