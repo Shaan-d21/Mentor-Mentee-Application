@@ -30,7 +30,6 @@ WORKDIR /app
 
 COPY --from=base $VIRTUAL_ENV $VIRTUAL_ENV
 COPY . .
-COPY .env .env  
 
 EXPOSE 8000
 
