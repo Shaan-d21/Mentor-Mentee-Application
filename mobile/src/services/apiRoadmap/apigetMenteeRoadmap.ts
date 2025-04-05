@@ -1,70 +1,28 @@
 import { ApprovedMentor } from "../../redux/slices/sliceMenteeRoadmap";
-
-export const getApprovedMentors = async (): Promise<ApprovedMentor[]> => {
-  return new Promise((resolve) => {
-    setTimeout(() => {
-      resolve([
-        {
-          mentor_id: 1,
-          mentor_name: "Jane Smith",
-          domain_id: 101,
-          domain_name: "Database & Backend",
-        },
-        {
-          mentor_id: 2,
-          mentor_name: "Falguni Chetwani",
-          domain_id: 102,
-          domain_name: "Frontend Development",
-        },
-        {
-          mentor_id: 3,
-          mentor_name: "Alice Johnson",
-          domain_id: 103,
-          domain_name: "Data Science",
-        },
-        {
-          mentor_id: 4,
-          mentor_name: "Bob Williams",
-          domain_id: 104,
-          domain_name: "Mobile App Development",
-        },
-        {
-          mentor_id: 5,
-          mentor_name: "Charlie Brown",
-          domain_id: 101,
-          domain_name: "Database & Backend",
-        },
-        {
-          mentor_id: 6,
-          mentor_name: "Diana Miller",
-          domain_id: 105,
-          domain_name: "Cloud Computing",
-        },
-        {
-          mentor_id: 7,
-          mentor_name: "Ethan Davis",
-          domain_id: 102,
-          domain_name: "Frontend Development",
-        },
-        {
-          mentor_id: 8,
-          mentor_name: "Sophia Rodriguez",
-          domain_id: 106,
-          domain_name: "Cybersecurity",
-        },
-        {
-          mentor_id: 9,
-          mentor_name: "David Garcia",
-          domain_id: 103,
-          domain_name: "Data Science",
-        },
-        {
-          mentor_id: 10,
-          mentor_name: "Olivia Martinez",
-          domain_id: 104,
-          domain_name: "Mobile App Development",
-        },
-      ]);
-    }, 10000); // Simulating a 1-second delay to mimic an API response
-  });
+import axios from 'axios';
+interface ApiResponse {
+  data: {
+    message: string;
+    object: ApprovedMentor[];
+    status_code: number;
+  };
+}
+// const API_BASE_URL = process.env.API_URL; // Ensure API_URL is set in your environment
+const API_BASE_URL = "https://7e49-160-250-150-14.ngrok-free.app"
+export const getApprovedMentors = async (): Promise<ApiResponse[]> => {
+  try {
+    const response = await axios.get<ApiResponse[]>(`https://7e49-160-250-150-14.ngrok-free.app/mentee/mentor-roadmap-details`, {
+      headers: {
+        'accept': 'application/json',
+        'token': "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJTcmFqYW4iLCJpZCI6MSwicm9sZSI6Im1lbnRlZSIsImV4cCI6MTc0NTA2Njg1MX0.6AGeMKuHzv16JRL5h-1A1HzRyEqTv0zz8FCbUrC6OnU",
+      },
+      
+    });
+    console.log(response.data);
+    return response.data;
+  
+  } catch (error: any) {
+    console.error("Error fetching mentor roadmap details:", error);
+    throw error; // Re-throw the error so the calling function can handle it
+  }
 };

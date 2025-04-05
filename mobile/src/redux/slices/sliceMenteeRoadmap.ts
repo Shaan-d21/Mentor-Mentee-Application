@@ -25,16 +25,23 @@ const initialState: MentorState = {
 
 // Async Thunk to Fetch Mentors
 export const fetchMentors = createAsyncThunk<ApprovedMentor[], void>(
-    "mentor/fetchMentors",
-    async (_, { rejectWithValue }) => {
-      try {
-        return await getApprovedMentors(); // Ensure this returns ApprovedMentor[]
-      } catch (error) {
-        return rejectWithValue(error);
+  "mentor/fetchMentors",
+  async (_, { rejectWithValue }) => {
+    try {
+      const response = await getApprovedMentors(); // Ensure this returns ApiResponse
+      // @ts-ignore
+
+      if (response && response.object) {
+      // @ts-ignore
+        return response.object; // Extract the array from response.data.object
+      } else {
+        return rejectWithValue('Failed to fetch mentors: Invalid response format');
       }
+    } catch (error: any) {
+      return rejectWithValue(error.message || 'Failed to fetch mentors');
     }
-  );
-  
+  }
+);
 
 // Redux Slice
 const menteeRoadmapSlice = createSlice({
@@ -49,7 +56,7 @@ const menteeRoadmapSlice = createSlice({
       })
       .addCase(fetchMentors.fulfilled, (state, action: PayloadAction<ApprovedMentor[]>) => {
         state.loading = false;
-        state.mentorsAndDomain= action.payload;
+        state.mentorsAndDomain = action.payload;
       })
       .addCase(fetchMentors.rejected, (state, action) => {
         state.loading = false;

@@ -1,62 +1,66 @@
-import React from "react";
-import { View, Text, FlatList, StyleSheet } from "react-native";
+import React, { useEffect } from "react";
+import { View, Text, StyleSheet, ActivityIndicator, ScrollView, TouchableOpacity } from "react-native";
+import { useDispatch, useSelector } from "react-redux";
+import { AppDispatch, RootState } from "../../redux/store";
+import { fetchRoadmapTopics } from "../../redux/slices/sliceRoadmapTopics";
+import { useNavigation } from '@react-navigation/native';
+import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome';
+import { faArrowLeft } from '@fortawesome/free-solid-svg-icons'; // Import back arrow icon
 
-const roadmap = {
-  roadmap_id: 11,
-  roadmap_name:
-    "1. Foundational Mathematics (Linear Algebra, Calculus, Probability & Statistics)\n" +
-    "2. Programming Fundamentals (Python, R, or both)\n" +
-    "3. Data Structures and Algorithms\n" +
-    "4. Data Wrangling and Cleaning (using Pandas, or equivalent)\n" +
-    "5. Exploratory Data Analysis (EDA) techniques\n" +
-    "6. Data Visualization (using Matplotlib, Seaborn, or equivalent)\n" +
-    "7. Supervised Learning Algorithms (Linear Regression, Logistic Regression, Decision Trees, Random Forests, Support Vector Machines)\n" +
-    "8. Unsupervised Learning Algorithms (Clustering, Dimensionality Reduction, Association Rule Mining)\n" +
-    "9. Model Evaluation and Selection\n" +
-    "10. Model Tuning and Regularization\n" +
-    "11. Feature Engineering and Selection\n" +
-    "12. Time Series Analysis\n" +
-    "13. Natural Language Processing (NLP) basics\n" +
-    "14. Deep Learning Fundamentals (Neural Networks, Backpropagation)\n" +
-    "15. Specific Deep Learning Architectures (Convolutional Neural Networks (CNNs), Recurrent Neural Networks (RNNs), Transformers)\n" +
-    "16. Big Data Technologies (Hadoop, Spark, or equivalent)\n" +
-    "17. Cloud Computing Platforms (AWS, Azure, or GCP)\n" +
-    "18. Data Warehousing and ETL\n" +
-    "19. Data Storytelling and Communication\n" +
-    "20. Project Management and Deployment\n" +
-    "21. Machine Learning Ethics and Bias\n" +
-    "22. Advanced Statistical Modeling (Bayesian methods, Time Series Forecasting)\n" +
-    "23. Reinforcement Learning\n" +
-    "24. Computer Vision\n" +
-    "25. Causal Inference\n" +
-    "26. Specialization in a specific domain (healthcare, finance, etc.)\n" +
-    "27. Advanced Deep Learning techniques (Generative Adversarial Networks (GANs), Autoencoders)\n" +
-    "28. Deploying models to production (cloud platforms, APIs, etc.)\n" +
-    "29. Continuous Learning and Staying Updated in the Field",
-  domain: "Data Science",
-};
+interface RoadmapScreenProps {
+  route: {
+    params: {
+      mentor_id: number;
+      domain_name: string;
+      domain_id: number;
+    };
+  };
+}
 
-const RoadmapScreen = () => {
-  // Convert roadmap_name into an array of topics
-  const roadmapSections = roadmap.roadmap_name.split("\n").map((item) => item.trim());
+const RoadmapScreen: React.FC<RoadmapScreenProps> = ({ route }) => {
+  const { mentor_id, domain_name, domain_id } = route.params;
+  const dispatch = useDispatch<AppDispatch>();
+  const navigation = useNavigation();
+
+  const { roadmapName, loading, error } = useSelector((state: RootState) => state.roadmap);
+
+  useEffect(() => {
+    dispatch(fetchRoadmapTopics({ mentorId: mentor_id, domainId: domain_id }));
+  }, [dispatch, mentor_id, domain_id]);
+
+  if (loading) {
+    return (
+      <View style={styles.loader}>
+        <ActivityIndicator size="large" color="#007bff" />
+      </View>
+    );
+  }
+
+  if (error) {
+    return (
+      <View style={styles.errorContainer}>
+        <Text style={styles.errorText}>Error: {error}</Text>
+      </View>
+    );
+  }
+
+  const roadmapSections = roadmapName.split("\n").map((item) => item.trim().replace(/^\*\s*/, ''));
 
   return (
-    <View style={styles.container}>
-      <Text style={styles.title}>Roadmap for {roadmap.domain}</Text>
-      <FlatList
-        data={roadmapSections}
-        keyExtractor={(item, index) => index.toString()}
-        renderItem={({ item }) => (
-          <View style={styles.section}>
-            <Text style={styles.sectionTitle}>{item}</Text>
-          </View>
-        )}
-      />
-    </View>
+    <ScrollView style={styles.container}>
+      <TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()}>
+        <FontAwesomeIcon icon={faArrowLeft} size={24} color="#000000" style={styles.backButtonIcon} />
+      </TouchableOpacity>
+      <Text style={styles.title}>Roadmap for {domain_name}</Text>
+      {roadmapSections.map((section, index) => (
+        <View style={styles.section} key={index}>
+          <Text style={styles.sectionTitle}>{section}</Text>
+        </View>
+      ))}
+    </ScrollView>
   );
 };
 
-// Styles
 const styles = StyleSheet.create({
   container: {
     flex: 1,
@@ -86,6 +90,38 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
     marginBottom: 8,
     color: "#007AFF",
+  },
+  loader: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  errorContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  errorText: {
+    fontSize: 16,
+    color: 'red',
+  },
+  backButton: {
+    paddingVertical: 8,
+    paddingHorizontal: 12,
+    borderRadius: 5,
+    marginBottom: 10,
+    alignSelf: 'flex-start',
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  backButtonText: {
+    color: '#fff',
+    fontSize: 16,
+    fontWeight: 'bold',
+    marginLeft: 5,
+  },
+  backButtonIcon: {
+    marginRight: 5,
   },
 });
 
