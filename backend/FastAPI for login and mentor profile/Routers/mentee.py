@@ -27,6 +27,7 @@ user_dependency = Annotated[dict, Depends(get_current_user)]
 
 class Mentee_Profile(BaseModel):
     name : str
+    designation : str
     contact : str
 
 
@@ -35,18 +36,26 @@ async def mentor_profile_completion(user : user_dependency, db : db_dependency, 
     try: 
         if user is None or user.get('role') != 'mentee':
             return HTTPException(status_code=401, detail="Authentication Error")
+        
         mentee_updates = db.query(User).filter(User.id == user.get('user_id')).first()
         if mentee_updates is None:
-            raise  HTTPException(status_code=404, detail='Mentee not found')
-        mentee_updates.name = mentee_pro.name
+            raise HTTPException(status_code=404, detail='Mentee not found')
+        
+        # Debug info
+        print(f"Updating mentee profile: {mentee_pro.name}, {mentee_pro.contact}")
+        
+        mentee_updates.name = mentee_pro.name   
+        mentee_updates.designation = mentee_pro.designation
         mentee_updates.contact = mentee_pro.contact
         mentee_updates.is_profile_complete = True
         db.add(mentee_updates)
         db.commit()
-    except:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail='Error')
-    else:
-        return {"Message" : "Mentee profile updated", 'status_code': 200}
+        
+        return {"Message": "Mentee profile updated", 'status_code': 200}
+    except Exception as e:
+        print(f"Error in profile_creation: {str(e)}")
+        db.rollback()
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=f'Error: {str(e)}')
 
 class Skillset(BaseModel):
     skill_name : str
@@ -59,8 +68,17 @@ async def update_skills(user : user_dependency, db : db_dependency, skills_list:
     try:
         if user is None or user.get('role') != 'mentee':
             return HTTPException(status_code=401, detail="Authentication Error")
+        
+        print(f"Updating mentee skills: {[skill.skill_name for skill in skills_list.skills]}")
+        
+        # First clear existing skills to prevent duplicates
+        existing_skills = db.query(MenteeSkill).filter(MenteeSkill.mentee_id == user.get('user_id')).all()
+        for skill in existing_skills:
+            db.delete(skill)
+        db.commit()
+        
+        # Add the new skills
         skills_list = skills_list.skills
-        # print(skills_list[0])
         for skill in skills_list:
             skill_model = db.query(Skill).filter(Skill.name == skill.skill_name).first()
             if skill_model is None:
@@ -69,6 +87,7 @@ async def update_skills(user : user_dependency, db : db_dependency, skills_list:
                 )
                 db.add(skill_model)
                 db.commit()
+            
             skill_model = db.query(Skill).filter(Skill.name == skill.skill_name).first()
             skill_assign = MenteeSkill(
                 mentee_id = user.get('user_id'),
@@ -76,10 +95,12 @@ async def update_skills(user : user_dependency, db : db_dependency, skills_list:
             )
             db.add(skill_assign)
             db.commit()
-    except :
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail='error')
-    else :
-        return {"Message" : "Mentor skills updated",'status_code': 200}
+        
+        return {"Message": "Mentee skills updated", 'status_code': 200}
+    except Exception as e:
+        print(f"Error in update_skills: {str(e)}")
+        db.rollback()
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=f'Error: {str(e)}')
         
 @router.get('/mentee/profile',status_code=status.HTTP_200_OK)
 def mentee_profile(user: user_dependency, db: db_dependency):
@@ -98,6 +119,7 @@ def mentee_profile(user: user_dependency, db: db_dependency):
         'mail' : mentee_updates.mail,
         'role' : mentee_updates.role,
         'contact' : mentee_updates.contact,
+        'designation' : mentee_updates.designation,
         'Skill set' : skills_model
     }
     return profile_details
