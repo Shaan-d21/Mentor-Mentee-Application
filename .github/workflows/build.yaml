@@ -3,7 +3,7 @@ name: Build Check
 on:
   pull_request:
     branches:
-      - deployment/dev
+      - deployment/dev2
 
 job:
   build-backend:
