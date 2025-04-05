@@ -1,22 +1,17 @@
 name: Deploy Application
-
 on:
   push:
     branches:
-      - dev
-
+      - deployment/dev2
 jobs:
   deploy:
     runs-on: ubuntu-latest
-
     defaults:
       run:
         working-directory: "./backend/FastAPI for login and mentor profile"
-
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v4
-
       - name: Copy Code
         uses: appleboy/scp-action@master
         with:
@@ -25,7 +20,24 @@ jobs:
           key: ${{ secrets.PROMACT_SERVER_SSH_PRIVATE_KEY }}
           source: "."
           target: "Internship-2025/Mentor-Mentee-App/"
-
+      - name: Create or Overwrite .env File
+        uses: appleboy/ssh-action@master
+        with:
+          host: '${{ secrets.PROMACT_SERVER_IP }}'
+          username: '${{ secrets.PROMACT_SERVER_USERNAME }}'
+          key: '${{ secrets.PROMACT_SERVER_SSH_PRIVATE_KEY }}'
+          script: |
+            cd /home/intern/Internship-2025/Mentor-Mentee-App
+            echo "Creating/updating .env file..."
+            cat > .env <<EOL
+            POSTGRES_PASSWORD=${{ secrets.POSTGRES_PASSWORD }}
+            POSTGRES_DB=${{ vars.POSTGRES_DB }}
+            POSTGRES_USER=${{ vars.POSTGRES_USER }}
+            POSTGRES_HOST=${{ vars.POSTGRES_HOST }}
+            POSTGRES_PORT=${{ vars.POSTGRES_PORT }}
+            GOOGLE_API_KEY=${{ secrets.GOOGLE_API_KEY }}
+            EOL
+            echo ".env file created/updated successfully."
       - name: Deploy on Server
         uses: appleboy/ssh-action@v1.2.2
         with:
