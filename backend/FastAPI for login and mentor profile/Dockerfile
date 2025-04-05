@@ -9,7 +9,7 @@ RUN apt-get update && apt-get install -y gcc g++ libpq-dev && \
     python -m venv /app/venv && \
     /app/venv/bin/pip install --upgrade pip && \
     /app/venv/bin/pip install -r requirements.txt && \
-    /app/venv/bin/pip install torch sentence-transformers alembic uvicorn && \
+    # /app/venv/bin/pip install torch sentence-transformers alembic uvicorn && \
     rm -rf /root/.cache/pip
 
 # Verify all necessary tools are installed
