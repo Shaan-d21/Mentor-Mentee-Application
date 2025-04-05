@@ -64,17 +64,35 @@ def user_access_token(email: str, user_id: int, role: str, expires_delta: timede
 #     except JWTError:
 #         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail='Invalid token')
 
-async def get_current_user(token: str = Header(None)):
+async def get_current_user(token: str = Header(None, alias="Authorization")):
     try:
+        if token is None:
+            raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail='No token provided')
+        
+        print(f"Received token: {token[:20]}...")  # Debug log
+        
+        # Extract the token if it has a Bearer prefix
+        if token.startswith('Bearer '):
+            token = token.split('Bearer ')[1].strip()
+            print(f"Extracted token without Bearer: {token[:20]}...")  # Debug log
+        
+        if not token:
+            raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail='Empty token after extraction')
+            
         payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
         mail: str = payload.get('sub')
         user_id: int = payload.get('id')
         role: str = payload.get('role')
         if mail is None or user_id is None:
-            raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail='User not found')
+            raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail='User not found in token payload')
         return {'email': mail, 'user_id': user_id, 'role': role}
-    except JWTError:
-        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail='Invalid token')
+    except JWTError as e:
+        print(f"JWT Error: {str(e)}")
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail=f'Invalid token: {str(e)}')
+    except Exception as e:
+        # Log the error
+        print(f"Token error: {str(e)}")
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail=f'Token error: {str(e)}')
 
 
 
