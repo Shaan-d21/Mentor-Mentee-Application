@@ -2,7 +2,7 @@ name: Deploy Application
 on:
   push:
     branches:
-      # - feature/backend/fixxed-tokken
+      - feature/backend/fixxed-tokken
 
 jobs:
   deploy:

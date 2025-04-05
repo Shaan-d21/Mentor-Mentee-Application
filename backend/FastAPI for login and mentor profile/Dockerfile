@@ -1,31 +1,41 @@
-# Stage 1: Dependencies
+# Stage 1: Build dependencies
 FROM python:3.12-slim AS base
 
+# Set environment variables to prevent Python from writing .pyc files and buffering stdout/stderr
+ENV PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONUNBUFFERED=1 \
+    VIRTUAL_ENV=/opt/venv
+
+# Create virtual environment
+RUN python -m venv $VIRTUAL_ENV
+ENV PATH="$VIRTUAL_ENV/bin:$PATH"
+
+# Install system dependencies
+RUN apt-get update && \
+    apt-get install -y gcc g++ libpq-dev && \
+    apt-get clean && \
+    rm -rf /var/lib/apt/lists/*
+
 WORKDIR /app
 
-COPY requirements.txt ./
-
-RUN apt-get update && apt-get install -y gcc g++ libpq-dev && \
-    python -m venv /app/venv && \
-    /app/venv/bin/pip install --upgrade pip && \
-    /app/venv/bin/pip install -r requirements.txt && \
-    /app/venv/bin/pip install torch sentence-transformers alembic uvicorn && \
+# Install Python dependencies early for caching
+COPY requirements.txt .
+RUN pip install --upgrade pip && \
+    pip install -r requirements.txt && \
+    pip install torch sentence-transformers alembic uvicorn && \
     rm -rf /root/.cache/pip
 
-# Verify all necessary tools are installed
-RUN /app/venv/bin/pip show uvicorn && \
-    /app/venv/bin/pip show alembic && \
-    /app/venv/bin/uvicorn --version
-
-# Stage 2: Application
+# Stage 2: Runtime
 FROM python:3.12-slim
+
+ENV VIRTUAL_ENV=/opt/venv
+ENV PATH="$VIRTUAL_ENV/bin:$PATH"
 
 WORKDIR /app
 
-COPY --from=base /app/venv /app/venv
+# Copy virtual environment and app
+COPY --from=base $VIRTUAL_ENV $VIRTUAL_ENV
 COPY . .
-
-ENV PATH="/app/venv/bin:$PATH"
 
 EXPOSE 8000
 
