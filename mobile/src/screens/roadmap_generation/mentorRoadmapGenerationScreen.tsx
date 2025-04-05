@@ -1,37 +1,65 @@
-import React, { FC, useEffect, useState } from 'react';
+import React, { FC, use, useEffect, useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, ScrollView, ActivityIndicator } from 'react-native';
 import { useDispatch, useSelector } from 'react-redux';
 import DropdownComponent from '../../components/Dropdown';
 import { ScreenProps } from '../../navigation/types';
 import AppBar from '../../components/appbar_component';
-import { fetchApprovedMentees, generateRoadmap } from '../../redux/slices/sliceMentorRoadmap'; // <-- Added
+import { fetchApprovedMentees, generateRoadmap,assignRoadmap } from '../../redux/slices/sliceMentorRoadmap'; // <-- Added
 import { AppDispatch, RootState } from '../../redux/store'; // Adjust import to match your store file
+import { ListRoadmapItems } from '../../components/RoadmapListItemsComponent';
 
 export const MentorRoadmapGeneration: FC<ScreenProps<'MentorRoadmapGeneration'>> = ({ navigation }) => {
-  const dispatch = useDispatch();
-  const { mentees, roadmap, status, error } = useSelector((state: RootState) => state.mentorRoadmap);
+  const dispatch = useDispatch<AppDispatch>();
+  const { mentees, roadmap, status, error,assign,roadmapId } = useSelector((state: RootState) => state.mentorRoadmap);
 
   const [selectedMentee, setSelectedMentee] = useState('');
   const [selectedDomain, setSelectedDomain] = useState('');
 
   const domainOptions = [
-    { label: 'Programming Languages', value: 'Programming Languages' },
-    { label: 'Database & Backend', value: 'Database & Backend' },
-    // ...keep or adjust domain items as needed...
+    { label: "Programming Languages", value: "Programming Languages" },
+    { label: "Database & Backend", value: "Database & Backend" },
+    { label: "Cloud Computing", value: "Cloud Computing" },
+    { label: "DevOps & Deployment", value: "DevOps & Deployment" },
+    { label: "Artificial Intelligence & Machine Learning", value: "Artificial Intelligence & Machine Learning" },
+    { label: "Data Science & Analytics", value: "Data Science & Analytics" },
+    { label: "Project & Team Management", value: "Project & Team Management" },
+    { label: "Software Development", value: "Software Development" },
+    { label: "Soft Skills", value: "Soft Skills" },
+    { label: "Web Development", value: "Web Development" }
   ];
 
   useEffect(() => {
-    dispatch<any>(fetchApprovedMentees()); // Load mentees from API
+    dispatch(fetchApprovedMentees()); // Load mentees from API
 
   }, [dispatch]);
 
+useEffect(() => {
+  if (assign === 1) {
+    navigation.navigate('MentorDashboard'); // Navigate to MentorDashboard on successful assignment
+  }
+}, [assign, navigation]);
+
   const handleGenerateRoadmap = () => {
-    dispatch<any>(generateRoadmap(selectedDomain));
+    dispatch(generateRoadmap({
+      domain: selectedDomain, id:
+        mentees.find((mentee) => mentee.name === selectedMentee)?.id.toString() || ''
+    }));
+    console.log("Selected Mentee ID:", mentees.find((mentee) => mentee.name === selectedMentee)?.id.toString() || '');
+    console.log("Selected Domain:", selectedDomain);
+    console.log("Selected Mentee Name:", selectedMentee);
+    console.log("Roadmap:", roadmap);
+  };
+
+  const handleAssignRoadmap = () => {
+console.log("Roadmap ID:", roadmapId);
+console.log("Selected Mentee ID:", mentees.find((mentee) => mentee.name === selectedMentee)?.id.toString() || '');
+    console.log("Selected Domain:", selectedDomain);
+    dispatch(assignRoadmap({ roadmapId: roadmapId||"", menteeId: mentees.find((mentee) => mentee.name === selectedMentee)?.id.toString() || '',domainId:"1" }));
   };
 
   return (
     <View style={styles.container}>
-      <AppBar onProfilePress={() => {}} openDrawer={() => {}} />
+      <AppBar onProfilePress={() => { }} openDrawer={() => { }} />
 
       <ScrollView contentContainerStyle={styles.scrollContent}>
         {status === 'loading' && (
@@ -45,7 +73,7 @@ export const MentorRoadmapGeneration: FC<ScreenProps<'MentorRoadmapGeneration'>>
             <View style={styles.dropdownContainer}>
               <Text style={styles.label}>Select Mentee</Text>
               <DropdownComponent
-                data={mentees.map((mentee) => ({ label: mentee.name, value: mentee.id.toString() }))}
+                data={mentees.map((mentee) => ({ label: mentee.name, value: mentee.name.toString() }))}
                 selectedValue={selectedMentee}
                 onSelect={(value) => setSelectedMentee(value)}
               />
@@ -68,20 +96,8 @@ export const MentorRoadmapGeneration: FC<ScreenProps<'MentorRoadmapGeneration'>>
               {selectedDomain || 'Your Domain'} Roadmap for {selectedMentee || 'Your Mentee'}
             </Text>
 
-            {/* Example parsing of roadmap if it's JSON */}
-            {/* Adjust based on actual data structure from your API */}
-            {(() => {
-              try {
-                const parsed = JSON.parse(roadmap);
-                return parsed.topics?.map((topic: string, index: number) => (
-                  <View key={index} style={styles.topicCard}>
-                    <Text style={styles.topicItem}>{topic}</Text>
-                  </View>
-                ));
-              } catch {
-                return <Text>{roadmap}</Text>;
-              }
-            })()}
+            <ListRoadmapItems roadmap={roadmap} />
+
           </View>
         )}
       </ScrollView>
@@ -90,6 +106,13 @@ export const MentorRoadmapGeneration: FC<ScreenProps<'MentorRoadmapGeneration'>>
         <View style={styles.bottomBar}>
           <TouchableOpacity style={styles.button} onPress={handleGenerateRoadmap}>
             <Text style={styles.buttonText}>Generate Roadmap</Text>
+          </TouchableOpacity>
+        </View>
+      )}
+      {roadmap && status !== 'loading' && (
+        <View style={styles.bottomBar}>
+          <TouchableOpacity style={styles.button} onPress={handleAssignRoadmap}>
+            <Text style={styles.buttonText}>Assign to {selectedMentee}</Text>
           </TouchableOpacity>
         </View>
       )}

@@ -1,5 +1,5 @@
 import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
-import { apiGetApprovedMentees, apiPostGenerateRoadMap } from "../../services/apigetApprovedMentees";
+import { apiGetApprovedMentees, apiPostAssignRoadmap, apiPostGenerateRoadMap } from "../../services/apigetApprovedMentees";
 
 enum currentStatus {
   idle = "idle",
@@ -14,8 +14,10 @@ interface Mentee {
 }
 
 interface MentorRoadmapState {
-  mentees: Mentee[]; // Updated to store only id and name
-  roadmap: string | null;
+  mentees: Mentee[];
+  roadmap: string[] | null;
+  roadmapId: string | null;
+  assign: 0 | 1 ;
   status: currentStatus;
   error: string | null;
 }
@@ -23,6 +25,8 @@ interface MentorRoadmapState {
 const initialState: MentorRoadmapState = {
   mentees: [],
   roadmap: null,
+  assign: 0,
+  roadmapId: null,
   status: currentStatus.idle,
   error: null,
 };
@@ -45,15 +49,34 @@ export const fetchApprovedMentees = createAsyncThunk("mentorRoadmap/fetchMentees
 
 // Async thunk to generate a roadmap
 export const generateRoadmap = createAsyncThunk(
-  "mentorRoadmap/generateRoadmap",
-  async (domain: string) => {
+  "mentorRoadmap/generateRoadmap", async ({domain,id}:{domain: string,id:string}) => {
     try {
-      const roadmap = apiPostGenerateRoadMap(); // Replace with actual API logic if needed
-      return roadmap;
+      const roadmaps =await apiPostGenerateRoadMap(domain,id); 
+      
+      return roadmaps;
     } catch (error: any) {
       throw new Error(error.message || "Failed to generate roadmap");
     }
   }
+);
+
+export const assignRoadmap = createAsyncThunk("mentorRoadmap/assignRoadmap", async ({menteeId,domainId,roadmapId}:{menteeId:string,domainId:string,roadmapId:string}) => {
+  console.log("Assigning roadmap with ID:", roadmapId);
+
+  try {
+    console.log("Assigning roadmap with ID:", roadmapId);
+    const response = await apiPostAssignRoadmap(menteeId,domainId,roadmapId); 
+    console.log("Response from assign-roadmap:", response);
+  if(response == 1){
+    return response;
+  }
+  else{
+    throw new Error("Failed to assign roadmap");}
+  }
+  catch (error: any) {
+    throw new Error(error.message || "Failed to assign roadmap");
+  }
+}
 );
 
 const mentorRoadmapSlice = createSlice({
@@ -83,12 +106,29 @@ const mentorRoadmapSlice = createSlice({
       })
       .addCase(generateRoadmap.fulfilled, (state, action) => {
         state.status = currentStatus.success;
-        state.roadmap = action.payload;
+        state.error = null;
+        console.log("Roadmap generated:", action.payload);
+        state.roadmapId = action.payload.roadmap_id; 
+        state.roadmap = action.payload.topics;
       })
       .addCase(generateRoadmap.rejected, (state, action) => {
         state.status = currentStatus.failed;
         state.error = action.error.message || "Failed to generate roadmap";
-      });
+      }).addCase(assignRoadmap.pending, (state) => {
+        state.status = currentStatus.loading;
+        state.error = null;
+      })
+      .addCase(assignRoadmap.fulfilled, (state, action) => {
+        state.status = currentStatus.success;
+        state.error = null;
+        console.log("Roadmap assigned:", action.payload);
+        state.assign = 1; // Set assign to 1 on successful assignment
+      })
+      .addCase(assignRoadmap.rejected, (state, action) => {
+        state.status = currentStatus.failed;
+        state.error = action.error.message || "Failed to assign roadmap";
+      }
+      );
   },
 });
 
