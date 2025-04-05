@@ -153,9 +153,36 @@ async def request_mentorship(user: user_dependency, db : db_dependency, req: Req
     db.commit()
     return { 'status_code': 200, "Message":'Request Sent'}
 
-@router.get('/Requests')
-async def show_sent_requests(user: user_dependency, db : db_dependency):
-    if user is None or user.get('role')!='mentee':
+@router.get('/Requests', status_code=200)
+async def show_sent_requests(user: user_dependency, db: db_dependency):
+    if user is None or user.get('role') != 'mentee':
         raise HTTPException(status_code=401, detail='User not Authorised')
-    req_model = db.query(MentorMentee).filter(MentorMentee.mentee_id == user.get('user_id')).all()
-    return req_model
+
+    requests = (
+        db.query(
+            MentorMentee.status,
+            MentorMentee.comment,
+            User.name.label("mentor_name"),
+            User.mail.label("mentor_mail"),
+            User.designation.label("mentor_designation"),
+            Domain.name.label("domain_name")
+        )
+        .join(User, User.id == MentorMentee.mentor_id)
+        .join(Domain, Domain.id == MentorMentee.domain_id)
+        .filter(MentorMentee.mentee_id == user.get('user_id'))
+        .all()
+    )
+
+    result = [
+        {
+            "mentor_name": r.mentor_name,
+            "mentor_mail": r.mentor_mail,
+            "mentor_designation": r.mentor_designation,
+            "domain_name": r.domain_name,
+            "status": r.status,
+            "comment": r.comment
+        }
+        for r in requests
+    ]
+
+    return result
