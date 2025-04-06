@@ -9,11 +9,8 @@ export interface Skill {
 export interface MenteeProfile {
     name: string;
     mail: string;
-    role: string;
-    exp: number;
-    github_id: string;
+    designation: string;
     contact: string;
-    gender: string;
     skillSet: any;
 
     toJSON(): object;
@@ -22,30 +19,21 @@ export interface MenteeProfile {
 export class MenteeProfileImpl implements MenteeProfile {
     name: string;
     mail: string;
-    role: string;
-    exp: number;
-    github_id: string;
+    designation: string;
     contact: string;
-    gender: string;
     skillSet: [];
 
     constructor(
         name: string,
         mail: string,
-        role: string,
-        exp: number,
-        github_id: string,
         contact: string,
-        gender: string,
+        designation: string,
         skillSet: []
     ) {
         this.name = name;
         this.mail = mail;
-        this.role = role;
-        this.exp = exp;
-        this.github_id = github_id;
         this.contact = contact;
-        this.gender = gender;
+        this.designation= designation;
         this.skillSet = skillSet;
     }
 
@@ -55,11 +43,8 @@ export class MenteeProfileImpl implements MenteeProfile {
         return new MenteeProfileImpl(
             jsonParsed.name,
             jsonParsed.mail,
-            jsonParsed.role,
-            jsonParsed.exp,
-            jsonParsed.github_id,
             jsonParsed.contact,
-            jsonParsed.gender,
+            jsonParsed.designation,
             jsonParsed["Skill set"].map((((skill: { name: any; }) => {
                 console.log(`Skill set is `, skill.name);
                 return skill.name 
@@ -71,11 +56,8 @@ export class MenteeProfileImpl implements MenteeProfile {
         return {
             name: this.name,
             mail: this.mail,
-            role: this.role,
-            exp: this.exp,
-            github_id: this.github_id,
             contact: this.contact,
-            gender: this.gender,
+            designation: this.designation,
             "Skill set": this.skillSet.map(name => ({  name }))
         };
     }

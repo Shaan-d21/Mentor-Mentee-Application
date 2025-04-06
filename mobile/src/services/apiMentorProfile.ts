@@ -32,7 +32,7 @@ console.log(`-------------------------------------------`, response.status);
 };
 
 
-export const apiUpdateMentorProfile = async (name: string, exp: string, github_id: string, contact: string, gender: string) => {
+export const apiUpdateMentorProfile = async (name: string, exp: string, designation: string, contact: string) => {
   const api = axios.create({
     baseURL: process.env.API_URL,
     headers: {
@@ -45,13 +45,12 @@ export const apiUpdateMentorProfile = async (name: string, exp: string, github_i
   try {
     const data = {
       "name": name,
+      "designation": designation,
       "exp": exp,
-      "github_id": github_id,
       "contact": contact,
-      "gender": gender
     };
-
-    const response = await api.put("/users/mentor/profile_creation", data);
+    console.log(`data in the apiMentorProfile is ${JSON.stringify(data)}`)
+    const response = await api.put("users/mentor/profile_creation", data);
     console.log(`Response from Mentor/profile update screen the server is `, response);
     console.log(`-------------------------------------------`, response.status);
     if (response.status == 200) {

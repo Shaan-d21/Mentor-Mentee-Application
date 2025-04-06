@@ -13,6 +13,8 @@ export type RootStackParamList = {
     MentorProfileScreen: undefined;
     // CustomDrawerContent: undefined;
     temp: undefined;
+    viewRoadmap: undefined;
+    generateRoadmap: undefined;
 
     MenteeProfileScreen : undefined;
 };

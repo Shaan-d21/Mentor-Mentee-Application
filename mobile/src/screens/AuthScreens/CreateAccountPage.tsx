@@ -53,7 +53,7 @@ const CreateAccountPage: React.FC<ScreenProps<"CreateAccountPage">> = ({ navigat
 
     // Dispatch the registerUser action
     dispatch(registerUser({
-      email: emailLocal,
+      email: emailLocal.toLowerCase(),
       password: passwordLocal,
       name: nameLocal,
       role: userTypeLocal as "mentee" | "mentor",
