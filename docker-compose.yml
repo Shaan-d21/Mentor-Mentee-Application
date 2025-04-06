@@ -42,8 +42,8 @@ services:
       - "8081:80" 
     networks:
       - mentor_mentee_network
-    depends_on:
-      - backend
+    # depends_on:
+    #   - backend
 
 networks:
   mentor_mentee_network:
