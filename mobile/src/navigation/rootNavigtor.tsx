@@ -7,14 +7,14 @@ import MenteeDashboard from "../screens/Dashboards/mentee_dashboard";
 import MentorDashboard from "../screens/Dashboards/mentor_dashboard";
 import MenteeProfileScreen from "../screens/profile/screenmenteeprofile";
 import MentorProfile from "../screens/profile/mentorprofile";
-import CustomDrawerContent from "../components/drawer_component";
+// import CustomDrawerContent from "../components/drawer_component";
 import temp from "../screens/temp";
 
 const Stack= createNativeStackNavigator<RootStackParamList>();
 export const RootNavigator: FC= ()=>{
     return (
         <Stack.Navigator
-            initialRouteName="SignInPage"
+            initialRouteName="MenteeDashboard"
             screenOptions={() => ({
                 headerShown: false,
             })}

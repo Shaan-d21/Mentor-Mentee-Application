@@ -15,7 +15,6 @@ import { RootState, AppDispatch } from '../../redux/store';
 import { Dropdown } from 'react-native-element-dropdown';
 import { setMentorList } from '../../redux/slices/sliceMenteeDashboard';
 import { ScreenProps } from '../../navigation/types';
-import fetchMentors from '../../services/apimentordomain'; // Import the fetchMentors function
 
 const COLUMN_WIDTH = 140;
 
@@ -26,23 +25,24 @@ const MenteeDashboard: FC<ScreenProps<'MenteeDashboard'>> = ({ navigation }) => 
 
   const [selectedDomain, setSelectedDomain] = useState('');
   const [filteredList, setFilteredList] = useState<any[]>([]);
-  const [showDropdown, setShowDropdown] = useState(false);
+  const [, setShowDropdown] = useState(false);
   const [showCompatibilityColumns, setShowCompatibilityColumns] = useState(false);
+  const [requestMentorId, setRequestMentorId] = useState<number | null>(null);
 
   const domainOptions = [
     { label: 'Programming Languages', value: 'Programming Languages' },
     { label: 'Database & Backend', value: 'Database & Backend' },
     { label: 'Cloud Computing', value: 'Cloud Computing' },
     { label: 'DevOps & Deployment', value: 'DevOps & Deployment' },
-    { label: 'AI & ML', value: 'Artificial Intelligence & Machine Learning' },
-    { label: 'Data Science', value: 'Data Science' },
+    { label: 'Artificial Intelligence & Machine Learning', value: 'Artificial Intelligence & Machine Learning' },
+    { label: 'Data Science & Analytics', value: 'Data Science & Analytics' },
     { label: 'Software Development', value: 'Software Development' },
+    { label: 'Project & Team Management', value: 'Project & Team Management' },
+    { label: 'Soft Skills', value: 'Soft Skills' },
+    { label: 'Web Development', value: 'Web Development' },
   ];
 
   useEffect(() => {
-      const value = fetchMentors();
-      console.log('Fetched mentors:', value);
-    // Initially fetch all mentors (mocked compatibility API response)
     const response = {
       domain_mentors: [
         {
@@ -52,8 +52,7 @@ const MenteeDashboard: FC<ScreenProps<'MenteeDashboard'>> = ({ navigation }) => 
           designation: 'AI Researcher',
           domain: 'Artificial Intelligence & Machine Learning',
           score: 78,
-          reason:
-            'Belongs to the AI/ML domain. Has strong skills in Deep Learning (advanced), Machine Learning (intermediate), and Generative AI (intermediate), which contribute to a high score with the domain bonus.'
+          reason: 'Belongs to the AI/ML domain. Has strong skills in Deep Learning (advanced), Machine Learning (intermediate), and Generative AI (intermediate), which contribute to a high score with the domain bonus.'
         },
         {
           name: 'Alice AI',
@@ -62,8 +61,7 @@ const MenteeDashboard: FC<ScreenProps<'MenteeDashboard'>> = ({ navigation }) => 
           designation: 'AI Engineer',
           domain: 'Artificial Intelligence & Machine Learning',
           score: 0,
-          reason:
-            'Belongs to the AI/ML domain, but has no matching skills, resulting in a base score of 0. No skills to evaluate.'
+          reason: 'Belongs to the AI/ML domain, but has no matching skills, resulting in a base score of 0. No skills to evaluate.'
         },
         {
           name: 'Bob ML',
@@ -72,8 +70,7 @@ const MenteeDashboard: FC<ScreenProps<'MenteeDashboard'>> = ({ navigation }) => 
           designation: 'ML Researcher',
           domain: 'Artificial Intelligence & Machine Learning',
           score: 0,
-          reason:
-            'Belongs to the AI/ML domain, but has no matching skills, resulting in a base score of 0. No skills to evaluate.'
+          reason: 'Belongs to the AI/ML domain, but has no matching skills, resulting in a base score of 0. No skills to evaluate.'
         },
         {
           name: 'Mentor Three',
@@ -82,8 +79,7 @@ const MenteeDashboard: FC<ScreenProps<'MenteeDashboard'>> = ({ navigation }) => 
           designation: 'None',
           domain: 'Artificial Intelligence & Machine Learning',
           score: 0,
-          reason:
-            'Belongs to the AI/ML domain, but has no matching skills, resulting in a base score of 0. No skills to evaluate.'
+          reason: 'Belongs to the AI/ML domain, but has no matching skills, resulting in a base score of 0. No skills to evaluate.'
         }
       ],
       other_domain_mentors: [
@@ -94,8 +90,7 @@ const MenteeDashboard: FC<ScreenProps<'MenteeDashboard'>> = ({ navigation }) => 
           designation: 'Frontend Dev',
           domain: 'Web Development',
           score: 0,
-          reason:
-            'Does not belong to the AI/ML domain. No skills to evaluate, resulting in a score of 0.'
+          reason: 'Does not belong to the AI/ML domain. No skills to evaluate, resulting in a score of 0.'
         },
         {
           name: 'Diana Cyber',
@@ -104,8 +99,7 @@ const MenteeDashboard: FC<ScreenProps<'MenteeDashboard'>> = ({ navigation }) => 
           designation: 'Cyber Analyst',
           domain: 'Database & Backend',
           score: 0,
-          reason:
-            'Does not belong to the AI/ML domain. No skills to evaluate, resulting in a score of 0.'
+          reason: 'Does not belong to the AI/ML domain. No skills to evaluate, resulting in a score of 0.'
         }
       ]
     };
@@ -123,30 +117,69 @@ const MenteeDashboard: FC<ScreenProps<'MenteeDashboard'>> = ({ navigation }) => 
     }));
 
     dispatch(setMentorList(formattedMentors));
-    setFilteredList(formattedMentors); // initially show all
+    setFilteredList(formattedMentors);
   }, [dispatch]);
 
-  const handleSendRequest = (_mentorId: number) => {
-    if (!selectedDomain) {
-      Alert.alert('Please select a domain');
-      return;
-    }
-    Alert.alert('Request Sent');
-    // dispatch(sendMentorRequest({ mentorId, domain: selectedDomain }, dispatch));
+  const sendRequest = (mentorId: number, _domain: string) => {
+    Alert.alert("Request Sent");
+    setRequestMentorId(mentorId);
   };
 
-  const handleCheckCompatibility = () => {
+  // const handleCheckCompatibility = async () => {
+  //   if (!selectedDomain) return;
+  
+  //   setShowDropdown(true);
+  //   setShowCompatibilityColumns(true);
+  
+  //   try {
+  //     // Simulate an asynchronous operation (e.g., fetching or processing data)
+  //     const filtered = await new Promise((resolve) => {
+  //       setTimeout(() => {
+  //         const result = mentorList.filter((mentor) =>
+  //           mentor.techStack.toLowerCase().includes(selectedDomain.toLowerCase())
+  //         );
+  //         resolve(result);
+  //       }, 500); // Simulate a delay of 500ms
+  //     });
+  
+  //     setFilteredList(filtered as any[]); // Update the filtered list
+  //     console.log('Filtered Mentors:', filtered);
+  //   } catch (error) {
+  //     console.error('Error filtering mentors:', error);
+  //   }
+  // };
+
+  const handleCheckCompatibility = async () => {
+    console.log('Selected Domain:', selectedDomain);
+    console.log('Filtered List:', filteredList);
+  
+    if (!selectedDomain) return;
+  
     setShowDropdown(true);
+    setShowCompatibilityColumns(true);
+  
+    try {
+      
+      // Simulate an asynchronous operation (e.g., fetching or processing data)
+      const filtered = await new Promise((resolve) => {
+        setTimeout(() => {
+          const result = mentorList.filter((mentor) =>
+            mentor.techStack.toLowerCase().includes(selectedDomain.toLowerCase())
+          );
+          resolve(result);
+          console.log('Filtered Mentors:', result);
+        }, 500); // Simulate a delay of 500ms
+      });
+  
+      setFilteredList(filtered as any[]); // Update the filtered list
+      console.log('Filtered Mentors:', filtered);
+    } catch (error) {
+      console.error('Error filtering mentors:', error);
+    }
   };
 
   const handleDomainSelect = (value: string) => {
     setSelectedDomain(value);
-    setShowCompatibilityColumns(true);
-
-    const filtered = mentorList.filter((mentor) =>
-      mentor.techStack.toLowerCase().includes(value.toLowerCase())
-    );
-    setFilteredList(filtered);
   };
 
   const renderMentorRow = ({ item }: { item: any }) => (
@@ -158,9 +191,19 @@ const MenteeDashboard: FC<ScreenProps<'MenteeDashboard'>> = ({ navigation }) => 
       <Text style={styles.cell}>{item.techStack}</Text>
       {showCompatibilityColumns && <Text style={styles.cell}>{item.score}</Text>}
       {showCompatibilityColumns && (
-        <TouchableOpacity onPress={() => handleSendRequest(item.id)} style={styles.cell}>
-          <Text style={styles.actionText}>{item.action}</Text>
-        </TouchableOpacity>
+        <View style={[styles.cell, { alignItems: 'center' }]}>
+          {requestMentorId === item.id ? (
+            <Text style={{ color: "blue", marginTop: 5 }}>Pending</Text>
+          ) : (
+            <TouchableOpacity
+              onPress={() => sendRequest(item.id, selectedDomain)}
+              disabled={requestMentorId !== null}
+              style={{ backgroundColor: requestMentorId !== null ? '#ccc' : '#007BFF', padding: 6, borderRadius: 4 }}
+            >
+              <Text style={{ color: '#fff', fontWeight: 'bold' }}>{item.action}</Text>
+            </TouchableOpacity>
+          )}
+        </View>
       )}
       {showCompatibilityColumns && <Text style={styles.cell}>{item.comment}</Text>}
     </View>
@@ -175,21 +218,23 @@ const MenteeDashboard: FC<ScreenProps<'MenteeDashboard'>> = ({ navigation }) => 
         <Avatar rounded icon={{ name: 'user', type: 'font-awesome' }} />
       </View>
 
-      <TouchableOpacity style={styles.checkButton} onPress={handleCheckCompatibility}>
+      <Dropdown
+        style={styles.dropdown}
+        data={domainOptions}
+        labelField="label"
+        valueField="value"
+        value={selectedDomain}
+        placeholder="Select Domain"
+        onChange={(item: { value: string; label: string }) => handleDomainSelect(item.value)}
+      />
+
+      <TouchableOpacity
+        style={[styles.checkButton, { backgroundColor: selectedDomain ? '#28a745' : '#ccc' }]}
+        onPress={handleCheckCompatibility}
+        disabled={!selectedDomain}
+      >
         <Text style={styles.checkButtonText}>Check Compatibility</Text>
       </TouchableOpacity>
-
-      {showDropdown && (
-        <Dropdown
-          style={styles.dropdown}
-          data={domainOptions}
-          labelField="label"
-          valueField="value"
-          value={selectedDomain}
-          placeholder="Select Domain"
-          onChange={(item: { value: string; label: string }) => handleDomainSelect(item.value)}
-        />
-      )}
 
       <ScrollView horizontal>
         <View>
@@ -219,7 +264,6 @@ const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#F5F5F5', padding: 20 },
   header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 15 },
   headerText: { fontSize: 22, fontWeight: 'bold', color: '#333' },
-
   dropdown: {
     marginBottom: 15,
     backgroundColor: '#FFF',
@@ -228,17 +272,13 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: '#CCC'
   },
-
   checkButton: {
-    backgroundColor: '#28a745',
     padding: 10,
     borderRadius: 5,
     alignItems: 'center',
     marginBottom: 10
   },
   checkButtonText: { color: '#FFF', fontWeight: 'bold' },
-
-  // Table
   headerRow: {
     flexDirection: 'row',
     backgroundColor: '#444',
@@ -254,7 +294,6 @@ const styles = StyleSheet.create({
     borderRightWidth: 1,
     borderColor: '#333'
   },
-
   row: {
     flexDirection: 'row',
     backgroundColor: '#FFF',
@@ -269,7 +308,6 @@ const styles = StyleSheet.create({
     borderColor: '#EEE',
     color: '#333'
   },
-
   actionText: {
     color: '#007BFF',
     fontWeight: 'bold'

@@ -1,5 +1,4 @@
 import axios from "axios";
-import { AnimatableNumericValue } from "react-native";
 import { MMKV } from "react-native-mmkv";
 
 
