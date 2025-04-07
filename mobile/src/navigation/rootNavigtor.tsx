@@ -11,6 +11,7 @@ import CustomDrawerContent from "../components/drawer_component";
 import temp from "../screens/temp";
 import RoadmapScreen from "../screens/CourseRoadmap/viewRoadmap";
 import { FC } from "react";
+import { MentorRoadmapGeneration } from "../screens/roadmap_generation/mentorRoadmapGeneration";
 
 const Stack= createNativeStackNavigator<RootStackParamList>();
 export const RootNavigator: FC= ()=>{
@@ -28,6 +29,7 @@ export const RootNavigator: FC= ()=>{
             <Stack.Screen name="MentorProfileScreen" component={MentorProfile} />
             <Stack.Screen name="MenteeRoadmap" component={MenteeRoadmap} />
             <Stack.Screen name ="RoadmapScreen" component={RoadmapScreen }/>
+            <Stack.Screen name="MentorRoadmapGeneration" component={MentorRoadmapGeneration} />
 
             <Stack.Screen name="temp" component={temp} />
             {/* <Stack.Screen name="CustomDrawerContent" component={CustomDrawerContent} /> */}

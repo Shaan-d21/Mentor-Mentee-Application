@@ -14,6 +14,7 @@ export type RootStackParamList = {
     MenteeRoadmap:undefined;
     
     // CustomDrawerContent: undefined;
+    MentorRoadmapGeneration:undefined;
     temp: undefined;
     viewRoadmap: undefined;
     generateRoadmap: undefined;
