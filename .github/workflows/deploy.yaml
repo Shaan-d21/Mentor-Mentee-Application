@@ -2,7 +2,8 @@ name: Deploy Application
 on:
   push:
     branches:
-      - deployment/dev2
+      - feature/backend/fixxed-tokken
+
 jobs:
   deploy:
     runs-on: ubuntu-latest
@@ -20,6 +21,7 @@ jobs:
           key: ${{ secrets.PROMACT_SERVER_SSH_PRIVATE_KEY }}
           source: "."
           target: "Internship-2025/Mentor-Mentee-App/"
+
       - name: Create or Overwrite .env File
         uses: appleboy/ssh-action@master
         with:
@@ -35,9 +37,35 @@ jobs:
             POSTGRES_USER=${{ vars.POSTGRES_USER }}
             POSTGRES_HOST=${{ vars.POSTGRES_HOST }}
             POSTGRES_PORT=${{ vars.POSTGRES_PORT }}
-            GOOGLE_API_KEY=${{ secrets.GOOGLE_API_KEY }}
+            GOOGLE_API_KEY1= ${{ secrets.GOOGLE_API_KEY1 }}
+            GOOGLE_API_KEY= ${{ secrets.GOOGLE_API_KEY }}
+            GOOGLE_API_KEY2 = ${{ secrets.GOOGLE_API_KEY2 }}
+            GOOGLE_TEXT_ANALYSIS_API_KEY = ${{ secrets.GOOGLE_TEXT_ANALYSIS_API_KEY }}
             EOL
             echo ".env file created/updated successfully."
+
+      - name: Create or Overwrite .env File for backend
+        uses: appleboy/ssh-action@master
+        with:
+          host: '${{ secrets.PROMACT_SERVER_IP }}'
+          username: '${{ secrets.PROMACT_SERVER_USERNAME }}'
+          key: '${{ secrets.PROMACT_SERVER_SSH_PRIVATE_KEY }}'
+          script: |
+            cd /home/intern/Internship-2025/Mentor-Mentee-App/backend/'FastAPI for login and mentor profile'
+            echo "Creating/updating .env file..."
+            cat > .env <<EOL
+            POSTGRES_PASSWORD=${{ secrets.POSTGRES_PASSWORD }}
+            POSTGRES_DB=${{ vars.POSTGRES_DB }}
+            POSTGRES_USER=${{ vars.POSTGRES_USER }}
+            POSTGRES_HOST=${{ vars.POSTGRES_HOST }}
+            POSTGRES_PORT=${{ vars.POSTGRES_PORT }}
+            GOOGLE_API_KEY1= ${{ secrets.GOOGLE_API_KEY1 }}
+            GOOGLE_API_KEY= ${{ secrets.GOOGLE_API_KEY }}
+            GOOGLE_API_KEY2 = ${{ secrets.GOOGLE_API_KEY2 }}
+            GOOGLE_TEXT_ANALYSIS_API_KEY = ${{ secrets.GOOGLE_TEXT_ANALYSIS_API_KEY }}
+            EOL
+            echo ".env file created/updated successfully."
+
       - name: Deploy on Server
         uses: appleboy/ssh-action@v1.2.2
         with:
