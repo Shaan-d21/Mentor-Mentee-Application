@@ -1,5 +1,5 @@
 import axios from 'axios';
-
+import { MMKV } from "react-native-mmkv";
 interface RoadmapResponse {
   status_code: number;
   message: string;
@@ -9,9 +9,11 @@ interface RoadmapResponse {
 const API_BASE_URL = process.env.API_URL;
 
 export const getRoadmapTopics = async (mentorId: number, domainId: number): Promise<RoadmapResponse> => {
+  const storage= new MMKV();
+
     try {
         const response = await axios.post<RoadmapResponse>(
-          `https://7e49-160-250-150-14.ngrok-free.app/mentee/roadmap-topics`,
+          `mentee/roadmap-topics`,
           { // Request body
             mentor_id: mentorId,
             domain_id: domainId
@@ -19,7 +21,7 @@ export const getRoadmapTopics = async (mentorId: number, domainId: number): Prom
           {
             headers: {
               'accept': 'application/json',
-              'token': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJTcmFqYW4iLCJpZCI6MSwicm9sZSI6Im1lbnRlZSIsImV4cCI6MTc0NTA2Njg1MX0.6AGeMKuHzv16JRL5h-1A1HzRyEqTv0zz8FCbUrC6OnU',
+              "token": storage.getString("token"),
               'Content-Type': 'application/json', // Add Content-Type header
             },
           }
