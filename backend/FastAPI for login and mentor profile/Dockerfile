@@ -1,32 +1,36 @@
-# Stage 1: Build Dependencies
-FROM python:3.12-slim AS build
+# Stage 1: Build dependencies
+FROM python:3.12-slim AS base
+
+ENV PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONUNBUFFERED=1 \
+    VIRTUAL_ENV=/opt/venv
+
+RUN python -m venv $VIRTUAL_ENV
+ENV PATH="$VIRTUAL_ENV/bin:$PATH"
+
+RUN apt-get update && \
+    apt-get install -y gcc g++ libpq-dev && \
+    apt-get clean && \
+    rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app
 
-# Copy only requirements first for better caching
 COPY requirements.txt .
+RUN pip install -r requirements.txt && \
+    pip install alembic uvicorn && \
+    rm -rf /root/.cache/pip
 
-# Create virtual environment and install dependencies
-RUN python -m venv /app/venv && \
-    /app/venv/bin/pip install --no-cache-dir --timeout=100 -r requirements.txt
+# Stage 2: Runtime
+FROM python:3.12-slim
 
-
-# Stage 2: Application Image
-FROM python:3.12-slim 
+ENV VIRTUAL_ENV=/opt/venv
+ENV PATH="$VIRTUAL_ENV/bin:$PATH"
 
 WORKDIR /app
 
-# Copy virtual environment from build stage
-COPY --from=build /app/venv /app/venv
-
-# Copy application code
+COPY --from=base $VIRTUAL_ENV $VIRTUAL_ENV
 COPY . .
 
-# Set environment variable for virtual environment
-ENV PATH="/app/venv/bin:$PATH"
-
-# Expose the application port
 EXPOSE 8000
 
-# Use exec form of CMD to properly handle signals
 CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000"]
