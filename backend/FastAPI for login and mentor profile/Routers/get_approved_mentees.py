@@ -3,7 +3,7 @@ from fastapi import APIRouter, Depends, HTTPException
 from database import SessionLocal
 from sqlalchemy.orm import Session
 from sqlalchemy.sql import select, and_
-from models import User, MentorMentee, Domain
+from models import User, MentorMentee
 from .auth import get_current_user
 from starlette import status
 
@@ -30,42 +30,14 @@ def get_approved_mentee(user: user_dependency, db: db_dependency):
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Unauthorized Access")
     
     query = (
-        select(User, MentorMentee, Domain)
+        select(User)
         .join(MentorMentee, MentorMentee.mentee_id == User.id)
-        .join(Domain, MentorMentee.domain_id == Domain.id)
-        .where(
-            and_(
-                MentorMentee.mentor_id == user.get('user_id'),
-                MentorMentee.status == 'approved'
-            )
-        )
+        .where(and_(MentorMentee.mentor_id == user.get('user_id'), MentorMentee.status == 'approved'))
     )
-
     result = db.execute(query).fetchall()
 
-    mentee_list = []
-    for row in result:
-        user_obj = row[0]
-        mentor_mentee_obj = row[1]
-        domain_obj = row[2]
-
-        mentee_data = {
-            "id": user_obj.id,
-            "name": user_obj.name,
-            "mail": user_obj.mail,
-            "contact": user_obj.contact,
-            "designation": user_obj.designation,
-            "exp": user_obj.exp,
-            "profile_pic_url": user_obj.profile_pic_url,
-            "role": user_obj.role.value if hasattr(user_obj.role, 'value') else str(user_obj.role),
-            "is_profile_complete": user_obj.is_profile_complete,
-            "created_at": user_obj.created_at,
-            "updated_at": user_obj.updated_at,
-            "domain_id": mentor_mentee_obj.domain_id,
-            "domain_name": domain_obj.name if domain_obj else None
-        }
-
-        mentee_list.append(mentee_data)
+    # Convert SQLAlchemy Row objects to dictionaries
+    mentee_list = [dict(row._mapping) for row in result]
 
     response = {
         'status_code': status.HTTP_200_OK,
