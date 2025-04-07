@@ -7,6 +7,7 @@ import {
   ScrollView,
   TouchableOpacity,
   Image,
+  Alert,
 } from 'react-native';
 import { launchImageLibrary } from 'react-native-image-picker';
 import AppBar from '../../components/appbar_component';
@@ -22,15 +23,15 @@ import {
   updateprofileskill,
 } from '../../redux/slices/menteeProfileSlice';
 import { ScreenProps } from '../../navigation/types';
+import { setName } from '../../redux/slices/sliceLogin';
 
 const MenteeProfileScreen: FC<ScreenProps<"MenteeProfileScreen">> = ({navigation}) => {
   const [fullName, setFullName] = useState('');
   const [email, setEmail] = useState('');
   const [mobile, setMobile] = useState('');
-  const [genderLocal, setGenderLocal] = useState('');
+  const [designation, setDesignation] = useState('');
   const [emailError, setEmailError] = useState('');
   const [mobileError, setMobileError] = useState('');
-  const [githubId, setGithubId] = useState('');
   const [isFocused, setIsFocused] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
 
@@ -60,8 +61,7 @@ const MenteeProfileScreen: FC<ScreenProps<"MenteeProfileScreen">> = ({navigation
         setFullName(userType.name);
         setEmail(userType.mail);
         setMobile(userType.contact);
-        setGenderLocal(userType.gender);
-        setGithubId(userType.github_id);
+        setDesignation(userType.designation);
         // if (genderLocal == "female") {
         //   setImageUri("https://cdn-icons-png.flaticon.com/512/146/146005.png");
         // }
@@ -140,13 +140,11 @@ const MenteeProfileScreen: FC<ScreenProps<"MenteeProfileScreen">> = ({navigation
       setIsEditing(false);
       
     dispatch(updateProfileData({
-      name:
-      fullName, 
-      github_id:
-      githubId,
+      name:fullName, 
       contact: mobile,
-      gender:genderLocal
+      designation: designation
     }));
+    dispatch(setName(fullName))
     }
   };
 
@@ -156,14 +154,27 @@ const MenteeProfileScreen: FC<ScreenProps<"MenteeProfileScreen">> = ({navigation
     setSelectedDomain(value);
     dispatch(updateprofileskill(value));
   }
+  useEffect(() => {
+    if (currentStatus === 'failed') {
+      Alert.alert(
+        'Login Failed',
+        'Invalid Credentials',
+        [
+          {
+            text: 'OK',
+            onPress: () => {
+              navigation.pop();
+              console.log('Navigated back due to error');
+            },
+          },
+        ],
+      );
+    }
+  }, [currentStatus]);
 
   return currentStatus === 'loading' ? (
     <View style={styles.container}>
       <Text style={styles.loadingText}>Loading Profile...</Text>
-    </View>
-  ) : currentStatus === 'failed' ? (
-    <View style={styles.container}>
-      <Text style={styles.loadingText}>Failed to load Profile.</Text>
     </View>
   ) : (
     <ScrollView contentContainerStyle={styles.container}>
@@ -180,8 +191,7 @@ const MenteeProfileScreen: FC<ScreenProps<"MenteeProfileScreen">> = ({navigation
               <Text style={styles.profileText}>Full Name: {fullName}</Text>
               <Text style={styles.profileText}>Email: {email}</Text>
               <Text style={styles.profileText}>Mobile: {mobile}</Text>
-              <Text style={styles.profileText}>GitHub ID: {githubId}</Text>
-              <Text style={styles.profileText}>Gender: {genderLocal}</Text>
+              <Text style={styles.profileText}>Designation: {designation}</Text>
             </>
           ) : (
             <>
@@ -193,12 +203,7 @@ const MenteeProfileScreen: FC<ScreenProps<"MenteeProfileScreen">> = ({navigation
                 placeholder="Full Name"
               />
             <Text >Email</Text>
-              <TextInput
-                style={[styles.infoText, emailError && styles.inputError]}
-                value={email}
-                onChangeText={setEmail}
-                placeholder="Email"
-              />
+              <Text style={[styles.infoText, emailError && styles.inputError]}> {email}</Text>
               {emailError ? (
                 <Text style={styles.errorText}>{emailError}</Text>
               ) : null}
@@ -213,12 +218,12 @@ const MenteeProfileScreen: FC<ScreenProps<"MenteeProfileScreen">> = ({navigation
               {mobileError ? (
                 <Text style={styles.errorText}>{mobileError}</Text>
               ) : null}
-              <Text >GitHub </Text>
+              <Text >Designation </Text>
               <TextInput
                 style={styles.infoText}
-                value={githubId}
-                onChangeText={setGithubId}
-                placeholder="GitHub ID"
+                value={designation}
+                onChangeText={setDesignation}
+                placeholder="Designation"
               />
 
               {/* <View style={styles.genderPickerContainer}>

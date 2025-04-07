@@ -24,8 +24,9 @@ const sliceProfile = createSlice({
     }).addCase(getmenteeprofile.fulfilled, (state, action) => {
       try {
         if ('name' in action.payload) {
-          console.log(action.payload);
+          console.log(`Get menteeProfileSlice extraReducer: ${JSON.stringify(action.payload)}`);
           state.response = MenteeProfileImpl.fromJSON(JSON.stringify(action.payload)) as MenteeProfile;
+          console.log(`Get menteeProfileSlice extraReducer state: ${JSON.stringify(state.response)}`)
         }
         state.status = currentStatus.success;
       } catch (error) {
@@ -66,9 +67,11 @@ const sliceProfile = createSlice({
 export const getmenteeprofile = createAsyncThunk("profile/get", async () => {
   try {
     const response = await apigetMenteeProfile();
-    console.log(`Response from mentee/profile screen the server is `, response['Skill set']);
+    console.log(`getmenteeprofile asyncThunk: ${JSON.stringify(response)}`);
+    // console.log(`Response from mentee/profile screen the server is `, response['Skill set']);
     const res: MenteeProfile = MenteeProfileImpl.fromJSON(JSON.stringify(response)) as MenteeProfile;
-    console.log(`Response from mentee/profile  the server is `, res);
+    console.log(`getmenteeprofile asyncThunk set the res: ${JSON.stringify(res)}`)
+    // console.log(`Response from mentee/profile  the server is `, res);
     return res.toJSON();
   }
   catch (error: any) {
@@ -78,10 +81,10 @@ export const getmenteeprofile = createAsyncThunk("profile/get", async () => {
 
 
 });
-export const updateProfileData = createAsyncThunk("profile/update", async ({ name, github_id, contact, gender }: {  name: string, github_id: string, contact: string, gender: string }) => {
+export const updateProfileData = createAsyncThunk("profile/update", async ({ name, contact, designation }: {  name: string,contact: string, designation: string }) => {
 
 
-  const response = await apiUpdateMenteeProfile(name, 0, github_id, contact, gender);
+  const response = await apiUpdateMenteeProfile(name, contact, designation);
   if (response === 1) {
     const updatedProfile = await apigetMenteeProfile();
     return updatedProfile;

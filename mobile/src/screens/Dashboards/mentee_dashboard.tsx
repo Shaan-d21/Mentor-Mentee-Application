@@ -80,7 +80,7 @@ const userName = useSelector((state: RootState) => state.login.name);
 
       {/* List of the Mentors */}
       <ScrollView contentContainerStyle={styles.content}>
-        /* If there are not mentors then */
+        {/* If there are not mentors then */}
         {mentorList=== null || mentorList.length === 0 ? (
           <Text style={styles.noRequestsText}>No mentors found at this moment</Text>
         ) : 

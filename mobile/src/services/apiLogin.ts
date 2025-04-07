@@ -1,8 +1,6 @@
 import axios from "axios";
 
 
-
-
 export const apiLoginUser = async (credentials: { email: string; password: string }) => {
     console.log(process.env.API_URL);
     const api = axios.create({
@@ -20,6 +18,8 @@ export const apiLoginUser = async (credentials: { email: string; password: strin
         formData.append("password", credentials.password);
 
         const response = await api.post("/authentication/login", formData.toString());
+        // const response = await api.get("https://catfact.ninja/fact");
+        console.log(response)
 
         if (response.status === 200) {
             console.log(response.data);
