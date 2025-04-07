@@ -1,5 +1,5 @@
 import React, { FC, use, useEffect, useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView, ActivityIndicator } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView, ActivityIndicator, Alert } from 'react-native';
 import { useDispatch, useSelector } from 'react-redux';
 import DropdownComponent from '../../components/Dropdown';
 import { ScreenProps } from '../../navigation/types';
@@ -33,11 +33,11 @@ export const MentorRoadmapGeneration: FC<ScreenProps<'MentorRoadmapGeneration'>>
 
   }, [dispatch]);
 
-useEffect(() => {
-  if (assign === 1) {
-    navigation.navigate('MentorDashboard'); // Navigate to MentorDashboard on successful assignment
-  }
-}, [assign, navigation]);
+// useEffect(() => {
+//   if (assign === 1) {
+//     navigation.navigate('MentorDashboard'); // Navigate to MentorDashboard on successful assignment
+//   }
+// }, [assign, navigation]);
 
   const handleGenerateRoadmap = () => {
     dispatch(generateRoadmap({
@@ -55,6 +55,7 @@ console.log("Roadmap ID:", roadmapId);
 console.log("Selected Mentee ID:", mentees.find((mentee) => mentee.name === selectedMentee)?.id.toString() || '');
     console.log("Selected Domain:", selectedDomain);
     dispatch(assignRoadmap({ roadmapId: roadmapId||"", menteeId: mentees.find((mentee) => mentee.name === selectedMentee)?.id.toString() || '',domainId:"1" }));
+    Alert.alert("Roadmap Assigned Successfully", `Roadmap has been assigned to ${selectedMentee}`);
   };
 
   return (

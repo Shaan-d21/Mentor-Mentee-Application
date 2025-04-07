@@ -5,11 +5,11 @@ const storage = new MMKV();
 
 export const apiGetApprovedMentees = async () => {
   const api = axios.create({
-    baseURL: process.env.API_URL, // Ensure this is set in your environment variables
+    baseURL: "http://181.214.44.15:8080/", // Ensure this is set in your environment variables
     headers: {
       accept: "application/json",
-    //   token: storage.getString("token"), // Ensure the token is stored in MMKV
-    token: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJBIiwiaWQiOjksInJvbGUiOiJtZW50b3IiLCJleHAiOjE3NDUwNjgxNTN9.L4eSRmCOLuqOXQGzbhD1XcO07MH0UDykV1OespKNOfw"
+      token: storage.getString("token"), // Ensure the token is stored in MMKV
+    // token: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJmYWxndW5pIiwiaWQiOjQzLCJyb2xlIjoibWVudG9yIiwiZXhwIjoxNzQ1MjM2NjYyfQ.CBXntNG8fr6kPsU5dvWhQb-ELU1Rjo6rZSOrnBUwRqg"
     },
   });
 
@@ -31,17 +31,17 @@ export const apiGetApprovedMentees = async () => {
 
 export const  apiPostGenerateRoadMap=async (domain:string,menteeId:string)=>{
   const api = axios.create({
-    baseURL: "https://7e49-160-250-150-14.ngrok-free.app/",
+    baseURL: "http://181.214.44.15:8003/",
         headers: {
       accept: "application/json",
-    //   token: storage.getString("token"), // Ensure the token is stored in MMKV
-    token: " eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJBIiwiaWQiOjksInJvbGUiOiJtZW50b3IiLCJleHAiOjE3NDUwNjgxNTN9.L4eSRmCOLuqOXQGzbhD1XcO07MH0UDykV1OespKNOfw"
+      token: storage.getString("token"), // Ensure the token is stored in MMKV
+    // token: " eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJmYWxndW5pIiwiaWQiOjQzLCJyb2xlIjoibWVudG9yIiwiZXhwIjoxNzQ1MjM2NjYyfQ.CBXntNG8fr6kPsU5dvWhQb-ELU1Rjo6rZSOrnBUwRqg"
     },
   });
 
   try {
-    const response = await api.post("/mentor/generate-roadmap",{
-      domain_id: 1,
+    const response = await api.post("/roadmaps/generate/",{
+      domain_id: 6,
       mentee_id: menteeId,
     });
     console.log("Response from get-approved-mentee:", response);
@@ -62,22 +62,23 @@ export const  apiPostGenerateRoadMap=async (domain:string,menteeId:string)=>{
 
 export const apiPostAssignRoadmap = async (menteeId:string,domainId:string,roadmapId:string) => {
   const api = axios.create({
-    baseURL: process.env.API_URL, // Ensure this is set in your environment variables
+    baseURL: "http://181.214.44.15:8080/", // Ensure this is set in your environment variables
     headers: {
       accept: "application/json",
-      token: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJBIiwiaWQiOjksInJvbGUiOiJtZW50b3IiLCJleHAiOjE3NDUwNjgxNTN9.L4eSRmCOLuqOXQGzbhD1XcO07MH0UDykV1OespKNOfw",
+      token: storage.getString("token"), // Ensure the token is stored in MMKV
+      // token: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJmYWxndW5pIiwiaWQiOjQzLCJyb2xlIjoibWVudG9yIiwiZXhwIjoxNzQ1MjM2NjYyfQ.CBXntNG8fr6kPsU5dvWhQb-ELU1Rjo6rZSOrnBUwRqg",
     },
   });
 
   try {
     const data = {
       "mentee_id": menteeId,
-      "domain_id": domainId,
+      "domain_id": 6,
       "roadmap_id": roadmapId,
     }
     const response = await api.post("/mentor/assign-roadmap", data);
     console.log("Response from assign-roadmap:", response);
-
+return 1;
     if (response.status === 200) {
       return 1;
     } else {
