@@ -11,12 +11,19 @@ export type RootStackParamList = {
     FindMentorScreen: undefined;
     MenteeRequests: undefined;
     MentorProfileScreen: undefined;
+    MenteeRoadmap:undefined;
+    
     // CustomDrawerContent: undefined;
     temp: undefined;
     viewRoadmap: undefined;
     generateRoadmap: undefined;
 
     MenteeProfileScreen : undefined;
+    RoadmapScreen: {
+        mentor_id: number;
+        domain_name: string;
+        domain_id: number;
+      }
 };
 
 export type ScreenProps<T extends keyof RootStackParamList> = NativeStackScreenProps<RootStackParamList, T>;
