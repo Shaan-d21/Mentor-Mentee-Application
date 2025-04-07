@@ -9,7 +9,7 @@ from config import GOOGLE_API_KEY, GEMINI_MODEL_NAME
 load_dotenv()
 
 # Configure Gemini API
-# GOOGLE_API_KEY = os.getenv("GOOGLE_API_KEY")
+GOOGLE_API_KEY = os.getenv("GOOGLE_API_KEY")
 genai.configure(api_key=GOOGLE_API_KEY)
 model = genai.GenerativeModel(GEMINI_MODEL_NAME)
 
