@@ -16,7 +16,7 @@ const MentorDashboard: FC<ScreenProps<"MentorDashboard">> = ({navigation}) => {
     dispatch(fetchMenteeRequests());
   }, [dispatch]);
   const userName = useSelector((state: RootState) => state.login.name);
-
+console.log(userName)
 
   const { pendingRequests, acceptedRequests } = useSelector((state: RootState) => state.menteeRequests);
   console.log("Redux State:", useSelector((state: RootState) => state.menteeRequests));
