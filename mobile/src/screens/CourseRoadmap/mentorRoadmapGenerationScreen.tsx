@@ -122,7 +122,6 @@ console.log("Selected Mentee ID:", mentees.find((mentee) => mentee.name === sele
 };
 
 const styles = StyleSheet.create({
-  // ...existing styles...
   container: {
     flex: 1,
     backgroundColor: '#ffffff',
@@ -172,7 +171,7 @@ const styles = StyleSheet.create({
     paddingVertical: 16,
   },
   button: {
-    backgroundColor: '#000',
+    backgroundColor: '#007bff',
     paddingHorizontal: 24,
     paddingVertical: 12,
     borderRadius: 8,
