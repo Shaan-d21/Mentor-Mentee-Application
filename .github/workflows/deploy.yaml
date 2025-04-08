@@ -41,6 +41,7 @@ jobs:
             GOOGLE_API_KEY=${{ secrets.GOOGLE_API_KEY }}
             GOOGLE_API_KEY2=${{ secrets.GOOGLE_API_KEY2 }}
             GOOGLE_TEXT_ANALYSIS_API_KEY=${{ secrets.GOOGLE_TEXT_ANALYSIS_API_KEY }}
+            MM_AI=${{ secrets.MM_AI }}
             EOL
             echo ".env file created/updated successfully."
 
