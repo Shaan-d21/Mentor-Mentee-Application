@@ -2,10 +2,9 @@ import axios from "axios";
 
 
 export const apiLoginUser = async (credentials: { email: string; password: string }) => {
-    console.log(process.env.API_URL);
+    console.log("http://181.214.44.15:8080/");
     const api = axios.create({
-        baseURL: process.env.API_URL,
-        // baseURL: "https://081d-2a09-bac1-36c0-28-00-242-50.ngrok-free.app/",
+        baseURL: "http://181.214.44.15:8080/",
         headers: {
             "Content-Type": "application/x-www-form-urlencoded",
         },
