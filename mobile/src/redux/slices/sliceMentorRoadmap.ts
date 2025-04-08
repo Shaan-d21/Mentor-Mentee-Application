@@ -1,5 +1,5 @@
 import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
-import { apiGetApprovedMentees, apiPostAssignRoadmap, apiPostGenerateRoadMap } from "../../services/apiGenerateRoadmapMentor";
+import { apiGetApprovedMentees, apiPostAssignRoadmap, apiPostGenerateRoadMap } from "../../services/apiRoadmap/apiGenerateRoadmapMentor";
 
 enum currentStatus {
   idle = "idle",
