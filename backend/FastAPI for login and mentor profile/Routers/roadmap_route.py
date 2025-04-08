@@ -1,22 +1,22 @@
-from fastapi import APIRouter, HTTPException, Depends
+# routes/roadmap_routes.py
+
+from fastapi import APIRouter, HTTPException, Depends, status
 from sqlalchemy.orm import Session
-from typing import Dict, Any
+from typing import Dict, Any, Annotated
 from pydantic import BaseModel
 import models
 from models import UserRole
-from database import SessionLocal, get_db
-from AI_Model.roadmap_recommendation import generate_roadmap_content
+from services.ai_client import fetch_roadmap
+from database import SessionLocal
 from .auth import get_current_user
-from typing import Annotated
-from database import SessionLocal, get_db
 
-# ---- Embedded Schema ----
+router = APIRouter(prefix="/roadmaps", tags=["roadmaps"])
+
 class GenerateRoadmapRequest(BaseModel):
     domain_id: int
     mentee_id: int
 
-# Set up the router
-router = APIRouter(prefix="/mentor", tags=["roadmap"])
+# Dependency to get DB session
 def get_db():
     db = SessionLocal()
     try:
@@ -24,32 +24,44 @@ def get_db():
     finally:
         db.close()
 
-
-db_dependency =  Annotated[Session, Depends(get_db)]
+db_dependency = Annotated[Session, Depends(get_db)]
 user_dependency = Annotated[dict, Depends(get_current_user)]
 
-# ----- AI-Generated Roadmap -----
-@router.post("/generate-roadmap", response_model=Dict[str, Any])
-async def generate_roadmap(request: GenerateRoadmapRequest, db: db_dependency, user: user_dependency):
-    # Check if domain exists
-    # if user is None or user.get("role") != UserRole.mentor:
-    #     raise HTTPException(status_code=403, detail="Unauthorized access")
+@router.post("/generate/", status_code=status.HTTP_200_OK)
+async def generate_roadmap(
+    request: GenerateRoadmapRequest,
+    db: db_dependency,
+    user: user_dependency
+):
+    # ✅ Token still required in this general server route
+    if user is None or user.get('role') != 'mentor':
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Unauthorized Access"
+        )
+
+    # ✅ Domain check
     domain = db.query(models.Domain).filter(models.Domain.id == request.domain_id).first()
     if not domain:
         raise HTTPException(status_code=404, detail="Domain not found")
-    # Check if user is a mentee
+
+    # ✅ Mentee check
     mentee = db.query(models.User).filter(
         models.User.id == request.mentee_id,
         models.User.role == UserRole.mentee
     ).first()
     if not mentee:
         raise HTTPException(status_code=404, detail="Mentee not found")
+
     try:
-        # Generate a roadmap using the AI service
-        topics_list = generate_roadmap_content(domain.name)
-        # Join all topics into a single string to store in the name field
-        roadmap_content = "\n".join(topics_list)
-        # Create a new roadmap with the topics list as name
+        # ✅ Call AI server — no token required
+        ai_response = await fetch_roadmap(request.domain_id, request.mentee_id)
+
+        # ✅ Save roadmap to DB
+        topics_list = ai_response.get("topics", [])
+        roadmap_content = ai_response.get("roadmap_name", "")
+        domain_name = ai_response.get("domain", domain.name)
+
         db_roadmap = models.Roadmap(
             domain_id=domain.id,
             name=roadmap_content
@@ -57,11 +69,14 @@ async def generate_roadmap(request: GenerateRoadmapRequest, db: db_dependency, u
         db.add(db_roadmap)
         db.commit()
         db.refresh(db_roadmap)
-        return {
-            "roadmap_id": db_roadmap.id,
-            "roadmap_name": roadmap_content,
-            "topics": topics_list,  # Still return the list format for the API response
-            "domain": domain.name
-        }
+
+        # ✅ Append roadmap_id before returning
+        ai_response["roadmap_id"] = db_roadmap.id
+        ai_response["domain"] = domain_name
+        return ai_response
+
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Error generating roadmap: {str(e)}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Error generating roadmap: {str(e)}"
+        )
