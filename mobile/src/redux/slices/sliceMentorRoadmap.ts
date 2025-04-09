@@ -11,24 +11,27 @@ enum currentStatus {
 interface Mentee {
   id: number;
   name: string;
+  domain_id: string;
+  roadmapId?: string;
+  domain_name: string;
 }
 
 interface MentorRoadmapState {
   mentees: Mentee[];
   roadmap: string[] | null;
   roadmapId: string | null;
-  assign: 0 | 1 ;
   status: currentStatus;
   error: string | null;
+  assignStatus: 0|1 | null;
 }
 
 const initialState: MentorRoadmapState = {
   mentees: [],
   roadmap: null,
-  assign: 0,
   roadmapId: null,
   status: currentStatus.idle,
   error: null,
+  assignStatus: null,
 };
 
 // Async thunk to fetch approved mentees
@@ -39,9 +42,11 @@ export const fetchApprovedMentees = createAsyncThunk("mentorRoadmap/fetchMentees
       throw new Error(response.error);
     }
     return response.object.map((item: any) => ({
-      id: item.User.id,
-      name: item.User.name,
-    })); // Map response to extract id and name
+      id: item.id,
+      name: item.name,
+      domain_id: item.domain_id,
+      domain_name: item.domain_name,
+    }));
   } catch (error: any) {
     throw new Error(error.message || "Failed to fetch mentees");
   }
@@ -49,9 +54,9 @@ export const fetchApprovedMentees = createAsyncThunk("mentorRoadmap/fetchMentees
 
 // Async thunk to generate a roadmap
 export const generateRoadmap = createAsyncThunk(
-  "mentorRoadmap/generateRoadmap", async ({domain,id}:{domain: string,id:string}) => {
+  "mentorRoadmap/generateRoadmap", async ({domainId,id}:{domainId: string,id:string}) => {
     try {
-      const roadmaps =await apiPostGenerateRoadMap(domain,id); 
+      const roadmaps =await apiPostGenerateRoadMap(domainId,id); 
       
       return roadmaps;
     } catch (error: any) {
@@ -119,10 +124,13 @@ const mentorRoadmapSlice = createSlice({
         state.error = null;
       })
       .addCase(assignRoadmap.fulfilled, (state, action) => {
-        state.status = currentStatus.success;
+        state.status = currentStatus.idle;
+        state.roadmap= null;
+        state.roadmapId = null;
         state.error = null;
+        state.assignStatus = action.payload == 1 ? 1 : 0;
         console.log("Roadmap assigned:", action.payload);
-        state.assign = 1; // Set assign to 1 on successful assignment
+
       })
       .addCase(assignRoadmap.rejected, (state, action) => {
         state.status = currentStatus.failed;

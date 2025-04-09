@@ -29,7 +29,7 @@ export const apiGetApprovedMentees = async () => {
   }
 };
 
-export const  apiPostGenerateRoadMap=async (domain:string,menteeId:string)=>{
+export const  apiPostGenerateRoadMap=async (domainId:string,menteeId:string)=>{
   const api = axios.create({
     baseURL: "http://181.214.44.15:8003/",
         headers: {
@@ -41,7 +41,7 @@ export const  apiPostGenerateRoadMap=async (domain:string,menteeId:string)=>{
 
   try {
     const response = await api.post("/roadmaps/generate/",{
-      domain_id: 6,
+      domain_id: domainId,
       mentee_id: menteeId,
     });
     console.log("Response from get-approved-mentee:", response);
@@ -73,12 +73,12 @@ export const apiPostAssignRoadmap = async (menteeId:string,domainId:string,roadm
   try {
     const data = {
       "mentee_id": menteeId,
-      "domain_id": 6,
+      "domain_id": domainId,
       "roadmap_id": roadmapId,
     }
     const response = await api.post("/mentor/assign-roadmap", data);
     console.log("Response from assign-roadmap:", response);
-return 1;
+// return 1;
     if (response.status === 200) {
       return 1;
     } else {

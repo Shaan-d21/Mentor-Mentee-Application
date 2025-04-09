@@ -18,7 +18,7 @@ const Stack = createNativeStackNavigator<RootStackParamList>();
 export const RootNavigator: FC = () => {
   return (
     <Stack.Navigator
-      initialRouteName="MentorDashboard"
+      initialRouteName="MentorRoadmapGeneration"
       screenOptions={() => ({
         headerShown: false,
       })}>

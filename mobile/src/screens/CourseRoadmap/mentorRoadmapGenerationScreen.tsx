@@ -4,44 +4,46 @@ import { useDispatch, useSelector } from 'react-redux';
 import DropdownComponent from '../../components/Dropdown';
 import { ScreenProps } from '../../navigation/types';
 import AppBar from '../../components/appbar_component';
-import { fetchApprovedMentees, generateRoadmap,assignRoadmap } from '../../redux/slices/sliceMentorRoadmap'; // <-- Added
+import { fetchApprovedMentees, generateRoadmap, assignRoadmap } from '../../redux/slices/sliceMentorRoadmap'; // <-- Added
 import { AppDispatch, RootState } from '../../redux/store'; // Adjust import to match your store file
-import { ListRoadmapItems } from '../../components/RoadmapListItemsComponent';
+import { ListRoadmapItems } from '../../components/roadmap/RoadmapListItemsComponent';
+import DomainView from '../../components/roadmap/domainView';
+import { MMKV } from 'react-native-mmkv';
 
 export const MentorRoadmapGeneration: FC<ScreenProps<'MentorRoadmapGeneration'>> = ({ navigation }) => {
   const dispatch = useDispatch<AppDispatch>();
-  const { mentees, roadmap, status, error,assign,roadmapId } = useSelector((state: RootState) => state.mentorRoadmap);
+  const { mentees, roadmap, status, error, roadmapId, assignStatus } = useSelector((state: RootState) => state.mentorRoadmap);
 
   const [selectedMentee, setSelectedMentee] = useState('');
   const [selectedDomain, setSelectedDomain] = useState('');
-
-  const domainOptions = [
-    { label: "Programming Languages", value: "Programming Languages" },
-    { label: "Database & Backend", value: "Database & Backend" },
-    { label: "Cloud Computing", value: "Cloud Computing" },
-    { label: "DevOps & Deployment", value: "DevOps & Deployment" },
-    { label: "Artificial Intelligence & Machine Learning", value: "Artificial Intelligence & Machine Learning" },
-    { label: "Data Science & Analytics", value: "Data Science & Analytics" },
-    { label: "Project & Team Management", value: "Project & Team Management" },
-    { label: "Software Development", value: "Software Development" },
-    { label: "Soft Skills", value: "Soft Skills" },
-    { label: "Web Development", value: "Web Development" }
-  ];
+  const storage = new MMKV();
 
   useEffect(() => {
-    dispatch(fetchApprovedMentees()); // Load mentees from API
+    // storage.set("token", "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJmYWxndW5pIiwiaWQiOjQzLCJyb2xlIjoibWVudG9yIiwiZXhwIjoxNzQ1MzY4NTE0fQ.rqFMnkss6Vq2l-8Q1r0kGQ78rvOBRk1KF6b0egQYHCY")
+
+    dispatch(fetchApprovedMentees());
 
   }, [dispatch]);
 
-// useEffect(() => {
-//   if (assign === 1) {
-//     navigation.navigate('MentorDashboard'); // Navigate to MentorDashboard on successful assignment
-//   }
-// }, [assign, navigation]);
+  useEffect(() => {
+    if (assignStatus === 1) {
+      Alert.alert("Roadmap Assigned Successfully", "The roadmap has been assigned to the mentee successfully.",);
+    }
+
+  }, [assignStatus]);
+  useEffect(() => {
+    if (error) {
+      Alert.alert("Error", error, [{ text: "OK" }]);
+    }
+  }
+    , [error]);
+
+
 
   const handleGenerateRoadmap = () => {
     dispatch(generateRoadmap({
-      domain: selectedDomain, id:
+      domainId: mentees.find((mentee) => mentee.name === selectedMentee)?.domain_id.toString() || '',
+      id:
         mentees.find((mentee) => mentee.name === selectedMentee)?.id.toString() || ''
     }));
     console.log("Selected Mentee ID:", mentees.find((mentee) => mentee.name === selectedMentee)?.id.toString() || '');
@@ -51,11 +53,11 @@ export const MentorRoadmapGeneration: FC<ScreenProps<'MentorRoadmapGeneration'>>
   };
 
   const handleAssignRoadmap = () => {
-console.log("Roadmap ID:", roadmapId);
-console.log("Selected Mentee ID:", mentees.find((mentee) => mentee.name === selectedMentee)?.id.toString() || '');
+    console.log("Roadmap ID:", roadmapId);
+    console.log("Selected Mentee ID:", mentees.find((mentee) => mentee.name === selectedMentee)?.id.toString() || '');
     console.log("Selected Domain:", selectedDomain);
-    dispatch(assignRoadmap({ roadmapId: roadmapId||"", menteeId: mentees.find((mentee) => mentee.name === selectedMentee)?.id.toString() || '',domainId:"1" }));
-    Alert.alert("Roadmap Assigned Successfully", `Roadmap has been assigned to ${selectedMentee}`);
+    dispatch(assignRoadmap({ roadmapId: roadmapId || "", menteeId: mentees.find((mentee) => mentee.name === selectedMentee)?.id.toString() || '', domainId: mentees.find((mentee) => mentee.name === selectedMentee)?.domain_id.toString() || '' }));
+    console.log("Selected Mentee Name:", selectedMentee);
   };
 
   return (
@@ -64,29 +66,29 @@ console.log("Selected Mentee ID:", mentees.find((mentee) => mentee.name === sele
 
       <ScrollView contentContainerStyle={styles.scrollContent}>
         {status === 'loading' && (
-          <ActivityIndicator size="large" color="#000" style={{ marginTop: 20 }} />
+          <ActivityIndicator size="large" color="#007bff" style={{ marginTop: 20 }} />
         )}
 
-        {!!error && <Text style={{ color: 'red' }}>{error}</Text>}
 
         {status !== 'loading' && !roadmap && (
           <>
             <View style={styles.dropdownContainer}>
               <Text style={styles.label}>Select Mentee</Text>
               <DropdownComponent
-                data={mentees.map((mentee) => ({ label: mentee.name, value: mentee.name.toString() }))}
+                data={mentees.map((mentee) => ({ label: mentee.name, value: mentee.name }))}
                 selectedValue={selectedMentee}
-                onSelect={(value) => setSelectedMentee(value)}
+                onSelect={(value) => {
+                  setSelectedMentee(value);
+                  setSelectedDomain(
+                    mentees.find((mentee) => mentee.name === value)?.domain_name.toString() || '');
+                }}
               />
             </View>
 
-            <View style={styles.dropdownContainer}>
-              <Text style={styles.label}>Select Domain</Text>
-              <DropdownComponent
-                data={domainOptions}
-                selectedValue={selectedDomain}
-                onSelect={(value) => setSelectedDomain(value)}
-              />
+            <View style={styles.dropdownContainer}><Text style={styles.label}>
+              {selectedMentee ? `Domain for ${selectedMentee}` : 'Domain'}
+            </Text>
+              <DomainView label={selectedDomain} value={selectedDomain} />
             </View>
           </>
         )}
