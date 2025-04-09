@@ -24,6 +24,7 @@ import {
 } from '../../redux/slices/menteeProfileSlice';
 import { ScreenProps } from '../../navigation/types';
 import { setName } from '../../redux/slices/sliceLogin';
+import { MMKV } from 'react-native-mmkv';
 
 const MenteeProfileScreen: FC<ScreenProps<"MenteeProfileScreen">> = ({navigation}) => {
   const [fullName, setFullName] = useState('');
@@ -34,6 +35,8 @@ const MenteeProfileScreen: FC<ScreenProps<"MenteeProfileScreen">> = ({navigation
   const [mobileError, setMobileError] = useState('');
   const [isFocused, setIsFocused] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
+  const [dError, setDError] = useState('');
+
 
   const [_imageUri, setImageUri] = useState(
     'https://images.unsplash.com/photo-1511367461989-f85a21fda167?q=80&w=1931&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D',
@@ -46,8 +49,12 @@ const MenteeProfileScreen: FC<ScreenProps<"MenteeProfileScreen">> = ({navigation
     (state: RootState) => state.menteeProfile.response,
   );
   const dispatch = useDispatch<AppDispatch>();
-
+  const storage = new MMKV();
   useEffect(() => {
+    storage.set(
+      'token',
+      'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJTb2hhbSIsImlkIjo0MSwicm9sZSI6Im1lbnRlZSIsImV4cCI6MTc0NTM3NDczNn0.u9zV2VgLunICWmNOmtA7zMn2Nb-tBxmV14VlLFN8UaU',
+    );
     dispatch(getmenteeprofile());
   }, [dispatch]);
 
@@ -127,7 +134,12 @@ const MenteeProfileScreen: FC<ScreenProps<"MenteeProfileScreen">> = ({navigation
     } else {
       setEmailError('');
     }
-
+    if (!designation.trim()) {
+      setDError('Designation cannot be empty');
+      isValid = false;
+    } else {
+      setDError('');
+    }
     if (!validateMobile(mobile)) {
       setMobileError('Please enter a valid 10-digit mobile number.');
       isValid = false;
@@ -225,6 +237,9 @@ const MenteeProfileScreen: FC<ScreenProps<"MenteeProfileScreen">> = ({navigation
                 onChangeText={setDesignation}
                 placeholder="Designation"
               />
+               {dError ? (
+                <Text style={styles.errorText}>{dError}</Text>
+              ) : null}
 
               {/* <View style={styles.genderPickerContainer}>
                 <Dropdown

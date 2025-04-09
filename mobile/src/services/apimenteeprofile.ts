@@ -12,7 +12,7 @@ export const apigetMenteeProfile = async () => {
     baseURL: process.env.API_URL,
     headers: {
       "accept": "application/json",
-      "token": storage.getString("token")
+      "Token": storage.getString("token")
     },
   });
 
@@ -41,8 +41,9 @@ export const apiUpdateMenteeProfile = async (name: string, contact: string, desi
   const api = axios.create({
     baseURL: process.env.API_URL,
     headers: {
+      'accept': 'application/json',
       "Content-Type": "application/json",
-      "token": storage.getString("token")
+      "Token": storage.getString("token")
     },
   });
 
@@ -75,8 +76,10 @@ export const apiaddMenteeProfileSkill = async (skillName: string) => {
     baseURL: process.env.API_URL,
     headers: {
       accept: "application/json",
+      'Content-Type': 'application/json',
+      "Token": storage.getString("token")
+
       // "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJtZW50ZWVzIiwiaWQiOjk3LCJyb2xlIjoibWVudGVlIiwiZXhwIjoxODYzNDEwNTU0fQ.zP8R7Jdt6av2i9HMKjSznjwVIiUDXXAXPBuqSMfj6uY"
-      "token": storage.getString("token")
     },
   });
 
