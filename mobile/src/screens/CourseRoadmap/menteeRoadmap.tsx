@@ -1,11 +1,13 @@
 import React, { useEffect } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, FlatList, ActivityIndicator } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, FlatList, ActivityIndicator,Alert } from 'react-native';
 import { useDispatch, useSelector } from 'react-redux';
 import { AppDispatch, RootState } from '../../redux/store';
 import { fetchMentors, ApprovedMentor } from '../../redux/slices/sliceMenteeRoadmap';
 import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../../navigation/types';
+import { getRoadmapTopics } from '../../services/apiRoadmap/apiGetRoadmap';
+import AppBar from '../../components/appbar_component';
 
 type MenteeRoadmapNavProp = NativeStackNavigationProp<RootStackParamList, 'MenteeRoadmap'>;
 
@@ -20,11 +22,38 @@ const MenteeRoadmap = () => {
     dispatch(fetchMentors());
   }, [dispatch]);
 
-  const handleViewRoadmap = (mentor_id: number, domain_name: string, domain_id: number) => {
-    navigation.navigate('RoadmapScreen', { mentor_id: mentor_id, domain_name: domain_name, domain_id: domain_id });
+  // const handleViewRoadmap = (mentor_id: number, domain_name: string, domain_id: number) => {
+  //   navigation.navigate('RoadmapScreen', { mentor_id: mentor_id, domain_name: domain_name, domain_id: domain_id });
+  // };
+  const handleViewRoadmap = async (mentor_id: number, domain_name: string, domain_id: number) => {
+    try {
+      // Call getRoadmapTopics to check if the roadmap exists
+      await getRoadmapTopics(mentor_id, domain_id);
+
+      // If the API call is successful (no error thrown), navigate to RoadmapScreen
+      navigation.navigate('RoadmapScreen', { mentor_id: mentor_id, domain_name: domain_name, domain_id: domain_id });
+    } catch (error: any) {
+      // If a 404 error is caught, display an alert message
+      if (error.response && error.response.status === 404) {
+        Alert.alert(
+          "Roadmap Not Assigned",
+          "The roadmap for this mentor and domain has not been assigned yet.",
+          [{ text: "OK" }]
+        );
+      } else {
+        // Handle other errors (e.g., network errors)
+        console.error("Error checking roadmap:", error);
+        Alert.alert(
+          "Error",
+          "An error occurred while checking the roadmap.",
+          [{ text: "OK" }]
+        );
+      }
+    }
   };
 
   const renderItem = ({ item }: { item: ApprovedMentor }) => (
+    
     <View style={styles.tableRow}>
       <View style={styles.infoContainer}>
         <Text style={styles.headerText}>Mentor Name:</Text>
@@ -42,7 +71,8 @@ const MenteeRoadmap = () => {
 
   const ListHeader = () => (
     <View style={styles.headerContainer}>
-      <Text style={styles.title}>View Roadmap</Text>
+      <AppBar openDrawer={() => { }} onProfilePress={() => { }} title="View Roadmap" />
+      {/* <Text style={styles.title}>View Roadmap</Text> */}
     </View>
   );
 
@@ -83,6 +113,7 @@ const styles = StyleSheet.create({
     color: '#333',
     marginLeft: 20,
     marginBottom: 10,
+    marginTop: 10,
   },
   tableRow: {
     backgroundColor: '#fff',
