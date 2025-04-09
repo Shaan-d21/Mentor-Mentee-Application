@@ -6,6 +6,10 @@ import { fetchRoadmapTopics } from "../../redux/slices/sliceRoadmapTopics";
 import { useNavigation } from '@react-navigation/native';
 import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome';
 import { faArrowLeft } from '@fortawesome/free-solid-svg-icons'; // Import back arrow icon
+import AppBar from '../../components/appbar_component';
+import { NativeStackNavigationProp } from "@react-navigation/native-stack";
+import { RootStackParamList } from "../../navigation/types";
+
 
 interface RoadmapScreenProps {
   route: {
@@ -20,10 +24,12 @@ interface RoadmapScreenProps {
 const RoadmapScreen: React.FC<RoadmapScreenProps> = ({ route }) => {
   const { mentor_id, domain_name, domain_id } = route.params;
   const dispatch = useDispatch<AppDispatch>();
-  const navigation = useNavigation();
-
+  const navigation =
+    useNavigation<NativeStackNavigationProp<RootStackParamList>>();
   const { roadmapName, loading, error } = useSelector((state: RootState) => state.roadmap);
 
+
+  
   useEffect(() => {
     dispatch(fetchRoadmapTopics({ mentorId: mentor_id, domainId: domain_id }));
   }, [dispatch, mentor_id, domain_id]);
@@ -35,6 +41,7 @@ const RoadmapScreen: React.FC<RoadmapScreenProps> = ({ route }) => {
       </View>
     );
   }
+  
 
   if (error) {
     return (
@@ -47,10 +54,20 @@ const RoadmapScreen: React.FC<RoadmapScreenProps> = ({ route }) => {
   const roadmapSections = roadmapName.split("\n").map((item) => item.trim().replace(/^\*\s*/, ''));
 
   return (
-    <ScrollView style={styles.container}>
+    <ScrollView style={styles.container}>   
+{/* <AppBar
+  onProfilePress={() => {
+    console.log("Profile icon clicked");
+    navigation.navigate('MenteeProfileScreen');
+  }}
+  openDrawer={() => {}}
+/> */}
+
+
       <TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()}>
         <FontAwesomeIcon icon={faArrowLeft} size={24} color="#000000" style={styles.backButtonIcon} />
       </TouchableOpacity>
+      
       <Text style={styles.title}>Roadmap for {domain_name}</Text>
       {roadmapSections.map((section, index) => (
         <View style={styles.section} key={index}>

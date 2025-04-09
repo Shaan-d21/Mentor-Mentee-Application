@@ -71,13 +71,17 @@ const MenteeRoadmap = () => {
 
   const ListHeader = () => (
     <View style={styles.headerContainer}>
-      <AppBar openDrawer={() => { }} onProfilePress={() => { }} title="View Roadmap" />
-      {/* <Text style={styles.title}>View Roadmap</Text> */}
+<AppBar 
+  openDrawer={() => {}} 
+  onProfilePress={() => navigation.navigate('MenteeProfileScreen')} 
+  title="View Roadmap" 
+/>      {/* <Text style={styles.title}>View Roadmap</Text> */}
     </View>
   );
 
   return (
     <View style={styles.container}>
+      
       {loading ? (
         <View style={styles.loader}>
           <ActivityIndicator size="large" color="#007bff" />

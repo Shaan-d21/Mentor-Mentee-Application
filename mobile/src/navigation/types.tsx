@@ -13,6 +13,7 @@ export type RootStackParamList = {
   MentorProfileScreen: undefined;
   MenteeRoadmap: undefined;
   CheckRequestScreen: undefined;
+  MenteeProfileScreen: undefined;
 
   // CustomDrawerContent: undefined;
   MentorRoadmapGeneration: undefined;
@@ -20,7 +21,6 @@ export type RootStackParamList = {
   viewRoadmap: undefined;
   generateRoadmap: undefined;
 
-  MenteeProfileScreen: undefined;
   RoadmapScreen: {
     mentor_id: number;
     domain_name: string;
