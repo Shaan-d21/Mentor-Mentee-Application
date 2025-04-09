@@ -3,13 +3,14 @@ on:
   push:
     branches:
       - dev
+    paths:
+      - 'backend/**'
+      - '.github/workflows/backend_deploy.yaml'
 
 jobs:
-  deploy:
+  backend-eploy:
     runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: "./backend/FastAPI for login and mentor profile"
+
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v4
@@ -22,15 +23,15 @@ jobs:
           source: "."
           target: "Internship-2025/Mentor-Mentee-App/"
 
-      - name: Create or Overwrite .env File
+
+      - name: Create or Overwrite .env File for backend
         uses: appleboy/ssh-action@master
         with:
           host: '${{ secrets.PROMACT_SERVER_IP }}'
           username: '${{ secrets.PROMACT_SERVER_USERNAME }}'
           key: '${{ secrets.PROMACT_SERVER_SSH_PRIVATE_KEY }}'
           script: |
-            cd /home/intern/Internship-2025/Mentor-Mentee-App
-            echo "Creating/updating .env file..."
+            cd /home/intern/Internship-2025/Mentor-Mentee-App/backend/'FastAPI for login and mentor profile'
             cat > .env <<EOL
             POSTGRES_PASSWORD=${{ secrets.POSTGRES_PASSWORD }}
             POSTGRES_DB=${{ vars.POSTGRES_DB }}
@@ -42,28 +43,8 @@ jobs:
             GOOGLE_API_KEY2=${{ secrets.GOOGLE_API_KEY2 }}
             GOOGLE_TEXT_ANALYSIS_API_KEY=${{ secrets.GOOGLE_TEXT_ANALYSIS_API_KEY }}
             MM_AI=${{ secrets.MM_AI }}
-            EOL
-            echo ".env file created/updated successfully."
-
-      - name: Create or Overwrite .env File for backend
-        uses: appleboy/ssh-action@master
-        with:
-          host: '${{ secrets.PROMACT_SERVER_IP }}'
-          username: '${{ secrets.PROMACT_SERVER_USERNAME }}'
-          key: '${{ secrets.PROMACT_SERVER_SSH_PRIVATE_KEY }}'
-          script: |
-            cd /home/intern/Internship-2025/Mentor-Mentee-App/backend/'FastAPI for login and mentor profile'
-            echo "Creating/updating .env file..."
-            cat > .env <<EOL
-            POSTGRES_PASSWORD=${{ secrets.POSTGRES_PASSWORD }}
-            POSTGRES_DB=${{ vars.POSTGRES_DB }}
-            POSTGRES_USER=${{ vars.POSTGRES_USER }}
-            POSTGRES_HOST=${{ vars.POSTGRES_HOST }}
-            POSTGRES_PORT=${{ vars.POSTGRES_PORT }}
-            GOOGLE_API_KEY1=${{ secrets.GOOGLE_API_KEY1 }}
-            GOOGLE_API_KEY=${{ secrets.GOOGLE_API_KEY }}
-            GOOGLE_API_KEY2=${{ secrets.GOOGLE_API_KEY2 }}
-            GOOGLE_TEXT_ANALYSIS_API_KEY=${{ secrets.GOOGLE_TEXT_ANALYSIS_API_KEY }}
+            MM_FRONTEND=${{ secrets.MM_FRONTEND }}
+            MM_BACKEND=${{ secrets.MM_BACKEND }}
             EOL
             echo ".env file created/updated successfully."
 
@@ -75,6 +56,6 @@ jobs:
           key: ${{ secrets.PROMACT_SERVER_SSH_PRIVATE_KEY }}
           script: |
             cd /home/intern/Internship-2025/Mentor-Mentee-App
-            docker compose down
-            docker compose up -d --build
+            docker compose down backend
+            docker compose up -d --build backend
             docker system prune -af
