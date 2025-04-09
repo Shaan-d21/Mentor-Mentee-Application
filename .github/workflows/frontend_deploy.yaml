@@ -8,7 +8,7 @@ on:
       - '.github/workflows/frontend_deploy.yaml'
 
 jobs:
-  deploy:
+  frontend-deploy:
     runs-on: ubuntu-latest
     
     steps:
