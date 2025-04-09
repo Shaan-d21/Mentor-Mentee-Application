@@ -1,3 +1,4 @@
+
 import {createNativeStackNavigator} from '@react-navigation/native-stack';
 import {RootStackParamList} from './types';
 import SignInPage from '../screens/AuthScreens/SignInPage';
@@ -18,7 +19,7 @@ const Stack = createNativeStackNavigator<RootStackParamList>();
 export const RootNavigator: FC = () => {
   return (
     <Stack.Navigator
-      initialRouteName="MentorRoadmapGeneration"
+      initialRouteName="SignInPage"
       screenOptions={() => ({
         headerShown: false,
       })}>
