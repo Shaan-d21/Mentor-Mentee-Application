@@ -19,7 +19,7 @@ export interface MentorResponse {
 // Function to fetch mentors based on the selected domain
 export const fetchMentors = async (domain: string) => {
   try {
-    console.log('Fetching mentors for domain:', domain);
+    console.log('apimentordomain: Fetching mentors for domain:', domain);
     const response = await axios.get<MentorResponse>(
       'https://db79-160-250-150-14.ngrok-free.app/predict/',
       {
@@ -30,7 +30,8 @@ export const fetchMentors = async (domain: string) => {
       }
     );
     const data = response.data;
-    console.log('Domain Mentors:', data.domain_mentors);
+    console.log(`apimentordomain: Response from server:`, JSON.stringify(data));
+    // console.log('apimentordomain: Domain Mentors:', data.domain_mentors);
     console.log('Other Domain Mentors:', data.other_domain_mentors);
     return data;
   } catch (error) {
