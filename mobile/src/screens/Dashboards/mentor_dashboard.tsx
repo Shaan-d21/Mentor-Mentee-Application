@@ -167,8 +167,8 @@ const MentorDashboardScreen = () => {
   // const approvedMentees = useSelector(
   //   (state: RootState) => state.mentor.approved,
   // );
-  const {approved, pending} = useSelector(
-    (state: RootState) => state.menteeDashboard,
+  const {approved, pending,error,status} = useSelector(
+    (state: RootState) => state.mentorDashboard,
   );
   const userName = useSelector((state: RootState) => state.login.name);
 
@@ -215,13 +215,13 @@ const MentorDashboardScreen = () => {
             <Text style={[styles.cell, styles.headerCell]}>Domain</Text>
             <Text style={[styles.cell, styles.headerCell]}>Comment</Text>
           </View>
-          {approvedMentees.length === 0 ? (
+          {approved.length === 0 ? (
             <Text style={styles.noMenteesText}>
               No approved mentees available.
             </Text>
           ) : (
             <FlatList
-              data={approvedMentees}
+              data={approved}
               renderItem={renderItem}
               keyExtractor={item => item.id.toString()}
               ItemSeparatorComponent={() => <View style={styles.separator} />}

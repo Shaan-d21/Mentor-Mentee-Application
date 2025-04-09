@@ -361,7 +361,7 @@ const CheckRequestScreen: React.FC = () => {
   >(null);
   const [approvedMentees, setApprovedMentees] = useState([]);
 
-  const {pending} = useSelector((state: RootState) => state.menteeRequests);
+  const {pending,isActionDone,error,status} = useSelector((state: RootState) => state.menteeRequests);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -383,25 +383,6 @@ const CheckRequestScreen: React.FC = () => {
     setModalVisible(true);
   };
 
-  // const handleConfirmAction = () => {
-  //   if (selectedId !== null && currentAction) {
-  //     dispatch(
-  //       approveRejectMenteeThunk({
-  //         menteeId: selectedId,
-  //         status: currentAction === 'approve' ? 'approved' : 'not approved',
-  //         comment,
-  //       }),
-  //     ).then(() => {
-  //       dispatch(fetchApprovedMentees());
-  //       //dispatch(fetchPendingRequest());
-
-  //       setModalVisible(false);
-  //       setComment('');
-  //       setSelectedId(null);
-  //       setCurrentAction(null);
-  //     });
-  //   }
-  // };
   const handleConfirmAction = () => {
     if (selectedId !== null && currentAction) {
       if (currentAction === 'reject') {
@@ -414,14 +395,10 @@ const CheckRequestScreen: React.FC = () => {
           approveRejectMenteeThunk({
             menteeId: selectedId,
             status: 'not approved',
-            comment: '', // Provide a default or appropriate comment
+            comment: comment.trim(), // Use the comment provided by the user
           }),
         ).then(() => {
-          // 3. Refresh lists after deletion
           dispatch(fetchPendingRequest());
-          dispatch(fetchApprovedMentees());
-
-          // 4. Reset modal state
           setModalVisible(false);
           setComment('');
           setSelectedId(null);
@@ -433,11 +410,10 @@ const CheckRequestScreen: React.FC = () => {
           approveRejectMenteeThunk({
             menteeId: selectedId,
             status: 'approved',
-            comment,
+            comment: comment.trim() || '', // Use the comment provided by the user
           }),
         ).then(() => {
           dispatch(fetchPendingRequest());
-          dispatch(fetchApprovedMentees());
 
           setModalVisible(false);
           setComment('');
