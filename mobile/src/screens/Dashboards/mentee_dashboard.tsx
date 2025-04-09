@@ -14,8 +14,10 @@ import { useSelector } from 'react-redux';
 import { RootState } from '../../redux/store';
 import { Dropdown } from 'react-native-element-dropdown';
 import { ScreenProps } from '../../navigation/types';
-import { fetchMentors } from '../../services/apimentordomain';
+import { fetchMentors } from '../../services/apiMenteeDashboard/apimentordomain';
 import axios from 'axios';
+
+
 
 const COLUMN_WIDTH = 140;
 
@@ -42,37 +44,37 @@ const MenteeDashboard: FC<ScreenProps<'MenteeDashboard'>> = ({ navigation }) => 
   useEffect(() => {
     const fetchAllMentors = async () => {
       try {
-        const response = await axios.get('http://181.214.44.15:8080/users/all_users');
-        console.log("All Users Response: ", response.data); // Debugging 👀
-
+        const response = await axios.get('http://181.214.44.15:8080/mentee/get-approved-mentors', {
+          headers: {
+            'accept': 'application/json',
+            'Token': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJzb2hhbXMiLCJpZCI6NDEsInJvbGUiOiJtZW50ZWUiLCJleHAiOjE3NDUzOTM5Mzd9.5WdcaF2vgXIouz6YSh0HzpzvgcFPLkuyH7w68fOqxOI'
+          }
+        });
+        console.log("Approved Mentors Response: ", response.data); // Debugging :eyes:
         if (response.data && Array.isArray(response.data)) {
-          // Check if role field exists
-          const mentors = response.data
-            .filter((mentor) => mentor.role?.toLowerCase() === 'mentor') // ✅ Role check
-            .map((mentor) => ({
-              id: mentor.id,
-              name: mentor.name,
-              email: mentor.mail,
-              designation: mentor.designation,
-              techStack: mentor.domain
-            }));
-
+          const mentors = response.data.map((mentor) => ({
+            id: mentor.id,
+            name: mentor.name,
+            email: mentor.mail,
+            designation: mentor.designation,
+            techStack: mentor.domain
+          }));
           setMentorList(mentors);
           setShowCompatibilityColumns(false);
         }
       } catch (error) {
-        console.error("Failed to fetch mentors:", error);
+        console.error("Failed to fetch approved mentors:", error);
       }
     };
-
     fetchAllMentors();
   }, []);
-
+  
   const sendRequest = (mentorId: number) => {
     Alert.alert("Request Sent");
     setRequestMentorId(mentorId);
   };
 
+  //Fetching the mentors according to the selected domain
   const handleCheckCompatibility = async () => {
     if (!selectedDomain) return;
 

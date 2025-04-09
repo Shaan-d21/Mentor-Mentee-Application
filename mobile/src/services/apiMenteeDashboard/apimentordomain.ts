@@ -17,7 +17,7 @@ export interface MentorResponse {
 }
 
 // Function to fetch mentors based on the selected domain
-export const fetchMentors = async (domain: string): Promise<MentorResponse | null> => {
+export const fetchMentors = async (domain: string) => {
   try {
     console.log('Fetching mentors for domain:', domain);
     const response = await axios.get<MentorResponse>(
