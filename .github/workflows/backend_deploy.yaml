@@ -56,6 +56,6 @@ jobs:
           key: ${{ secrets.PROMACT_SERVER_SSH_PRIVATE_KEY }}
           script: |
             cd /home/intern/Internship-2025/Mentor-Mentee-App
-            docker compose down
+            docker compose down backend
             docker compose up -d --build backend
             docker system prune -af
