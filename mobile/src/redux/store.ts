@@ -1,28 +1,20 @@
 import {configureStore} from '@reduxjs/toolkit';
 import loginReducer from './slices/sliceLogin';
-import menteeRequestsReducer from './slices/mentorSlice';
 import registerReducer from './slices/sliceRegister';
 import menteeProfileReducer from './slices/menteeProfileSlice';
 import mentorProfileReducer from './slices/mentorProfileSlice';
 import sliceMenteeDashboard from './slices/sliceMenteeDashboard';
-import menteeRoadmapReducer from './slices/sliceMenteeRoadmap';
-import roadmapReducer from './slices/sliceRoadmapTopics';
-import mentorRoadmapReducer from './slices/sliceMentorRoadmap';
+import menteeRequestsSlice from './slices/mentorSlice';
 
-import MentorState from './slices/mentorSlice'; // Import the MentorState type
 export const store = configureStore({
   reducer: {
     login: loginReducer,
     register: registerReducer,
-    menteeRequests: menteeRequestsReducer,
+    menteeRequests: menteeRequestsSlice,
     menteeDashboard: sliceMenteeDashboard,
     menteeProfile: menteeProfileReducer,
     mentorProfile: mentorProfileReducer,
-    menteeRoadmap: menteeRoadmapReducer,
-    roadmap: roadmapReducer,
-    mentorRoadmap: mentorRoadmapReducer,
-
-    mentor: MentorState, // Add the missing 'mentor' property
+    mentorDashboard: menteeRequestsSlice,
   },
   middleware: getDefaultMiddleware => getDefaultMiddleware(),
 });

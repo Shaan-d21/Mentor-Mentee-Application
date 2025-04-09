@@ -148,9 +148,11 @@ import {fetchApprovedMentees} from '../../redux/slices/mentorSlice';
 import {AppDispatch, RootState} from '../../redux/store';
 
 // Navigation types
-import {useNavigation} from '@react-navigation/native';
+import {useIsFocused, useNavigation} from '@react-navigation/native';
 import {NativeStackNavigationProp} from '@react-navigation/native-stack';
 import {RootStackParamList} from '../../navigation/types'; // Adjust the path as needed
+import Avatar from 'react-native-elements/dist/avatar/Avatar';
+import AppBar from '../../components/appbar_component';
 
 type MentorDashboardNavigationProp = NativeStackNavigationProp<
   RootStackParamList,
@@ -160,19 +162,27 @@ type MentorDashboardNavigationProp = NativeStackNavigationProp<
 const MentorDashboardScreen = () => {
   const dispatch = useDispatch<AppDispatch>();
   const navigation = useNavigation<MentorDashboardNavigationProp>();
+  const isFocused = useIsFocused();          // <-- track focus
 
   // Note: approved mentees list is stored under 'approved' in your slice.
   // const approvedMentees = useSelector(
   //   (state: RootState) => state.mentor.approved,
   // );
-  const approvedMentees = useSelector(
-    (state: RootState) => state.mentor.approved,
+  const {approved, pending,error,status} = useSelector(
+    (state: RootState) => state.mentorDashboard,
   );
+  const userName = useSelector((state: RootState) => state.login.name);
 
   useEffect(() => {
+    if (isFocused) {                        // <-- refetch only when focused
+      dispatch(fetchApprovedMentees());
+    }
+  }, [isFocused, ]);
+  useEffect(() => {
+  if (isFocused) {                        // <-- refetch only when focused
     dispatch(fetchApprovedMentees());
-  }, [dispatch]);
-
+  }
+}, [ ]);
   const renderItem = ({item}: {item: any}) => (
     <View style={styles.row}>
       <Text style={styles.cell}>{item.name}</Text>
@@ -184,13 +194,28 @@ const MentorDashboardScreen = () => {
   );
 
   return (
-    <View style={styles.container}>
-      <TouchableOpacity
-        style={styles.checkBtn}
-        onPress={() => navigation.navigate('CheckRequestScreen')}>
-        <Text style={styles.checkBtnText}>Check Request</Text>
-      </TouchableOpacity>
-      <Text style={styles.title}>Approved Mentees</Text>
+  
+  <View style={styles.container}>
+    {status === 'loading' && <Text>Loading...</Text>
+    }
+      <AppBar
+        onProfilePress={() => navigation.navigate('MentorProfileScreen')}
+        openDrawer={() => {}}
+      />
+
+      <View style={styles.header}>
+        <Text style={styles.headerText}>Hello, {userName} 👋</Text>
+        <Avatar rounded icon={{name: 'user', type: 'font-awesome'}} />
+      </View>
+      <View style={styles.rowHeaderContainer}>
+        <Text style={styles.title}>Approved Mentees</Text>
+        <TouchableOpacity
+          style={[styles.checkBtn, {marginTop: 30}]}
+          onPress={() => navigation.navigate('CheckRequestScreen')}>
+          <Text style={styles.checkBtnText}>Check Request</Text>
+        </TouchableOpacity>
+      </View>
+
       <ScrollView horizontal>
         <View style={styles.table}>
           <View style={[styles.row, styles.headerRow]}>
@@ -200,12 +225,18 @@ const MentorDashboardScreen = () => {
             <Text style={[styles.cell, styles.headerCell]}>Domain</Text>
             <Text style={[styles.cell, styles.headerCell]}>Comment</Text>
           </View>
-          <FlatList
-            data={approvedMentees}
-            renderItem={renderItem}
-            keyExtractor={item => item.id.toString()}
-            ItemSeparatorComponent={() => <View style={styles.separator} />}
-          />
+          {approved.length === 0 ? (
+            <Text style={styles.noMenteesText}>
+              No approved mentees available.
+            </Text>
+          ) : (
+            <FlatList
+              data={approved}
+              renderItem={renderItem}
+              keyExtractor={item => item.id.toString()}
+              ItemSeparatorComponent={() => <View style={styles.separator} />}
+            />
+          )}
         </View>
       </ScrollView>
     </View>
@@ -222,6 +253,34 @@ const styles = StyleSheet.create({
   separator: {
     height: 1,
     backgroundColor: 'white', // Adjust color as needed
+  },
+  rowHeaderContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginHorizontal: 3,
+    marginTop: 3,
+    padding: 10,
+    marginRight: 10,
+  },
+  noMenteesText: {
+    textAlign: 'center',
+    padding: 20,
+    fontSize: 16,
+    color: '#777',
+  },
+
+  header: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 15,
+  },
+  headerText: {
+    fontSize: 22,
+    fontWeight: 'bold',
+    color: '#333',
+    marginBottom: 10,
   },
   headerCell: {
     flex: 1,
@@ -243,7 +302,7 @@ const styles = StyleSheet.create({
     marginVertical: 10,
   },
   checkBtn: {
-    backgroundColor: 'limegreen',
+    backgroundColor: '#1a73e8',
     padding: 10,
     borderRadius: 6,
     alignSelf: 'flex-end',

@@ -1,9 +1,16 @@
-import {createSlice, createAsyncThunk} from '@reduxjs/toolkit';
+import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import {
   getApprovedMentees,
   getPendingRequest,
   approveRejectMentee,
 } from '../../services/apigetMenteeRequest';
+
+enum currentStatus {
+  idle = 'idle',
+  loading = 'loading',
+  success = 'success',
+  failed = 'failed',
+}
 
 interface Mentee {
   id: number;
@@ -17,24 +24,31 @@ interface Mentee {
 interface MenteeRequestsState {
   approved: Mentee[];
   pending: Mentee[];
-  rejectedRequests: {id: number; name: string}[];
-  loading: boolean;
+  rejectedRequests: { id: number; name: string }[];
+  status: currentStatus;
   error: string | null;
+  isActionDone: null|0|1;
 }
 
 const initialState: MenteeRequestsState = {
   approved: [],
   pending: [],
   rejectedRequests: [],
-  loading: false,
   error: null,
+  status: currentStatus.idle,
+  isActionDone: null,
 };
 
 export const fetchApprovedMentees = createAsyncThunk(
   'mentees/fetchApproved',
   async () => {
     const response = await getApprovedMentees();
-    return response.object;
+    console.log('Approved Mentees:', response);
+    if (response.error) {
+      throw new Error(response.error);
+    } else {
+      return response.object;
+    }
   },
 );
 
@@ -42,6 +56,10 @@ export const fetchPendingRequest = createAsyncThunk(
   'mentees/fetchPending',
   async () => {
     const response = await getPendingRequest();
+    if (response.error) {
+      throw new Error(response.error);
+    }
+    console.log('Pending Request:', response);
     return response.object;
   },
 );
@@ -58,7 +76,12 @@ export const approveRejectMenteeThunk = createAsyncThunk(
     comment: string;
   }) => {
     const res = await approveRejectMentee(menteeId, status, comment);
-    return {...res.object, status, comment};
+    if(res.error) {
+      throw new Error(res.error);
+    }
+    console.log('Approve/Reject Mentee Response:', res);
+
+    return 1;
   },
 );
 
@@ -69,49 +92,73 @@ const menteeSlice = createSlice({
   extraReducers: builder => {
     builder
       .addCase(fetchApprovedMentees.fulfilled, (state, action) => {
-        state.approved = action.payload.map((entry: any) => {
-          const user = entry.User;
-          return {
-            id: user.id,
-            name: user.name,
-            email: user.mail,
-            domain: user.domain_id,
-            role: user.role,
-          };
-        });
+        console.log('Pending Request Payload:', action.payload);
+
+        state.approved = action.payload.map((entry: any) => ({
+          id: entry.id,
+          name: entry.name,
+          email: entry.mail,
+          domain: entry.domain_id,
+          role: entry.role,
+        }));
       })
+      .addCase(fetchApprovedMentees.pending, state => {
+        state.status = currentStatus.loading;
+        state.error = null;
+      })
+      .addCase(fetchApprovedMentees.rejected, (state, action) => {
+        state.status = currentStatus.failed;
+        state.error =
+          action.error.message || 'Failed to fetch approved mentees';
+      })
+      // .addCase(fetchPendingRequest.fulfilled, (state, action) => {
+      //   console.log('Pending Request Payload:', action.payload);
+
+      //   state.pending = action.payload.map((entry: any) => {
+      //     const user = entry.User;
+      //     return {
+      //       id: user.id,
+      //       name: user.name,
+      //       email: user.mail,
+      //       domain: user.domain_id,
+      //       role: user.role,
+      //     };
+      //   });
+      // })
       .addCase(fetchPendingRequest.fulfilled, (state, action) => {
-        state.pending = action.payload.map((entry: any) => {
-          const user = entry.User;
-          return {
-            id: user.id,
-            name: user.name,
-            email: user.mail,
-            domain: user.domain_id,
-            role: user.role,
-          };
-        });
+        console.log('Pending Request Payload:', action.payload);
+state.status = currentStatus.success;
+        state.error = null;
+        state.pending = action.payload.map((entry: any) => ({
+          id: entry.id,
+          name: entry.name,
+          email: entry.mail,
+          domain: entry.domain_id,
+          role: entry.role,
+        }));
+      })
+      .addCase(fetchPendingRequest.pending, state => {
+        state.status = currentStatus.loading;
+        state.error = null;
+      })
+      .addCase(fetchPendingRequest.rejected, (state, action) => {
+        state.status = currentStatus.failed;
+        state.error =
+          action.error.message || 'Failed to fetch pending requests';
+      })
+      .addCase(approveRejectMenteeThunk.pending, state => {
+        state.status = currentStatus.loading;
+        state.error = null;
+      })
+      .addCase(approveRejectMenteeThunk.rejected, (state, action) => {
+        state.status = currentStatus.failed;
+        state.error = action.error.message || 'Failed to approve/reject mentee';
       })
       .addCase(approveRejectMenteeThunk.fulfilled, (state, action) => {
-        state.pending = state.pending.filter(
-          mentee => mentee.id !== action.payload.id,
-        );
-
-        if (action.payload.status === 'approved') {
-          state.approved.push({
-            id: action.payload.id,
-            name: action.payload.name,
-            email: action.payload.email,
-            domain: action.payload.domain,
-            role: action.payload.role,
-            comment: action.payload.comment || '',
-          });
-        } else if (action.payload.status === 'rejected') {
-          state.rejectedRequests.push({
-            id: action.payload.id,
-            name: action.payload.name,
-          });
-        }
+        state.status = currentStatus.success;
+        state.isActionDone = action.payload==1? 1 : 0;
+        state.error = null;
+        console.log('Action Done:', state.isActionDone);
       });
   },
 });

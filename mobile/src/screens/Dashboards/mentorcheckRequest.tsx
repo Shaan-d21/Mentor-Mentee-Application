@@ -331,6 +331,10 @@ import {
   fetchApprovedMentees,
 } from '../../redux/slices/mentorSlice';
 import {RootState, AppDispatch} from '../../redux/store';
+import AppBar from '../../components/appbar_component';
+import {useNavigation, NavigationProp} from '@react-navigation/native';
+import {RootStackParamList} from '../../navigation/types'; // Adjust the path to your navigation types file
+import {Icon} from 'react-native-elements';
 
 interface PendingRequest {
   id: number;
@@ -339,8 +343,14 @@ interface PendingRequest {
   role: string;
   domain: string;
 }
+interface Props {
+  onBackPress: () => void;
+  onProfilePress: () => void;
+  openDrawer: () => void;
+}
 
 const CheckRequestScreen: React.FC = () => {
+  const navigation = useNavigation<NavigationProp<RootStackParamList>>();
   const dispatch = useDispatch<AppDispatch>();
   const [loading, setLoading] = useState(false);
   const [selectedId, setSelectedId] = useState<number | null>(null);
@@ -351,16 +361,16 @@ const CheckRequestScreen: React.FC = () => {
   >(null);
   const [approvedMentees, setApprovedMentees] = useState([]);
 
-  const {pending} = useSelector((state: RootState) => state.menteeRequests);
+  const {pending,isActionDone,error,status} = useSelector((state: RootState) => state.menteeRequests);
 
   useEffect(() => {
     const fetchData = async () => {
-      setLoading(true);
       await dispatch(fetchPendingRequest());
       setLoading(false);
     };
     fetchData();
   }, [dispatch]);
+
   const handleApprove = (id: number) => {
     setSelectedId(id);
     setCurrentAction('approve');
@@ -373,25 +383,6 @@ const CheckRequestScreen: React.FC = () => {
     setModalVisible(true);
   };
 
-  // const handleConfirmAction = () => {
-  //   if (selectedId !== null && currentAction) {
-  //     dispatch(
-  //       approveRejectMenteeThunk({
-  //         menteeId: selectedId,
-  //         status: currentAction === 'approve' ? 'approved' : 'not approved',
-  //         comment,
-  //       }),
-  //     ).then(() => {
-  //       dispatch(fetchApprovedMentees());
-  //       //dispatch(fetchPendingRequest());
-
-  //       setModalVisible(false);
-  //       setComment('');
-  //       setSelectedId(null);
-  //       setCurrentAction(null);
-  //     });
-  //   }
-  // };
   const handleConfirmAction = () => {
     if (selectedId !== null && currentAction) {
       if (currentAction === 'reject') {
@@ -404,27 +395,16 @@ const CheckRequestScreen: React.FC = () => {
           approveRejectMenteeThunk({
             menteeId: selectedId,
             status: 'not approved',
-            comment,
+            comment: comment.trim(), // Use the comment provided by the user
           }),
         ).then(() => {
-          // 2. Then, delete the mentee from the DB
-          dispatch(
-            approveRejectMenteeThunk({
-              menteeId: selectedId,
-              status: 'not approved',
-              comment: '', // Provide a default or appropriate comment
-            }),
-          ).then(() => {
-            // 3. Refresh lists after deletion
-            dispatch(fetchPendingRequest());
-            dispatch(fetchApprovedMentees());
-
-            // 4. Reset modal state
-            setModalVisible(false);
-            setComment('');
-            setSelectedId(null);
-            setCurrentAction(null);
-          });
+          
+          dispatch(fetchApprovedMentees());
+          dispatch(fetchPendingRequest());
+          setModalVisible(false);
+          setComment('');
+          setSelectedId(null);
+          setCurrentAction(null);
         });
       } else if (currentAction === 'approve') {
         // Approval flow
@@ -432,12 +412,10 @@ const CheckRequestScreen: React.FC = () => {
           approveRejectMenteeThunk({
             menteeId: selectedId,
             status: 'approved',
-            comment,
+            comment: comment.trim() || '', // Use the comment provided by the user
           }),
         ).then(() => {
           dispatch(fetchPendingRequest());
-          dispatch(fetchApprovedMentees());
-
           setModalVisible(false);
           setComment('');
           setSelectedId(null);
@@ -457,8 +435,12 @@ const CheckRequestScreen: React.FC = () => {
     </View>
   );
 
-  const renderItem = ({item}: {item: PendingRequest}) => (
-    <View style={styles.row}>
+  const renderItem = ({item, index}: {item: PendingRequest; index: number}) => (
+    <View
+      style={[
+        styles.row,
+        {backgroundColor: index % 2 === 0 ? '#f2f2f2' : '#ffffff'},
+      ]}>
       <Text style={styles.cell}>{item.name}</Text>
       <Text style={styles.cell}>{item.email}</Text>
       <Text style={styles.cell}>{item.role}</Text>
@@ -480,7 +462,19 @@ const CheckRequestScreen: React.FC = () => {
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>Mentee Requests</Text>
+      <AppBar
+        onProfilePress={() => navigation.navigate('MentorProfileScreen')}
+        openDrawer={() => {}}
+      />
+
+      <View style={styles.titleRow}>
+        <TouchableOpacity
+          onPress={() => navigation.navigate('MentorDashboard')}>
+          <Icon name="arrow-left" type="font-awesome" size={20} color="#333" />
+        </TouchableOpacity>
+        <Text style={styles.title}>Mentee Requests</Text>
+      </View>
+
       {loading ? (
         <ActivityIndicator size="large" color="blue" />
       ) : pending.length === 0 ? (
@@ -592,33 +586,63 @@ const styles = StyleSheet.create({
   container: {flex: 1, padding: 16},
   title: {fontSize: 20, fontWeight: 'bold', marginVertical: 10},
   table: {minWidth: 700}, // Allow horizontal scroll
-  row: {
-    flexDirection: 'row',
-    paddingVertical: 12,
-    borderBottomWidth: 1,
-    borderColor: '#ccc',
-    alignItems: 'center',
-  },
+
   headerRow: {
-    backgroundColor: '#f1f1f1',
+    backgroundColor: 'black',
   },
   headerCell: {
     fontWeight: 'bold',
     fontSize: 16,
-    color: 'black',
+    color: 'white',
   },
+  titleRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginVertical: 10,
+    gap: 10,
+  },
+  row: {
+    flexDirection: 'row',
+    paddingVertical: 12,
+    borderBottomWidth: 1.5,
+    borderColor: '#ddd',
+    alignItems: 'center',
+    backgroundColor: '#f9f9f9', // light background for rows
+  },
+
   cell: {
     flex: 1,
+    width: 140, // Fixed width for each cell to maintain column structure
+
     textAlign: 'center',
   },
   actionCell: {
-    flex: 1.5,
     flexDirection: 'row',
-    justifyContent: 'space-around',
+    justifyContent: 'space-around', // or 'space-between' / 'flex-start'
+    alignItems: 'center',
+    gap: 8, // If using React Native 0.71+, or you can use margin manually
   },
-  approve: {backgroundColor: 'green', padding: 6, borderRadius: 6},
-  reject: {backgroundColor: 'red', padding: 6, borderRadius: 6},
-  btnText: {color: 'white', fontWeight: '600'},
+
+  approve: {
+    backgroundColor: 'green',
+    paddingVertical: 6,
+    paddingHorizontal: 12,
+    borderRadius: 6,
+  },
+
+  reject: {
+    backgroundColor: 'red',
+    paddingVertical: 6,
+    paddingHorizontal: 12,
+    borderRadius: 6,
+  },
+
+  btnText: {
+    color: '#fff',
+    fontWeight: 'bold',
+    fontSize: 14,
+  },
+
   separator: {
     height: 1,
     backgroundColor: '#ccc',
