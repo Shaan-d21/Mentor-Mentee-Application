@@ -148,7 +148,7 @@ import {fetchApprovedMentees} from '../../redux/slices/mentorSlice';
 import {AppDispatch, RootState} from '../../redux/store';
 
 // Navigation types
-import {useNavigation} from '@react-navigation/native';
+import {useIsFocused, useNavigation} from '@react-navigation/native';
 import {NativeStackNavigationProp} from '@react-navigation/native-stack';
 import {RootStackParamList} from '../../navigation/types'; // Adjust the path as needed
 import Avatar from 'react-native-elements/dist/avatar/Avatar';
@@ -162,6 +162,7 @@ type MentorDashboardNavigationProp = NativeStackNavigationProp<
 const MentorDashboardScreen = () => {
   const dispatch = useDispatch<AppDispatch>();
   const navigation = useNavigation<MentorDashboardNavigationProp>();
+  const isFocused = useIsFocused();          // <-- track focus
 
   // Note: approved mentees list is stored under 'approved' in your slice.
   // const approvedMentees = useSelector(
@@ -173,9 +174,15 @@ const MentorDashboardScreen = () => {
   const userName = useSelector((state: RootState) => state.login.name);
 
   useEffect(() => {
+    if (isFocused) {                        // <-- refetch only when focused
+      dispatch(fetchApprovedMentees());
+    }
+  }, [isFocused, ]);
+  useEffect(() => {
+  if (isFocused) {                        // <-- refetch only when focused
     dispatch(fetchApprovedMentees());
-  }, []);
-
+  }
+}, [ ]);
   const renderItem = ({item}: {item: any}) => (
     <View style={styles.row}>
       <Text style={styles.cell}>{item.name}</Text>
