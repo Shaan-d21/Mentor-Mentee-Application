@@ -3,7 +3,7 @@ import {createNativeStackNavigator} from '@react-navigation/native-stack';
 import {RootStackParamList} from './types';
 import SignInPage from '../screens/AuthScreens/SignInPage';
 import CreateAccountPage from '../screens/AuthScreens/CreateAccountPage';
-import {FC} from 'react';
+import { FC } from 'react';
 import MenteeDashboard from '../screens/Dashboards/mentee_dashboard';
 import MentorDashboard from '../screens/Dashboards/mentor_dashboard';
 import MenteeProfileScreen from '../screens/profile/screenmenteeprofile';
@@ -34,10 +34,7 @@ export const RootNavigator: FC = () => {
       <Stack.Screen name="temp" component={temp} />
       {/* <Stack.Screen name="CustomDrawerContent" component={CustomDrawerContent} /> */}
 
-      <Stack.Screen
-        name="MenteeProfileScreen"
-        component={MenteeProfileScreen}
-      />
+      <Stack.Screen name="MenteeProfileScreen" component={MenteeProfileScreen} />
     </Stack.Navigator>
   );
 };

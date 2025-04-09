@@ -20,12 +20,12 @@ import {
 import { Skill } from '../../types/MentorProfileTypes';
 import { ScreenProps } from '../../navigation/types';
 import { setName } from '../../redux/slices/sliceLogin';
+import { MMKV } from 'react-native-mmkv';
 
 interface LocalMentorProfile {
   name: string;
   mail: string;
-  // role: string;
-  exp: string; // we'll convert numeric exp from server to string locally
+  exp: string;
   contact: string;
   skillSet: Skill[];
   designation: string;
@@ -38,14 +38,19 @@ const MentorProfile: FC<ScreenProps<'MentorProfileScreen'>> = ({ navigation }) =
   );
   const mentorData = useSelector((state: RootState) => state.mentorProfile.response);
 
+  // Separate error states
+  const [nameError, setNameError] = useState('');
+  const [emailError, setEmailError] = useState('');
+  const [mobileError, setMobileError] = useState('');
+  const [designationError, setDesignationError] = useState('');
+
   const [profile, setProfile] = useState<LocalMentorProfile>({
     name: '',
     mail: '',
-    // role: 'mentor',
     exp: '0',
     contact: '',
     skillSet: [],
-    designation: ''
+    designation: '',
   });
 
   const [_imageUri] = useState(
@@ -54,10 +59,13 @@ const MentorProfile: FC<ScreenProps<'MentorProfileScreen'>> = ({ navigation }) =
   const [selectedSkill, setSelectedSkill] = useState<string | null>(null);
   const [proficiencyModal, setProficiencyModal] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
-  const [emailError, setEmailError] = useState('');
-  const [mobileError, setMobileError] = useState('');
+  const storage = new MMKV();
 
   useEffect(() => {
+    // storage.set(
+    //   'token',
+    //   'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJmYWxndW5pIiwiaWQiOjQzLCJyb2xlIjoibWVudG9yIiwiZXhwIjoxNzQ1MzY4NTE0fQ.rqFMnkss6Vq2l-8Q1r0kGQ78rvOBRk1KF6b0egQYHCY',
+    // );
     dispatch(getmentorprofile());
   }, [dispatch]);
 
@@ -69,13 +77,10 @@ const MentorProfile: FC<ScreenProps<'MentorProfileScreen'>> = ({ navigation }) =
       setProfile({
         name: mentorData.name || '',
         mail: mentorData.mail || '',
-        // role: mentorData.role || 'mentor',
         exp: newExp,
-        // github_id: mentorData.github_id || '',
         contact: mentorData.contact || '',
-        // gender: mentorData.gender || '',
         skillSet: mentorData.skillSet || [],
-        designation: mentorData.designation
+        designation: mentorData.designation,
       });
     } else if (currentStatus === 'failed') {
       console.log('Failed to fetch mentor profile data');
@@ -124,20 +129,34 @@ const MentorProfile: FC<ScreenProps<'MentorProfileScreen'>> = ({ navigation }) =
   const handleSubmit = () => {
     let isValid = true;
 
-    if (!validateEmail()) {
-      setEmailError('Please enter a valid email address.');
+    // Check name
+    if (!profile.name.trim()) {
+      setNameError('Name cannot be empty.');
       isValid = false;
     } else {
-      setEmailError('');
+      setNameError('');
     }
 
-    if (!validateMobile(profile.contact)) {
+    // Check contact
+    if (!profile.contact.trim()) {
+      setMobileError('Mobile number cannot be empty.');
+      isValid = false;
+    } else if (!validateMobile(profile.contact)) {
       setMobileError('Please enter a valid 10-digit mobile number.');
       isValid = false;
     } else {
       setMobileError('');
     }
 
+    // Check designation
+    if (!profile.designation.trim()) {
+      setDesignationError('Designation cannot be empty.');
+      isValid = false;
+    } else {
+      setDesignationError('');
+    }
+
+    // If validations pass, save the profile
     if (isValid) {
       setIsEditing(false);
       dispatch(
@@ -145,8 +164,7 @@ const MentorProfile: FC<ScreenProps<'MentorProfileScreen'>> = ({ navigation }) =
           name: profile.name,
           exp: profile.exp,
           contact: profile.contact,
-          // gender: profile.gender,
-          designation: profile.designation ,
+          designation: profile.designation,
         }),
       );
       dispatch(setName(profile.name));
@@ -177,25 +195,40 @@ const MentorProfile: FC<ScreenProps<'MentorProfileScreen'>> = ({ navigation }) =
               <Text style={styles.profileText}>
                 Experience: {profile.exp} years
               </Text>
-              <Text style={styles.profileText}>Designation: {profile.designation}</Text>
+              <Text style={styles.profileText}>
+                Designation: {profile.designation}
+              </Text>
             </>
           ) : (
             <>
               <Text>Full Name</Text>
               <TextInput
-                style={styles.infoText}
+                style={[
+                  styles.infoText,
+                  nameError ? styles.inputError : undefined,
+                ]}
                 value={profile.name}
                 onChangeText={txt => handleChange('name', txt)}
                 placeholder="Full Name"
               />
+              {nameError ? (
+                <Text style={styles.errorText}>{nameError}</Text>
+              ) : null}
+
               <Text>Email</Text>
-              <Text style={[styles.infoText, emailError && styles.inputError]}>{profile.mail} </Text>
+              <Text style={[styles.infoText, emailError && styles.inputError]}>
+                {profile.mail}
+              </Text>
               {emailError ? (
                 <Text style={styles.errorText}>{emailError}</Text>
               ) : null}
+
               <Text>Mobile</Text>
               <TextInput
-                style={[styles.infoText, mobileError && styles.inputError]}
+                style={[
+                  styles.infoText,
+                  mobileError ? styles.inputError : undefined,
+                ]}
                 value={profile.contact}
                 keyboardType="phone-pad"
                 onChangeText={txt => handleChange('contact', txt)}
@@ -204,6 +237,7 @@ const MentorProfile: FC<ScreenProps<'MentorProfileScreen'>> = ({ navigation }) =
               {mobileError ? (
                 <Text style={styles.errorText}>{mobileError}</Text>
               ) : null}
+
               <Text>Experience (Years)</Text>
               <TextInput
                 style={styles.infoText}
@@ -212,24 +246,20 @@ const MentorProfile: FC<ScreenProps<'MentorProfileScreen'>> = ({ navigation }) =
                 onChangeText={txt => handleChange('exp', txt)}
                 placeholder="Experience in Years"
               />
+
               <Text>Designation</Text>
               <TextInput
-                style={styles.infoText}
+                style={[
+                  styles.infoText,
+                  designationError ? styles.inputError : undefined,
+                ]}
                 value={profile.designation}
                 onChangeText={txt => handleChange('designation', txt)}
                 placeholder="Designation"
               />
-              {/* <View style={styles.genderPickerContainer}>
-                <DropdownComponent
-                  data={[
-                    { label: 'Male', value: 'male' },
-                    { label: 'Female', value: 'female' },
-                  ]}
-                  selectedValue={profile.gender}
-                  onSelect={(value) => handleChange('gender', (value as string) || '')}
-                  placeholder="Select Gender"
-                />
-              </View> */}
+              {designationError ? (
+                <Text style={styles.errorText}>{designationError}</Text>
+              ) : null}
             </>
           )}
         </View>
@@ -238,26 +268,25 @@ const MentorProfile: FC<ScreenProps<'MentorProfileScreen'>> = ({ navigation }) =
       {!!profile.skillSet?.length && (
         <View style={styles.domainsContainer}>
           <Text style={styles.domainsTitle}>Skills</Text>
-          {/* <View style={styles.domainsList}>
+          <View style={styles.domainsList}>
             {Array.from(
-              new Map(profile.skillSet.map(item => [item.name, item])),
+              profile.skillSet.reduce((map, item) => {
+                const nameKey = item.name.trim().toLowerCase();
+                const currentProf = Number(item.proficiency) || 0;
+                const existing = map.get(nameKey);
+                if (!existing || currentProf > Number(existing.proficiency)) {
+                  // Keep highest proficiency for this skill name
+                  map.set(nameKey, { ...item, proficiency: String(currentProf) });
+                }
+                return map;
+              }, new Map()).values()
             ).map((item, index) => (
-              <View key={index} style={styles.domainItem}>
-                <Text style={styles.domainText}>
-                  {item.name} - Level: {item.proficiency}
-                </Text>
-              </View>
+              <Text key={index} style={styles.domainItem}>
+                {item.name} — Level: {item.proficiency}
+              </Text>
             ))}
-            </View> */}
-            <View style={styles.domainsList}>
-     {Array.from(
-       new Map(profile.skillSet.map((item) => [item.name, item])).values()
-     ).map((item, index) => (
-       <Text key={index} style={styles.domainItem}>
-         {item.name} — Level: {item.proficiency}
-       </Text>
-     ))}
-   </View>
+// ...existing code...
+          </View>
         </View>
       )}
 
@@ -289,7 +318,8 @@ const MentorProfile: FC<ScreenProps<'MentorProfileScreen'>> = ({ navigation }) =
           } else {
             handleEditToggle();
           }
-        }}>
+        }}
+      >
         <Text style={styles.buttonText}>
           {isEditing ? 'Save Profile' : 'Update Profile'}
         </Text>
@@ -298,7 +328,8 @@ const MentorProfile: FC<ScreenProps<'MentorProfileScreen'>> = ({ navigation }) =
         style={styles.button}
         onPress={() => {
           navigation.navigate('MentorDashboard');
-        }}>
+        }}
+      >
         <Text style={styles.buttonText}>Go Back</Text>
       </TouchableOpacity>
 
@@ -312,7 +343,8 @@ const MentorProfile: FC<ScreenProps<'MentorProfileScreen'>> = ({ navigation }) =
               <TouchableOpacity
                 key={level}
                 style={styles.proficiencyButton}
-                onPress={() => handleProficiencySelection(level)}>
+                onPress={() => handleProficiencySelection(level)}
+              >
                 <Text style={styles.proficiencyText}>Level {level}</Text>
               </TouchableOpacity>
             ))}
@@ -419,6 +451,7 @@ const styles = StyleSheet.create({
   },
   inputError: {
     borderColor: 'red',
+    borderWidth: 1,
   },
   errorText: {
     color: 'red',

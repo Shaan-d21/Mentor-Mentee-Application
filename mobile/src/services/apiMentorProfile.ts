@@ -68,10 +68,11 @@ export const apiUpdateMentorProfile = async (name: string, exp: string, designat
 }
 export const apiaddMentorProfileSkill = async (skillName: string,proficiency:string) => {
     const api = axios.create({
-      baseURL: process.env.API_URL,
+      baseURL: "http://181.214.44.15:8080/",
       headers: {
         accept: "application/json",
-        "token": storage.getString("token")
+        "Content-Type": "application/json", // Add this header
+        "Token": storage.getString("token"), 
       },
     });
   
@@ -80,16 +81,18 @@ export const apiaddMentorProfileSkill = async (skillName: string,proficiency:str
         skills: [
           {
             skill_name: skillName,
-            proficiency: proficiency,
+            proficiency: Number(proficiency),
           },
         ],
       };
       const response = await api.post("users/mentor/skills", data);
-      if (response.status !== 200) {
-  return 0;
+      if (response.status == 200) {
+        return 1;
+
     }
       else{
-        return 1;
+        return 0;
+
       }
     } catch (error) {
       console.error("Error adding Mentor profile skill:", error);
