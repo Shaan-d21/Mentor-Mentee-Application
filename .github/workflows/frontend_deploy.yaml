@@ -32,6 +32,18 @@ jobs:
           script: |
             cd /home/intern/Internship-2025/Mentor-Mentee-App
             cat > .env <<EOL
+            POSTGRES_PASSWORD=${{ secrets.POSTGRES_PASSWORD }}
+            POSTGRES_DB=${{ vars.POSTGRES_DB }}
+            POSTGRES_USER=${{ vars.POSTGRES_USER }}
+            POSTGRES_HOST=${{ vars.POSTGRES_HOST }}
+            POSTGRES_PORT=${{ vars.POSTGRES_PORT }}
+            GOOGLE_API_KEY1=${{ secrets.GOOGLE_API_KEY1 }}
+            GOOGLE_API_KEY=${{ secrets.GOOGLE_API_KEY }}
+            GOOGLE_API_KEY2=${{ secrets.GOOGLE_API_KEY2 }}
+            GOOGLE_TEXT_ANALYSIS_API_KEY=${{ secrets.GOOGLE_TEXT_ANALYSIS_API_KEY }}
+            MM_AI=${{ secrets.MM_AI }}
+            MM_FRONTEND=${{ secrets.MM_FRONTEND }}
+            MM_BACKEND=${{ secrets.MM_BACKEND }}
             MM_AI=${{ secrets.MM_AI }}
             MM_FRONTEND=${{ secrets.MM_FRONTEND }}
             MM_BACKEND=${{ secrets.MM_BACKEND }}
