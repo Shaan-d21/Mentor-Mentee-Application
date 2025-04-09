@@ -5,6 +5,13 @@ import {
   approveRejectMentee,
 } from '../../services/apigetMenteeRequest';
 
+enum currentStatus {
+  idle = 'idle',
+  loading = 'loading',
+  success = 'success',
+  failed = 'failed',
+}
+
 interface Mentee {
   id: number;
   name: string;
@@ -19,6 +26,7 @@ interface MenteeRequestsState {
   pending: Mentee[];
   rejectedRequests: {id: number; name: string}[];
   loading: boolean;
+  status: currentStatus;
   error: string | null;
 }
 
@@ -28,13 +36,19 @@ const initialState: MenteeRequestsState = {
   rejectedRequests: [],
   loading: false,
   error: null,
+  status: currentStatus.idle,
 };
 
 export const fetchApprovedMentees = createAsyncThunk(
   'mentees/fetchApproved',
   async () => {
     const response = await getApprovedMentees();
-    return response.object;
+    console.log('Approved Mentees:', response);
+    if (response.error) {
+      throw new Error(response.error);
+    } else {
+      return response.object;
+    }
   },
 );
 
@@ -69,28 +83,66 @@ const menteeSlice = createSlice({
   extraReducers: builder => {
     builder
       .addCase(fetchApprovedMentees.fulfilled, (state, action) => {
-        state.approved = action.payload.map((entry: any) => {
-          const user = entry.User;
-          return {
-            id: user.id,
-            name: user.name,
-            email: user.mail,
-            domain: user.domain_id,
-            role: user.role,
-          };
-        });
+        console.log('Pending Request Payload:', action.payload);
+
+        state.pending = action.payload.map((entry: any) => ({
+          id: entry.id,
+          name: entry.name,
+          email: entry.mail,
+          domain: entry.domain_id,
+          role: entry.role,
+        }));
       })
+      .addCase(fetchApprovedMentees.pending, state => {
+        state.status = currentStatus.loading;
+        state.error = null;
+      })
+      .addCase(fetchApprovedMentees.rejected, (state, action) => {
+        state.status = currentStatus.failed;
+        state.error =
+          action.error.message || 'Failed to fetch approved mentees';
+      })
+      // .addCase(fetchPendingRequest.fulfilled, (state, action) => {
+      //   console.log('Pending Request Payload:', action.payload);
+
+      //   state.pending = action.payload.map((entry: any) => {
+      //     const user = entry.User;
+      //     return {
+      //       id: user.id,
+      //       name: user.name,
+      //       email: user.mail,
+      //       domain: user.domain_id,
+      //       role: user.role,
+      //     };
+      //   });
+      // })
       .addCase(fetchPendingRequest.fulfilled, (state, action) => {
-        state.pending = action.payload.map((entry: any) => {
-          const user = entry.User;
-          return {
-            id: user.id,
-            name: user.name,
-            email: user.mail,
-            domain: user.domain_id,
-            role: user.role,
-          };
-        });
+        console.log('Pending Request Payload:', action.payload);
+
+        state.pending = action.payload.map((entry: any) => ({
+          id: entry.id,
+          name: entry.name,
+          email: entry.mail,
+          domain: entry.domain_id,
+          role: entry.role,
+        }));
+      })
+      .addCase(fetchPendingRequest.pending, state => {
+        state.status = currentStatus.loading;
+        state.error = null;
+      })
+      .addCase(fetchPendingRequest.rejected, (state, action) => {
+        state.status = currentStatus.failed;
+        state.error =
+          action.error.message || 'Failed to fetch pending requests';
+      })
+      .addCase(approveRejectMenteeThunk.pending, state => {
+        state.status = currentStatus.loading;
+        state.error = null;
+      })
+      .addCase(approveRejectMenteeThunk.rejected, (state, action) => {
+        state.status = currentStatus.loading;
+        state.error = action.error.message || 'Failed to approve/reject mentee';
       })
       .addCase(approveRejectMenteeThunk.fulfilled, (state, action) => {
         state.pending = state.pending.filter(
