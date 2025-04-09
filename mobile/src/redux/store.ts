@@ -5,6 +5,9 @@ import menteeProfileReducer from './slices/menteeProfileSlice';
 import mentorProfileReducer from './slices/mentorProfileSlice';
 import sliceMenteeDashboard from './slices/sliceMenteeDashboard';
 import menteeRequestsSlice from './slices/mentorSlice';
+import MenteeRoadmapSlice from './slices/sliceMenteeRoadmap';
+import MentorRoadmapSlice from './slices/sliceMentorRoadmap';
+import  roadmapSlice from './slices/sliceRoadmapTopics';
 
 export const store = configureStore({
   reducer: {
@@ -15,6 +18,9 @@ export const store = configureStore({
     menteeProfile: menteeProfileReducer,
     mentorProfile: mentorProfileReducer,
     mentorDashboard: menteeRequestsSlice,
+    menteeRoadmap: MenteeRoadmapSlice,
+    mentorRoadmap:MentorRoadmapSlice,
+    roadmap: roadmapSlice
   },
   middleware: getDefaultMiddleware => getDefaultMiddleware(),
 });

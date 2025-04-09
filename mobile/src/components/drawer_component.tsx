@@ -378,28 +378,29 @@ const CustomDrawerContent = (props: CustomDrawerContentProps) => {
             </>
           )}
 
-          {userRole === "mentor" && (
-            <>
-              <View style={styles.menuItem}>
-                <Button
-                  onPress={() => navigation.navigate("MentorDashboard")}
-                  title="Mentor Dashboard"
-                />
-              </View>
-              {/* <View style={styles.menuItem}>
-                <Button
-                  onPress={() => navigation.navigate("MentorProfileScreen")}
-                  title="Mentor Profile"
-                />
-              </View> */}
-              <View style={styles.menuItem}>
-                <Button
-                  onPress={() => navigation.navigate("generateRoadmap")}
-                  title="Generate Roadmap"
-                />
-              </View>
-            </>
-          )}
+{userRole === "mentor" && (
+  <>
+    <View style={styles.menuItem}>
+      <Button
+        onPress={() => {
+          props.toggleDrawer(); // Close the drawer first
+          navigation.navigate("MentorDashboard");
+        }}
+        title="Mentor Dashboard"
+      />
+    </View>
+    <View style={styles.menuItem}>
+      <Button
+        onPress={() => {
+          props.toggleDrawer(); // Close the drawer first
+          navigation.navigate("MentorRoadmapGeneration");
+        }}
+        title="Generate Roadmap"
+      />
+    </View>
+  </>
+)}
+
 
           {/*Logout Button */}
           {/* <View style={styles.menuItem}>
