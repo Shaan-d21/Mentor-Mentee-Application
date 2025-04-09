@@ -150,6 +150,7 @@ const MenteeDashboard: FC<ScreenProps<'MenteeDashboard'>> = ({ navigation }) => 
         onChange={(item: { value: string; label: string }) => handleDomainSelect(item.value)}
       />
 
+
       <TouchableOpacity
         style={[styles.checkButton, { backgroundColor: selectedDomain ? '#28a745' : '#ccc' }]}
         onPress={handleCheckCompatibility}
@@ -176,6 +177,8 @@ const MenteeDashboard: FC<ScreenProps<'MenteeDashboard'>> = ({ navigation }) => 
             renderItem={renderMentorRow}
           />
         </View>
+
+  
       </ScrollView>
     </View>
   );

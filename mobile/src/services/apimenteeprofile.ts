@@ -23,7 +23,7 @@ export const apigetMenteeProfile = async () => {
     console.log(`-------------------------------------------`, response.status);
 
     if (response.status == 200) {
-      console.log(`-------------------------------------------`, response.data);
+      // console.log(`apimenteeprofile api: `, response.data);
       return response.data;
     }
     else {
@@ -37,13 +37,11 @@ export const apigetMenteeProfile = async () => {
 };
 
 
-export const apiUpdateMenteeProfile = async (name: string, exp: number, github_id: string, contact: string, gender: string) => {
+export const apiUpdateMenteeProfile = async (name: string, contact: string, designation: string) => {
   const api = axios.create({
     baseURL: process.env.API_URL,
     headers: {
       "Content-Type": "application/json",
-      // "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJtZW50ZWVzIiwiaWQiOjk3LCJyb2xlIjoibWVudGVlIiwiZXhwIjoxODYzNDEwNTU0fQ.zP8R7Jdt6av2i9HMKjSznjwVIiUDXXAXPBuqSMfj6uY"
-      // "token": process.env.TOKEN
       "token": storage.getString("token")
     },
   });
@@ -51,10 +49,8 @@ export const apiUpdateMenteeProfile = async (name: string, exp: number, github_i
   try {
     const data = {
       "name": name,
-      "exp": exp,
-      "github_id": github_id,
+      "designation": designation,
       "contact": contact,
-      "gender": gender
     };
 
     const response = await api.put("/mentee/mentee/profile_creation", data);
@@ -89,7 +85,6 @@ export const apiaddMenteeProfileSkill = async (skillName: string) => {
       skills: [
         {
           skill_name: skillName,
-          proficiency: 1,
         },
       ],
     };

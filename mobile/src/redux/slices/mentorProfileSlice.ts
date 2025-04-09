@@ -58,6 +58,7 @@ const sliceProfile = createSlice({
           state.response = MentorProfileImpl.fromJSON(
             JSON.stringify(action.payload),
           ) as MentorProfiletype;
+          console.log("json response is ",JSON.stringify(state.response))
 
           state.status = currentStatus.success;
         } catch (error) {
@@ -110,23 +111,20 @@ export const updateMentorProfileData = createAsyncThunk(
   'profile/update',
   async ({
     name,
-    github_id,
+    designation,
     contact,
-    gender,
     exp,
   }: {
     name: string;
-    github_id: string;
+    designation: string;
     contact: string;
-    gender: string;
     exp: string;
   }) => {
     const response = await apiUpdateMentorProfile(
       name,
       exp,
-      github_id,
+      designation,
       contact,
-      gender,
     );
     if (response === 1) {
       const updatedProfile = await apigetMentorProfile();
@@ -143,7 +141,7 @@ export const updateMentorprofileskill = createAsyncThunk(
     // Call your API to add the new skill
     const response = await apiaddMentorProfileSkill(skill, level);
     if (response === 1) {
-      const updatedProfile = await apigetMentorProfile();
+      const updatedProfile = await apigetMentorProfile( );
       return updatedProfile;
     }
     throw new Error('Failed to update skill');

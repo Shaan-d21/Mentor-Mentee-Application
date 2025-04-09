@@ -1,134 +1,275 @@
+// import React, {FC, useEffect} from 'react';
+// import {
+//   View,
+//   Text,
+//   StyleSheet,
+//   ScrollView,
+//   TouchableOpacity,
+//   FlatList,
+// } from 'react-native';
+// import {Avatar} from 'react-native-elements';
+// import AppBar from '../../components/appbar_component';
+// import {useSelector, useDispatch} from 'react-redux';
+// import {RootState, AppDispatch} from '../../redux/store';
+// import {ScreenProps} from '../../navigation/types';
+// import {fetchApprovedMentees} from '../../redux/slices/mentorSlice';
 
-import React, { FC, useEffect, useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, TextInput, TouchableOpacity } from 'react-native';
-import { Avatar, Button } from 'react-native-elements';
-import AppBar from '../../components/appbar_component';
-import { useSelector, useDispatch } from 'react-redux';
-import { RootState, AppDispatch } from '../../redux/store';
+// const COLUMN_WIDTH = 130;
 
-import { fetchMenteeRequests, acceptMentee } from '../../redux/slices/mentorSlice';
-import { ScreenProps } from '../../navigation/types';
+// const MentorDashboard: FC<ScreenProps<'MentorDashboard'>> = ({navigation}) => {
+//   const dispatch = useDispatch<AppDispatch>();
 
-const MentorDashboard: FC<ScreenProps<"MentorDashboard">> = ({navigation}) => {
+//   const userName = useSelector((state: RootState) => state.login.name);
+//   const acceptedMentees = useSelector(
+//     (state: RootState) => state.menteeRequests.acceptedRequests,
+//   );
+//   const approvedMentees = useSelector(state => state.mentor.approvedMentees);
+
+//   useEffect(() => {
+//   //   // Fetch only approved mentees here
+//      dispatch(fetchAprrovedMentees()); // Uncomment and replace 'menteeId' with the actual argument(s) required
+//    }, [dispatch]);
+
+//   const handleCheckRequest = () => {
+//     navigation.navigate('CheckRequestScreen');
+//   };
+
+//   const renderMenteeRow = ({item}: {item: any}) => (
+//     <View style={styles.row}>
+//       <Text style={styles.cell}>{item.name}</Text>
+//       <Text style={styles.cell}>{item.email}</Text>
+//       <Text style={styles.cell}>{item.role}</Text>
+//       <Text style={styles.cell}>{item.domain}</Text>
+//     </View>
+//   );
+
+//   return (
+//     <View style={styles.container}>
+//       <AppBar
+//         onProfilePress={() => navigation.navigate('MentorProfileScreen')}
+//         openDrawer={() => {}}
+//       />
+//       <View style={styles.header}>
+//         <Text style={styles.headerText}>Hello, {userName} 👋</Text>
+//         <Avatar rounded icon={{name: 'user', type: 'font-awesome'}} />
+//       </View>
+
+//       <TouchableOpacity style={styles.checkButton} onPress={handleCheckRequest}>
+//         <Text style={styles.checkButtonText}>Check Request</Text>
+//       </TouchableOpacity>
+
+//       <ScrollView horizontal>
+//         <View>
+//           {/* Header Row */}
+//           <View style={styles.headerRow}>
+//             <Text style={styles.headerCell}>Mentee Name</Text>
+//             <Text style={styles.headerCell}>Email</Text>
+//             <Text style={styles.headerCell}>Role</Text>
+//             <Text style={styles.headerCell}>Domain</Text>
+//           </View>
+
+//           {/* Vertically scrollable rows */}
+//           <ScrollView style={{maxHeight: 300}}>
+//             {acceptedMentees.map(item => (
+//               <View style={styles.row} key={item.id}>
+//                 <Text style={styles.cell}>{item.name}</Text>
+//                 <Text style={styles.cell}>{item.email}</Text>
+//                 <Text style={styles.cell}>{item.role}</Text>
+//                 <Text style={styles.cell}>{item.domain}</Text>
+//               </View>
+//             ))}
+//           </ScrollView>
+//         </View>
+//       </ScrollView>
+//     </View>
+//   );
+// };
+
+// const styles = StyleSheet.create({
+//   container: {flex: 1, backgroundColor: '#F5F5F5', padding: 20},
+//   header: {
+//     flexDirection: 'row',
+//     justifyContent: 'space-between',
+//     alignItems: 'center',
+//     marginBottom: 15,
+//   },
+//   headerText: {fontSize: 22, fontWeight: 'bold', color: '#333'},
+//   checkButton: {
+//     backgroundColor: 'green',
+//     padding: 10,
+//     borderRadius: 5,
+//     alignItems: 'center',
+//     marginBottom: 10,
+//   },
+//   checkButtonText: {color: '#FFF', fontWeight: 'bold'},
+//   headerRow: {
+//     flexDirection: 'row',
+//     backgroundColor: '#222',
+//     borderTopLeftRadius: 6,
+//     borderTopRightRadius: 6,
+//   },
+//   headerCell: {
+//     width: COLUMN_WIDTH,
+//     color: '#FFF',
+//     fontWeight: 'bold',
+//     padding: 10,
+//     textAlign: 'center',
+//     borderRightWidth: 1,
+//     borderColor: '#333',
+//   },
+//   row: {
+//     flexDirection: 'row',
+//     backgroundColor: '#FFF',
+//     borderBottomWidth: 1,
+//     borderColor: '#DDD',
+//   },
+//   cell: {
+//     width: COLUMN_WIDTH,
+//     padding: 10,
+//     textAlign: 'center',
+//     borderRightWidth: 1,
+//     borderColor: '#EEE',
+//     color: '#333',
+//   },
+// });
+
+// export default MentorDashboard;
+import React, {useEffect} from 'react';
+import {
+  View,
+  Text,
+  FlatList,
+  StyleSheet,
+  TouchableOpacity,
+  ScrollView,
+} from 'react-native';
+import {useDispatch, useSelector} from 'react-redux';
+import {fetchApprovedMentees} from '../../redux/slices/mentorSlice';
+import {AppDispatch, RootState} from '../../redux/store';
+
+// Navigation types
+import {useNavigation} from '@react-navigation/native';
+import {NativeStackNavigationProp} from '@react-navigation/native-stack';
+import {RootStackParamList} from '../../navigation/types'; // Adjust the path as needed
+
+type MentorDashboardNavigationProp = NativeStackNavigationProp<
+  RootStackParamList,
+  'MentorDashboard'
+>;
+
+const MentorDashboardScreen = () => {
   const dispatch = useDispatch<AppDispatch>();
-  
+  const navigation = useNavigation<MentorDashboardNavigationProp>();
+
+  // Note: approved mentees list is stored under 'approved' in your slice.
+  // const approvedMentees = useSelector(
+  //   (state: RootState) => state.mentor.approved,
+  // );
+  const approvedMentees = useSelector(
+    (state: RootState) => state.mentor.approved,
+  );
+
   useEffect(() => {
-    dispatch(fetchMenteeRequests());
+    dispatch(fetchApprovedMentees());
   }, [dispatch]);
-  const userName = useSelector((state: RootState) => state.login.name);
 
-
-  const { pendingRequests, acceptedRequests } = useSelector((state: RootState) => state.menteeRequests);
-  console.log("Redux State:", useSelector((state: RootState) => state.menteeRequests));
-  console.log("Pending Requests:", pendingRequests.length);
-  console.log("Accepted Requests:", acceptedRequests.length);
-  
-
-
+  const renderItem = ({item}: {item: any}) => (
+    <View style={styles.row}>
+      <Text style={styles.cell}>{item.name}</Text>
+      <Text style={styles.cell}>{item.email}</Text>
+      <Text style={styles.cell}>{item.role}</Text>
+      <Text style={styles.cell}>{item.domain}</Text>
+      <Text style={styles.cell}>{item.comment || '-'}</Text>
+    </View>
+  );
 
   return (
     <View style={styles.container}>
-      <AppBar onProfilePress={() => {navigation.navigate("MentorProfileScreen")}} openDrawer={() => {}} />
-      
-      <View style={styles.header}>
-        <Text style={styles.headerText}>Hello,{userName} 👋</Text>
-        <Avatar rounded icon={{ name: 'user', type: 'font-awesome' }} />
-      </View>
-
-      <ScrollView contentContainerStyle={styles.content}>
-        {pendingRequests && pendingRequests.length === 0 ? (
-          <Text style={styles.noRequestsText}>No requests at the moment</Text>
-        ) : (
-          pendingRequests.map(mentee => (
-            <View key={mentee.id} style={styles.menteeRequest}>
-              <Text style={styles.text}>{mentee.name} has requested to connect</Text>
-                <View style={styles.buttons}>
-                  <TouchableOpacity style={[styles.button, styles.acceptButton]} onPress={() => dispatch(acceptMentee(mentee.id))}>
-                    <Text style={styles.buttonText}>Accept</Text>
-                  </TouchableOpacity>
-                  {/* <TouchableOpacity 
-                    style={[styles.button, styles.rejectButton]} 
-                    onPress={() => dispatch(rejectMentee(mentee.id))}>
-                    <Text style={styles.buttonText}>Reject</Text>
-                  </TouchableOpacity> */}
-                </View>
-              
-            </View>
-          ))
-        )}
-
-        {acceptedRequests.length > 0 && (
-          <>
-            <Text style={styles.acceptedTitle}>Accepted Mentees</Text>
-            {acceptedRequests.map(mentee => (
-              <Text key={mentee.id} style={styles.acceptedMentee}>{mentee.name}</Text>
-            ))}
-          </>
-        )}
+      <TouchableOpacity
+        style={styles.checkBtn}
+        onPress={() => navigation.navigate('CheckRequestScreen')}>
+        <Text style={styles.checkBtnText}>Check Request</Text>
+      </TouchableOpacity>
+      <Text style={styles.title}>Approved Mentees</Text>
+      <ScrollView horizontal>
+        <View style={styles.table}>
+          <View style={[styles.row, styles.headerRow]}>
+            <Text style={[styles.cell, styles.headerCell]}>Name</Text>
+            <Text style={[styles.cell, styles.headerCell]}>Email</Text>
+            <Text style={[styles.cell, styles.headerCell]}>Role</Text>
+            <Text style={[styles.cell, styles.headerCell]}>Domain</Text>
+            <Text style={[styles.cell, styles.headerCell]}>Comment</Text>
+          </View>
+          <FlatList
+            data={approvedMentees}
+            renderItem={renderItem}
+            keyExtractor={item => item.id.toString()}
+            ItemSeparatorComponent={() => <View style={styles.separator} />}
+          />
+        </View>
       </ScrollView>
-    
     </View>
   );
 };
 
+export default MentorDashboardScreen;
+
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#FAFAFA' },
-  header: { padding: 20, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
-  headerText: { fontSize: 24, fontWeight: 'bold', color: '#333' },
-  content: { flexGrow: 1, padding: 20 },
-  noRequestsText: { textAlign: 'center', color: '#888', fontSize: 16 },
-  
-  menteeRequest: { 
-    marginBottom: 15, 
-    padding: 15, 
-    borderRadius: 10, 
-    elevation: 3, 
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.2,
-    shadowRadius: 4,
-    backgroundColor: '#FFF9C4',
-  },
-
-  text: { fontSize: 18, fontWeight: '600' },
-
-  input: { 
-    borderWidth: 1, 
-    borderColor: '#ccc', 
-    borderRadius: 8, 
-    padding: 10, 
-    marginVertical: 5, 
-    backgroundColor: '#fff' 
-  },
-
-  buttons: { flexDirection: 'row', justifyContent: 'space-between', marginTop: 10 },
-
-  button: {
-    padding: 10,
-    borderRadius: 8,
-    alignItems: 'center',
-    justifyContent: 'center',
+  container: {
     flex: 1,
-    marginHorizontal: 5,
+    padding: 16,
+  },
+  separator: {
+    height: 1,
+    backgroundColor: 'white', // Adjust color as needed
+  },
+  headerCell: {
+    flex: 1,
+    textAlign: 'center',
+    paddingVertical: 10,
+    borderRightWidth: 1,
+    borderColor: 'white',
+    color: 'white', // Adjust color as needed
+  },
+  lastHeaderCell: {
+    flex: 1,
+    textAlign: 'center',
+    paddingVertical: 10,
   },
 
-  acceptButton: { backgroundColor: '#4CAF50' },
-  rejectButton: { backgroundColor: '#F44336' },
-  buttonText: { color: 'white', fontWeight: 'bold', fontSize: 16 },
-
-  acceptedTitle: { fontSize: 20, fontWeight: 'bold', marginTop: 20 },
-  acceptedMentee: { 
-    fontSize: 18, 
-    fontWeight: 'bold', 
-    color: '#333', 
-    padding: 12, 
-    marginVertical: 5, 
-    borderRadius: 8, 
-    borderWidth: 2, 
-    borderColor: '#4CAF50', 
-    backgroundColor: '#E8F5E9',
-    textAlign: 'center' 
+  title: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    marginVertical: 10,
+  },
+  checkBtn: {
+    backgroundColor: 'limegreen',
+    padding: 10,
+    borderRadius: 6,
+    alignSelf: 'flex-end',
+  },
+  checkBtnText: {
+    color: 'white',
+    fontWeight: 'bold',
+  },
+  table: {
+    minWidth: 700, // Adjust this width to ensure horizontal scrolling as needed
+    borderWidth: 1,
+    borderColor: '#ccc',
+    borderRadius: 6,
+  },
+  headerRow: {
+    backgroundColor: 'black',
+  },
+  row: {
+    flexDirection: 'row',
+    borderBottomWidth: 1,
+    borderColor: '#ddd',
+    paddingVertical: 10,
+    alignItems: 'center',
+  },
+  cell: {
+    width: 140, // Fixed width for each cell to maintain column structure
+    textAlign: 'center',
   },
 });
-
-export default MentorDashboard;

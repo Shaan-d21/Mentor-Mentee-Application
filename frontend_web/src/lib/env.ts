@@ -1,1 +1,1 @@
-export const apiUrl = 'http://localhost:8000';
+export const apiUrl: string = import.meta.env.VITE_SERVER_ENDPOINT;

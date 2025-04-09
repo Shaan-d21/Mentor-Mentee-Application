@@ -9,11 +9,9 @@ export interface Skill {
 export interface MentorProfiletype {
     name: string;
     mail: string;
-    role: string;
+    designation: string;
     exp: number | null;
-    github_id: string | null;
     contact: string | null;
-    gender: string | null;
     skillSet: Skill[];
 
     toJSON(): object;
@@ -24,29 +22,26 @@ export class MentorProfileImpl implements MentorProfiletype {
     mail: string;
     role: string;
     exp: number | null;
-    github_id: string | null;
     contact: string | null;
-    gender: string | null;
     skillSet: Skill[];
+    designation: string;
 
     constructor(
         name: string,
         mail: string,
         role: string,
         exp: number | null,
-        github_id: string | null,
         contact: string | null,
-        gender: string | null,
-        skillSet: Skill[]
+        skillSet: Skill[],
+        designation:string
     ) {
         this.name = name;
         this.mail = mail;
         this.role = role;
         this.exp = exp;
-        this.github_id = github_id;
         this.contact = contact;
-        this.gender = gender;
         this.skillSet = skillSet;
+        this.designation= designation;
     }
 
     static fromJSON(json: string): MentorProfiletype {
@@ -57,10 +52,9 @@ export class MentorProfileImpl implements MentorProfiletype {
             jsonParsed.mail,
             jsonParsed.role,
             jsonParsed.exp,
-            jsonParsed.github_id,
             jsonParsed.contact,
-            jsonParsed.gender,
-            jsonParsed["Skill set"]
+            jsonParsed["Skill set"],
+            jsonParsed.designation
         );
     }
 
@@ -70,10 +64,9 @@ export class MentorProfileImpl implements MentorProfiletype {
             mail: this.mail,
             role: this.role,
             exp: this.exp,
-            github_id: this.github_id,
             contact: this.contact,
-            gender: this.gender,
-            "Skill set": this.skillSet
+            "Skill set": this.skillSet,
+            designation: this.designation
         };
     }
 }

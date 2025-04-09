@@ -1,5 +1,3 @@
-version: "3.8"
-
 services:
   db:
     image: postgres:17
@@ -22,6 +20,8 @@ services:
 
   backend:
     build: "./backend/FastAPI for login and mentor profile"
+    env_file:
+      - ./backend/FastAPI for login and mentor profile/.env
     container_name: mentor_mentee_backend
     restart: always
     ports:

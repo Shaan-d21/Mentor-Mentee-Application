@@ -3,9 +3,9 @@ name: Build Check
 on:
   pull_request:
     branches:
-      - deployment/dev
+      - dev
 
-job:
+jobs:
   build-backend:
     runs-on: ubuntu-latest
 
