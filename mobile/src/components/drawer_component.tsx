@@ -125,7 +125,7 @@ const CustomDrawerContent = (props: CustomDrawerContentProps) => {
               </View> */}
               <View style={styles.menuItem}>
                 <Button
-                  onPress={() => navigation.navigate("viewRoadmap")}
+                  onPress={() => navigation.navigate("MenteeRoadmap")}
                   title="View Roadmap"
                 />
               </View>

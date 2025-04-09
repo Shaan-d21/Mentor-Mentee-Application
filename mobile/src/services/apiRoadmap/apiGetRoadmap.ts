@@ -6,14 +6,14 @@ interface RoadmapResponse {
   roadmap_name: string;
 }
 
-const API_BASE_URL = process.env.API_URL;
+// const API_BASE_URL = "http://181.214.44.15:8080/";
 
 export const getRoadmapTopics = async (mentorId: number, domainId: number): Promise<RoadmapResponse> => {
   const storage= new MMKV();
 
     try {
         const response = await axios.post<RoadmapResponse>(
-          `mentee/roadmap-topics`,
+          `http://181.214.44.15:8080/mentee/roadmap-topics`,
           { // Request body
             mentor_id: mentorId,
             domain_id: domainId
@@ -22,7 +22,7 @@ export const getRoadmapTopics = async (mentorId: number, domainId: number): Prom
             headers: {
               'accept': 'application/json',
               "token": storage.getString("token"),
-              'Content-Type': 'application/json', // Add Content-Type header
+              'Content-Type': 'application/json', 
             },
           }
         );

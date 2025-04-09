@@ -8,15 +8,15 @@ interface ApiResponse {
     status_code: number;
   };
 }
-const API_BASE_URL = process.env.API_URL; // Ensure API_URL is set in your environment
-// const API_BASE_URL = "https://7e49-160-250-150-14.ngrok-free.app"
+// const API_BASE_URL = process.env.API_URL; // Ensure API_URL is set in your environment
+// const API_BASE_URL = "http://181.214.44.15:8080/";
 export const getApprovedMentors = async (): Promise<ApiResponse[]> => {
   const storage= new MMKV();
   try {
-    const response = await axios.get<ApiResponse[]>(`mentee/mentor-roadmap-details`, {
+    const response = await axios.get<ApiResponse[]>(`http://181.214.44.15:8080/mentee/mentor-roadmap-details`, {
       headers: {
         'accept': 'application/json',
-        "token": storage.getString("token")       },
+        'Token': storage.getString("token")       },
       
     });
     console.log(response.data);
