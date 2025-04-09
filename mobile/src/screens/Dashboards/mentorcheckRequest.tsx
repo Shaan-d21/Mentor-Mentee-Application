@@ -398,6 +398,8 @@ const CheckRequestScreen: React.FC = () => {
             comment: comment.trim(), // Use the comment provided by the user
           }),
         ).then(() => {
+          
+          dispatch(fetchApprovedMentees());
           dispatch(fetchPendingRequest());
           setModalVisible(false);
           setComment('');
@@ -414,7 +416,6 @@ const CheckRequestScreen: React.FC = () => {
           }),
         ).then(() => {
           dispatch(fetchPendingRequest());
-
           setModalVisible(false);
           setComment('');
           setSelectedId(null);

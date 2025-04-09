@@ -174,7 +174,7 @@ const MentorDashboardScreen = () => {
 
   useEffect(() => {
     dispatch(fetchApprovedMentees());
-  }, [dispatch]);
+  }, []);
 
   const renderItem = ({item}: {item: any}) => (
     <View style={styles.row}>
@@ -187,7 +187,10 @@ const MentorDashboardScreen = () => {
   );
 
   return (
-    <View style={styles.container}>
+  
+  <View style={styles.container}>
+    {status === 'loading' && <Text>Loading...</Text>
+    }
       <AppBar
         onProfilePress={() => navigation.navigate('MentorProfileScreen')}
         openDrawer={() => {}}
