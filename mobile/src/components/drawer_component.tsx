@@ -155,20 +155,16 @@ const CustomDrawerContent = (props: CustomDrawerContentProps) => {
             </>
           )}
 
-          <View style={styles.menuItem}>
-            <Button onPress={handleLogout} title="Logout" />
-          </View>
-
           {/*Logout Button */}
-          <View style={styles.menuItem}>
-  <Button
-    onPress={() => {
-      props.toggleDrawer(); // Close the drawer first
-      storage.clearAll() // Remove user data from storage
-      navigation.navigate('SignInPage'); // Then navigate to SignInPage
-    }}
-    title="Logout"
-  />
+          {/* <View style={styles.menuItem}>
+          <Button
+            onPress={() => {
+              props.toggleDrawer(); // Close the drawer first
+              storage.clearAll() // Remove user data from storage
+              navigation.navigate('SignInPage'); // Then navigate to SignInPage
+            }}
+            title="Logout"
+          />
 </View>
           {/* <View style={styles.menuItem}>
             <TouchableOpacity onPress={()=> navigation.navigate("SignInPage")} >
@@ -176,8 +172,12 @@ const CustomDrawerContent = (props: CustomDrawerContentProps) => {
                                 Log Out
                                 </Text>
                               </TouchableOpacity>
-          </View> */}
+          </View> 
         
+        </View> */}
+        <View style={styles.menuItem}>
+            <Button onPress={handleLogout} title="Logout" />
+          </View>
         </View>
       </Animated.View>
     </>

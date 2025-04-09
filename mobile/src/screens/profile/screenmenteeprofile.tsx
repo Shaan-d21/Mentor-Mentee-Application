@@ -51,10 +51,10 @@ const MenteeProfileScreen: FC<ScreenProps<"MenteeProfileScreen">> = ({navigation
   const dispatch = useDispatch<AppDispatch>();
   const storage = new MMKV();
   useEffect(() => {
-    storage.set(
-      'token',
-      'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJTb2hhbSIsImlkIjo0MSwicm9sZSI6Im1lbnRlZSIsImV4cCI6MTc0NTM3NDczNn0.u9zV2VgLunICWmNOmtA7zMn2Nb-tBxmV14VlLFN8UaU',
-    );
+    // storage.set(
+    //   'token',
+    //   // 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJTb2hhbSIsImlkIjo0MSwicm9sZSI6Im1lbnRlZSIsImV4cCI6MTc0NTM3NDczNn0.u9zV2VgLunICWmNOmtA7zMn2Nb-tBxmV14VlLFN8UaU',
+    // );
     dispatch(getmenteeprofile());
   }, [dispatch]);
 
