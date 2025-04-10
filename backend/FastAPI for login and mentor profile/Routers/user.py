@@ -178,15 +178,23 @@ async def update_skills(user : user_dependency, db : db_dependency, skills_list:
                 db.commit()
             skill_model = db.query(Skill).filter(Skill.name == skill.skill_name).first()
             proficiency_enum = ProficiencyLevel(skill.proficiency)
-            print(skill.proficiency)
-            print(proficiency_enum.value)
-            skill_assign = MentorSkill(
-                mentor_id = user.get('user_id'),
-                skill_id = skill_model.id,
-                proficiency = proficiency_enum.name
-            )
-            db.add(skill_assign)
-            db.commit()
+            
+            mentor_skill = db.query(MentorSkill).filter(MentorSkill.mentor_id ==  user.get('user_id')).all()
+            if mentor_skill is not None:
+                for sk in mentor_skill:
+                    if sk.skill_id == skill_model.id:
+                        sk.proficiency = proficiency_enum.name
+                    db.add(sk)
+                    db.commit()
+            else:
+                skill_assign = MentorSkill(
+                    mentor_id = user.get('user_id'),
+                    skill_id = skill_model.id,
+                    proficiency = proficiency_enum.name
+                )
+                db.add(skill_assign)
+                db.commit()
+
     # except :
         # raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail='error')
     # else :
