@@ -72,10 +72,10 @@ async def update_skills(user : user_dependency, db : db_dependency, skills_list:
         print(f"Updating mentee skills: {[skill.skill_name for skill in skills_list.skills]}")
         
         # First clear existing skills to prevent duplicates
-        existing_skills = db.query(MenteeSkill).filter(MenteeSkill.mentee_id == user.get('user_id')).all()
-        for skill in existing_skills:
-            db.delete(skill)
-        db.commit()
+        # existing_skills = db.query(MenteeSkill).filter(MenteeSkill.mentee_id == user.get('user_id')).all()
+        # for skill in existing_skills:
+        #     db.delete(skill)
+        # db.commit()
         
         # Add the new skills
         skills_list = skills_list.skills
