@@ -4,7 +4,7 @@ import {
   apiaddMentorProfileSkill,
   apigetMentorProfile,
   apiUpdateMentorProfile,
-} from '../../../services/profile/apiMentorProfile';
+} from '../../services/profile/apiMentorProfile';
 import {
   MentorProfiletype,
   MentorProfileImpl,
