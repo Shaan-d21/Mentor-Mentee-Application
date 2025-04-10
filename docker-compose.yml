@@ -46,6 +46,7 @@ services:
 networks:
   mentor_mentee_network:
     name: mentor_mentee_network
+    external: true
 
 volumes:
   mentor_mentee_pg_data:

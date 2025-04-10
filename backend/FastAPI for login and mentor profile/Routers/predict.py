@@ -4,6 +4,7 @@ from services.ai_client import fetch_predictions
 from typing import Annotated
 from .auth import get_current_user  
 from starlette.status import HTTP_401_UNAUTHORIZED
+import json
 
 router = APIRouter()
 
@@ -27,7 +28,15 @@ async def predict(d: Domains, user: user_dependency):
 
     try:
         st = d.value
-        mentor_list = await fetch_predictions(st)
-        return mentor_list[8:-3]
+        mentor_list_raw = await fetch_predictions(st)
+
+        # Parse the string into a proper JSON object
+        try:
+            mentor_list = json.loads(mentor_list_raw)
+        except json.JSONDecodeError as e:
+            raise HTTPException(status_code=500, detail=f"Invalid JSON from AI server: {e}")
+
+        return mentor_list
+
     except Exception as e:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
