@@ -4,7 +4,7 @@ from fastapi import APIRouter, Depends, HTTPException, Header, Path
 from pydantic import BaseModel, Field
 from database import SessionLocal
 from sqlalchemy.orm import Session
-from models import User,Skill, MentorSkill
+from models import User,Skill, MentorSkill, Domain
 from .auth import get_current_user
 from jose import jwt, JWTError
 from passlib.context import CryptContext
@@ -113,26 +113,40 @@ class Mentor_Profile(BaseModel):
     designation : str
     exp : int
     contact : str
+    domain_name: str
 
 @router.put("/mentor/profile_creation", status_code=200)
-async def mentor_profile_completion(user : user_dependency, db : db_dependency, mentor_pro : Mentor_Profile):  
-    try: 
+async def mentor_profile_completion(user: user_dependency, db: db_dependency, mentor_pro: Mentor_Profile):
+    try:
         if user is None or user.get('role') != 'mentor':
-            return HTTPException(status_code=401, detail="Authentication Error")
-        mentor_updates = db.query(User).filter(User.id == user.get('user_id')).first()
-        if mentor_updates is None:
-            raise  HTTPException(status_code=404, detail='Mentor not found')
-        mentor_updates.name = mentor_pro.name
-        mentor_updates.designation = mentor_pro.designation
-        mentor_updates.exp = mentor_pro.exp
-        mentor_updates.contact = mentor_pro.contact
-        mentor_updates.is_profile_complete = True
-        db.add(mentor_updates)
+            raise HTTPException(status_code=401, detail="Authentication Error")
+        
+        mentor = db.query(User).filter(User.id == user.get('user_id')).first()
+        if mentor is None:
+            raise HTTPException(status_code=404, detail="Mentor not found")
+
+        # Look up domain_id using domain_name
+        domain = db.query(Domain).filter(Domain.name == mentor_pro.domain_name).first()
+        if not domain:
+            raise HTTPException(status_code=400, detail="Invalid domain name")
+
+        # Update mentor profile
+        mentor.name = mentor_pro.name
+        mentor.designation = mentor_pro.designation
+        mentor.exp = mentor_pro.exp
+        mentor.contact = mentor_pro.contact
+        mentor.domain_id = domain.id
+        mentor.is_profile_complete = True
+
+        db.add(mentor)
         db.commit()
-    except:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail='Error')
-    else:
-        return {"Message" : "Mentor profile updated", 'status_code': 200}
+
+        return {"Message": "Mentor profile updated", "status_code": 200}
+
+    except HTTPException as e:
+        raise e
+    except Exception as e:
+        raise HTTPException(status_code=400, detail="Error while updating profile")
 
 class ProficiencyLevel(Enum):
     beginner = 1
@@ -178,26 +192,29 @@ async def update_skills(user : user_dependency, db : db_dependency, skills_list:
     # else :
     #     return {"Message" : "Mentor skills updated",'status_code': 200}
         
-@router.get('/mentor/profile',status_code=status.HTTP_200_OK)
+@router.get("/mentor/profile", status_code=status.HTTP_200_OK)
 def mentor_profile(user: user_dependency, db: db_dependency):
     if user is None or user.get('role') != 'mentor':
-        return HTTPException(status_code=401, detail="Authentication Error")
-    mentor_updates = db.query(User).filter(User.id == user.get('user_id')).first()
-    skill_id_model = db.query(MentorSkill).filter(MentorSkill.mentor_id == user.get('user_id')).all()
-    skills_model = []
-    for i in skill_id_model:
-        sk = {
-            'name': i.skill.name,
-            'proficiency' : i.proficiency
-        }
-        skills_model.append(sk)
-    profile_details = {
-        'name' : mentor_updates.name,
-        'mail' : mentor_updates.mail,
-        'role' : mentor_updates.role,
-        'exp' : mentor_updates.exp,
-        'designation' : mentor_updates.designation,
-        'contact' : mentor_updates.contact,
-        'Skill set' : skills_model
+        raise HTTPException(status_code=401, detail="Authentication Error")
+
+    mentor = db.query(User).filter(User.id == user.get('user_id')).first()
+    if mentor is None:
+        raise HTTPException(status_code=404, detail="Mentor not found")
+
+    domain_name = mentor.domain.name if mentor.domain else None
+
+    skill_data = db.query(MentorSkill).filter(MentorSkill.mentor_id == mentor.id).all()
+    skills = [{"name": s.skill.name, "proficiency": s.proficiency} for s in skill_data]
+
+    profile_data = {
+        "name": mentor.name,
+        "mail": mentor.mail,
+        "role": mentor.role,
+        "exp": mentor.exp,
+        "designation": mentor.designation,
+        "contact": mentor.contact,
+        "domain": domain_name,  
+        "Skill set": skills
     }
-    return profile_details
+
+    return profile_data
