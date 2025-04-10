@@ -26,7 +26,7 @@ user_dependency = Annotated[dict, Depends(get_current_user)]
 def get_approved_mentors(user: user_dependency, db: db_dependency):
     if user is None or user.get('role') != 'mentee':
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Unauthorized Access")
-    
+
     query = (
         select(User, MentorMentee, Domain)
         .join(MentorMentee, MentorMentee.mentor_id == User.id)
