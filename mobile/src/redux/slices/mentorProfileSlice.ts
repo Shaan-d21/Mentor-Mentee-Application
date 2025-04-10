@@ -4,7 +4,7 @@ import {
   apiaddMentorProfileSkill,
   apigetMentorProfile,
   apiUpdateMentorProfile,
-} from '../../services/apiMentorProfile';
+} from '../../services/profile/apiMentorProfile';
 import {
   MentorProfiletype,
   MentorProfileImpl,
@@ -114,17 +114,20 @@ export const updateMentorProfileData = createAsyncThunk(
     designation,
     contact,
     exp,
+    domain
   }: {
     name: string;
     designation: string;
     contact: string;
     exp: string;
+    domain: string;
   }) => {
     const response = await apiUpdateMentorProfile(
       name,
       exp,
       designation,
       contact,
+      domain,
     );
     if (response === 1) {
       const updatedProfile = await apigetMentorProfile();

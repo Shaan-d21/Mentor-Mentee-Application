@@ -1,5 +1,5 @@
 import { createAsyncThunk, createSlice, PayloadAction } from "@reduxjs/toolkit";
-import { apiaddMenteeProfileSkill, apigetMenteeProfile, apiUpdateMenteeProfile } from "../../services/apimenteeprofile";
+import { apiaddMenteeProfileSkill, apigetMenteeProfile, apiUpdateMenteeProfile } from "../../services/profile/apimenteeprofile";
 import { MenteeProfile, MenteeProfileImpl } from "../../types/MenteeProfileTypes";
 
 enum currentStatus { idle = 'idle', loading = 'loading', success = 'success', failed = 'failed' }

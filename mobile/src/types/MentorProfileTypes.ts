@@ -13,6 +13,7 @@ export interface MentorProfiletype {
     exp: number | null;
     contact: string | null;
     skillSet: Skill[];
+    domain: string;
 
     toJSON(): object;
 }
@@ -24,6 +25,7 @@ export class MentorProfileImpl implements MentorProfiletype {
     exp: number | null;
     contact: string | null;
     skillSet: Skill[];
+    domain: string;
     designation: string;
 
     constructor(
@@ -33,6 +35,7 @@ export class MentorProfileImpl implements MentorProfiletype {
         exp: number | null,
         contact: string | null,
         skillSet: Skill[],
+        domain: string,
         designation:string
     ) {
         this.name = name;
@@ -41,6 +44,7 @@ export class MentorProfileImpl implements MentorProfiletype {
         this.exp = exp;
         this.contact = contact;
         this.skillSet = skillSet;
+        this.domain = domain;
         this.designation= designation;
     }
 
@@ -54,6 +58,7 @@ export class MentorProfileImpl implements MentorProfiletype {
             jsonParsed.exp,
             jsonParsed.contact,
             jsonParsed["Skill set"],
+            jsonParsed.domain,
             jsonParsed.designation
         );
     }
@@ -66,6 +71,7 @@ export class MentorProfileImpl implements MentorProfiletype {
             exp: this.exp,
             contact: this.contact,
             "Skill set": this.skillSet,
+            domain: this.domain,
             designation: this.designation
         };
     }
