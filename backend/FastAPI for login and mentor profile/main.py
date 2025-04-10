@@ -1,10 +1,13 @@
 from fastapi import FastAPI
+from fastapi.requests import Request
+from fastapi.responses import JSONResponse
 import models
 from database import engine
 
 from Routers import auth, user, mentee, mentor_approval,get_approved_mentees, get_approved_mentors, get_requests, predict, mentee_roadmap, assign_roadmap, roadmap_route
 
 from fastapi.middleware.cors import CORSMiddleware
+from starlette import status
 
 
 app = FastAPI()
@@ -34,6 +37,18 @@ app.include_router(assign_roadmap.router)
 @app.get("/")
 def read_root():
     return {"message": "Hello from FastAPI"}
+
+@app.exception_handler(Exception)
+async def global_exception_handler(req: Request, e: Exception):
+    return JSONResponse(
+        status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+        content={
+            "error": str(e),
+            "type": type(e).__name__,
+            "url": str(req.url),
+            "method": req.method
+        },
+    )
 
 
 models.Base.metadata.create_all(bind = engine)
