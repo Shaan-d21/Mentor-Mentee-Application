@@ -14,13 +14,14 @@ import MenteeRoadmap from '../screens/CourseRoadmap/menteeRoadmap';
 // import CustomDrawerContent from '../components/drawer_component';
 import temp from '../screens/temp';
 import { MentorRoadmapGeneration } from '../screens/CourseRoadmap/mentorRoadmapGenerationScreen';
+import CheckCompatibility from '../screens/Dashboards/checkCompatibilty';
 import RoadmapScreen from '../screens/CourseRoadmap/viewRoadmap';
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
 export const RootNavigator: FC = () => {
   return (
     <Stack.Navigator
-      initialRouteName="SignInPage"
+      initialRouteName="MenteeDashboard"
       screenOptions={() => ({
         headerShown: false,
       })}>
@@ -33,6 +34,7 @@ export const RootNavigator: FC = () => {
       <Stack.Screen name="MenteeRoadmap" component={MenteeRoadmap} />
       <Stack.Screen name="RoadmapScreen" component={RoadmapScreen} />
       <Stack.Screen name="MentorRoadmapGeneration" component={MentorRoadmapGeneration} />
+      <Stack.Screen name="CheckCompatibility" component={CheckCompatibility} />
       <Stack.Screen name="temp" component={temp} />
       {/* <Stack.Screen name="CustomDrawerContent" component={CustomDrawerContent} /> */}
 
