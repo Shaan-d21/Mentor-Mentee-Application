@@ -196,8 +196,8 @@ const MentorDashboardScreen = () => {
   return (
   
   <View style={styles.container}>
-    {/* {status === 'loading' && <Text>Loading...</Text> */}
-    {/* } */}
+    {/* {status === 'loading' && <Text>Loading...</Text>
+    } */}
       <AppBar
         onProfilePress={() => navigation.navigate('MentorProfileScreen')}
         openDrawer={() => {}}

@@ -21,7 +21,7 @@ const Stack = createNativeStackNavigator<RootStackParamList>();
 export const RootNavigator: FC = () => {
   return (
     <Stack.Navigator
-      initialRouteName="MenteeDashboard"
+      initialRouteName="SignInPage"
       screenOptions={() => ({
         headerShown: false,
       })}>
