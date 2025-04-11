@@ -4,6 +4,7 @@ from services.ai_client import fetch_predictions
 from typing import Annotated
 from .auth import get_current_user  
 from starlette.status import HTTP_401_UNAUTHORIZED
+import json
 
 router = APIRouter()
 
