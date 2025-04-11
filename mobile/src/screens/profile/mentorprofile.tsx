@@ -18,7 +18,7 @@ import {
   getmentorprofile,
   updateMentorProfileData,
   updateMentorprofileskill,
-} from '../../redux/slices/mentorProfileSlice';
+} from '../../redux/slices/profileSlice/mentorProfileSlice';
 import { Skill } from '../../types/MentorProfileTypes';
 import { ScreenProps } from '../../navigation/types';
 import { setName } from '../../redux/slices/sliceLogin';
@@ -40,6 +40,7 @@ import {
   faUserCircle
 } from '@fortawesome/free-solid-svg-icons';
 import { mentorSpecificStyles, profileStyles } from './profileStyle';
+import AppBar from '../../components/appbar_component';
 
 interface LocalMentorProfile {
   name: string;
@@ -113,13 +114,21 @@ const MentorProfile: FC<ScreenProps<'MentorProfileScreen'>> = ({ navigation }) =
         domain: mentorData.domain,
       });
       setUpdateDomain(mentorData.domain);
-    } else if (currentStatus === 'failed') {
+    } else 
+    // if (currentStatus === 'failed')
+       {
       Alert.alert('Error', 'Failed to load Profile.', [
         {
           text: 'Retry',
           onPress: () => dispatch(getmentorprofile()),
         },
-      ]);    }
+        {
+          text: 'Cancel',
+          onPress: () => navigation.pop(),
+          style: 'cancel',
+        }
+      ],
+    );    }
   }, [currentStatus, mentorData]);
 
   function handleChange<K extends keyof LocalMentorProfile>(
@@ -213,10 +222,10 @@ const MentorProfile: FC<ScreenProps<'MentorProfileScreen'>> = ({ navigation }) =
     </View>
   ) : (
     <ScrollView contentContainerStyle={profileStyles.container}>
+      {/* <AppBar onProfilePress={() => navigation.navigate('MenteeProfileScreen')} openDrawer={() => {}} /> */}
+
       <View style={profileStyles.profileContainer}>
         <View style={profileStyles.profileImageContainer}>
-          {/* <Image style={profileStyles.profileImage} source={{ uri: _imageUri }} />
-           */}
            <FontAwesomeIcon icon={ faUserCircle} size={150} color="#3498db" style={profileStyles.profileImage} />
         </View>
 

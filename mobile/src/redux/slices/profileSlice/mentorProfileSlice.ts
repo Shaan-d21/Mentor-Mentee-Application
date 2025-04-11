@@ -1,14 +1,14 @@
 import {createAsyncThunk, createSlice, PayloadAction} from '@reduxjs/toolkit';
-import {MenteeProfile, MenteeProfileImpl} from '../../types/MenteeProfileTypes';
+import {MenteeProfile, MenteeProfileImpl} from '../../../types/MenteeProfileTypes';
 import {
   apiaddMentorProfileSkill,
   apigetMentorProfile,
   apiUpdateMentorProfile,
-} from '../../services/profile/apiMentorProfile';
+} from '../../../services/profile/apiMentorProfile';
 import {
   MentorProfiletype,
   MentorProfileImpl,
-} from '../../types/MentorProfileTypes';
+} from '../../../types/MentorProfileTypes';
 
 enum currentStatus {
   idle = 'idle',

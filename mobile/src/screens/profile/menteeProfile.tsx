@@ -1,44 +1,17 @@
 import React, { FC, useEffect, useState } from 'react';
-import {
-  View,
-  Text,
-  TextInput,
-  StyleSheet,
-  ScrollView,
-  TouchableOpacity,
-  Image,
-  Alert,
-  ActivityIndicator,
-} from 'react-native';
-import { launchImageLibrary } from 'react-native-image-picker';
-import AppBar from '../../components/appbar_component';
-import { Dropdown } from 'react-native-element-dropdown';
+import { View, Text, TextInput, StyleSheet, ScrollView, TouchableOpacity, Image, Alert, ActivityIndicator } from 'react-native';
+
 import DropdownComponent from '../../components/Dropdown';
-import { apigetMenteeProfile, apiUpdateMenteeProfile } from '../../services/profile/apimenteeprofile';
 import { AppDispatch, RootState } from '../../redux/store';
 import { useDispatch, useSelector } from 'react-redux';
 import { MenteeProfile } from '../../types/MenteeProfileTypes';
-import {
-  getmenteeprofile,
-  updateProfileData,
-  updateprofileskill,
-} from '../../redux/slices/menteeProfileSlice';
+import { getmenteeprofile, updateProfileData, updateprofileskill, } from '../../redux/slices/profileSlice/menteeProfileSlice';
 import { ScreenProps } from '../../navigation/types';
 import { setName } from '../../redux/slices/sliceLogin';
 import { MMKV } from 'react-native-mmkv';
 import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome';
-import { 
-  faEnvelope, 
-  faBriefcase, 
-  faGraduationCap, 
-  faClock, 
-  faUser, 
-  faPhone, 
-  faCode, 
-  faChevronLeft,
-  faEdit,
-  faSave,
-  faUserCircle
+import {
+  faEnvelope, faBriefcase, faGraduationCap, faClock, faUser, faPhone, faCode, faChevronLeft, faEdit, faSave, faUserCircle
 } from '@fortawesome/free-solid-svg-icons';
 import { profileStyles } from './profileStyle';
 
@@ -47,13 +20,13 @@ const MenteeProfileScreen: FC<ScreenProps<"MenteeProfileScreen">> = ({ navigatio
   const [email, setEmail] = useState('');
   const [mobile, setMobile] = useState('');
   const [designation, setDesignation] = useState('');
-  
+
   // Error states
   const [nameError, setNameError] = useState('');
   const [emailError, setEmailError] = useState('');
   const [mobileError, setMobileError] = useState('');
   const [designationError, setDesignationError] = useState('');
-  
+
   const [isEditing, setIsEditing] = useState(false);
   const [selectedSkill, setSelectedSkill] = useState<string | null>(null);
 
@@ -65,7 +38,7 @@ const MenteeProfileScreen: FC<ScreenProps<"MenteeProfileScreen">> = ({ navigatio
   );
   const dispatch = useDispatch<AppDispatch>();
   const storage = new MMKV();
-  
+
   useEffect(() => {
     dispatch(getmenteeprofile());
   }, [dispatch]);
@@ -165,17 +138,18 @@ const MenteeProfileScreen: FC<ScreenProps<"MenteeProfileScreen">> = ({ navigatio
 
   useEffect(() => {
     if (currentStatus === 'failed') {
-      Alert.alert(
-        'Failed',
-        'Failed to update profile. Please try again.',
-        [
-          {
-            text: 'OK',
-            onPress: () => {
-              dispatch(getmenteeprofile());
-            },
-          },
-        ],
+
+      Alert.alert('Error', 'Failed to load Profile.', [
+        {
+          text: 'Retry',
+          onPress: () => dispatch(getmenteeprofile()),
+        },
+        {
+          text: 'Cancel',
+          onPress: () => navigation.pop(),
+          style: 'cancel',
+        }
+      ],
       );
     }
   }, [currentStatus]);
@@ -198,17 +172,17 @@ const MenteeProfileScreen: FC<ScreenProps<"MenteeProfileScreen">> = ({ navigatio
                 <FontAwesomeIcon icon={faUser} size={18} color="#3498db" style={profileStyles.infoIcon} />
                 <Text style={profileStyles.infoText}>{fullName}</Text>
               </View>
-              
+
               <View style={profileStyles.infoRow}>
                 <FontAwesomeIcon icon={faEnvelope} size={18} color="#3498db" style={profileStyles.infoIcon} />
                 <Text style={profileStyles.infoText}>{email}</Text>
               </View>
-              
+
               <View style={profileStyles.infoRow}>
                 <FontAwesomeIcon icon={faPhone} size={18} color="#3498db" style={profileStyles.infoIcon} />
                 <Text style={profileStyles.infoText}>{mobile}</Text>
               </View>
-              
+
               <View style={profileStyles.infoRow}>
                 <FontAwesomeIcon icon={faBriefcase} size={18} color="#3498db" style={profileStyles.infoIcon} />
                 <Text style={profileStyles.infoText}>{designation}</Text>
@@ -328,17 +302,17 @@ const MenteeProfileScreen: FC<ScreenProps<"MenteeProfileScreen">> = ({ navigatio
             handleEditToggle();
           }
         }}>
-        <FontAwesomeIcon 
-          icon={isEditing ? faSave : faEdit} 
-          size={16} 
-          color="#fff" 
-          style={profileStyles.buttonIcon} 
+        <FontAwesomeIcon
+          icon={isEditing ? faSave : faEdit}
+          size={16}
+          color="#fff"
+          style={profileStyles.buttonIcon}
         />
         <Text style={profileStyles.buttonText}>
           {isEditing ? 'Save Profile' : 'Update Profile'}
         </Text>
       </TouchableOpacity>
-      
+
       <TouchableOpacity
         style={[profileStyles.button, profileStyles.backButton]}
         onPress={() => {
