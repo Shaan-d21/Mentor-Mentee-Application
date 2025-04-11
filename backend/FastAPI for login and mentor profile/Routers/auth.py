@@ -55,13 +55,10 @@ def user_access_token(email: str, user_id: int, role: str, expires_delta: timede
 async def get_current_user(token: str = Header(None, alias="Token")):
     try:
         if token is None:
-            raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail='No token provided')
-        
-        print(f"Received token: {token[:20]}...")  
+            raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail='No token provided')  
         
         if token.startswith('Bearer '):
             token = token.split('Bearer ')[1].strip()
-            print(f"Extracted token without Bearer: {token[:20]}...")  # Debug log
         
         if not token:
             raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail='Empty token after extraction')

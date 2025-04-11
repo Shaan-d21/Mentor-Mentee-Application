@@ -28,6 +28,6 @@ async def predict(d: Domains, user: user_dependency):
     try:
         st = d.value
         mentor_list = await fetch_predictions(st)
-        return mentor_list[8:-3]
+        return mentor_list
     except Exception as e:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
