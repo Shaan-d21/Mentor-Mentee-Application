@@ -2,6 +2,7 @@ import { createAsyncThunk, createSlice, current, PayloadAction } from "@reduxjs/
 import { apiGetMentorList } from "../../services/apiMenteeDashboard/apiGetMentorList";
 import { apiSendMentorRequest } from "../../services/apiMenteeDashboard/apiSendMentorRequest";
 import { MMKV } from "react-native-mmkv";
+import { apiGetApprovedMentorList } from "../../services/apiMenteeDashboard/apiGetApprovedMentorList";
 
 enum currentStatus { idle = "idle", loading = "loading", success = "success", failed = "failed" };
 
@@ -9,22 +10,31 @@ interface Mentor {
     "designation": string,
     "domain": string,
     "id": number,
-    "main": string,
+    "mail": string,
     "name": string,
     "reason": string,
     "score": number
+}
+interface MetorApprove{
+    "id": number,
+    "name": string,
+    "mail": string,
+    "designation": string,
+    "domain_name": string,
+    "exp": number,
 }
 
 interface MenteeDashboardState {
     status: currentStatus,
     domain_mentors: Mentor[] | null,
     other_domain_mentors: Mentor[] | null,
-    requestMentorId: number| null
+    requestMentorId: number| null,
+    getApprovedMentors: MetorApprove[] | null
 }
 
 interface MentorListPayload {
-  domain_mentors: Mentor[];
-  other_domain_mentors: Mentor[];
+    domain_mentors: Mentor[];
+    other_domain_mentors: Mentor[];
 }
 
 
@@ -32,13 +42,13 @@ const initialState: MenteeDashboardState = {
     status: currentStatus.idle,
     domain_mentors: null,
     other_domain_mentors: null,
-    requestMentorId: null
+    requestMentorId: null,
+    getApprovedMentors: null
 }
 
 
 export const getMentorList = createAsyncThunk("menteeDashboard/getMentorList", async (domain: string) => {
-  const response = await apiGetMentorList({domain:domain});
-  // console.log("Async Thunk getMentorList: ", response);
+    const response = await apiGetMentorList({domain:domain});
     // console.log("Async Thunk getMentorList: ", response);
     return response;
 });
@@ -52,11 +62,19 @@ export const sendMentorRequest = createAsyncThunk("menteeDashboard/sendRequest",
     return response.status_code;
 });
 
+export const getApprovedMentorList= createAsyncThunk("menteeDashboard/getApprovedMentorList", async()=> {
+    const response= await apiGetApprovedMentorList();
+    console.log("sliceMenteeDashboard getApprovedMentorList: ", response);
+
+    return response;
+});
+
 const sliceMenteeDashboard = createSlice({
     name: "menteeDashboard",
     initialState,
     reducers: {},
     extraReducers(builder) {
+        /* To get all the list of the mentors of the specific domain */
         builder.addCase(getMentorList.pending, (state, action) => {
             state.status = currentStatus.loading;
         }).addCase(getMentorList.rejected, (state, action) => {
@@ -82,6 +100,17 @@ const sliceMenteeDashboard = createSlice({
                 state.requestMentorId = action.meta.arg.id; // Set only if successful
             }
         })
+
+        /* Get the list of the approved mentors*/
+        .addCase(getApprovedMentorList.pending, (state)=>{
+            state.status= currentStatus.loading
+        }).addCase(getApprovedMentorList.rejected, (state, action)=>{
+            state.status= currentStatus.failed
+        }).addCase(getApprovedMentorList.fulfilled, (state, action)=>{
+            state.getApprovedMentors= action.payload.object
+            // console.log("state is ", state.getApprovedMentors);
+        })
+
     }
 });
 
