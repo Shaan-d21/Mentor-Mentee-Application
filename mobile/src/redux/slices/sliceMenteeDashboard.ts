@@ -6,7 +6,7 @@ import { apiGetApprovedMentorList } from "../../services/apiMenteeDashboard/apiG
 
 enum currentStatus { idle = "idle", loading = "loading", success = "success", failed = "failed" };
 
-interface Mentor {
+export interface Mentor {
     "designation": string,
     "domain": string,
     "id": number,
