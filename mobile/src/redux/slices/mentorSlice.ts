@@ -98,7 +98,7 @@ const menteeSlice = createSlice({
           id: entry.id,
           name: entry.name,
           email: entry.mail,
-          domain: entry.domain_id,
+          domain: entry.domain_name,
           role: entry.role,
         }));
       })
@@ -133,7 +133,7 @@ state.status = currentStatus.success;
           id: entry.id,
           name: entry.name,
           email: entry.mail,
-          domain: entry.domain_id,
+          domain: entry.domain_name,
           role: entry.role,
         }));
       })

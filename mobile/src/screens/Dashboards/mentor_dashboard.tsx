@@ -151,6 +151,9 @@ import {AppDispatch, RootState} from '../../redux/store';
 import {useIsFocused, useNavigation} from '@react-navigation/native';
 import {NativeStackNavigationProp} from '@react-navigation/native-stack';
 import {RootStackParamList} from '../../navigation/types'; // Adjust the path as needed
+import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome';
+import { faEnvelope, faUserTag, faCodeBranch, faCommentDots } from '@fortawesome/free-solid-svg-icons';
+
 import Avatar from 'react-native-elements/dist/avatar/Avatar';
 import AppBar from '../../components/appbar_component';
 
@@ -183,13 +186,38 @@ const MentorDashboardScreen = () => {
     dispatch(fetchApprovedMentees());
   }
 }, [ ]);
-  const renderItem = ({item}: {item: any}) => (
-    <View style={styles.row}>
-      <Text style={styles.cell}>{item.name}</Text>
-      <Text style={styles.cell}>{item.email}</Text>
-      <Text style={styles.cell}>{item.role}</Text>
-      <Text style={styles.cell}>{item.domain}</Text>
-      <Text style={styles.cell}>{item.comment || '-'}</Text>
+  // const renderItem = ({item}: {item: any}) => (
+  //   <View style={styles.row}>
+  //     <Text style={styles.cell}>{item.name}</Text>
+  //     <Text style={styles.cell}>{item.email}</Text>
+  //     <Text style={styles.cell}>{item.role}</Text>
+  //     <Text style={styles.cell}>{item.domain}</Text>
+  //     <Text style={styles.cell}>{item.comment || '-'}</Text>
+  //   </View>
+  // );
+  const renderMenteeCard = ({ item }: { item: any }) => (
+    <View style={styles.card}>
+      <View style={styles.cardHeader}>
+        <Text style={styles.cardTitle}>{item.name}</Text>
+      </View>
+      <View style={styles.cardBody}>
+        <View style={styles.cardItem}>
+          <FontAwesomeIcon icon={faEnvelope} size={16} color="#777" style={styles.icon} />
+          <Text style={styles.cardText}>{item.email}</Text>
+        </View>
+        <View style={styles.cardItem}>
+          <FontAwesomeIcon icon={faUserTag} size={16} color="#777" style={styles.icon} />
+          <Text style={styles.cardText}>{item.role}</Text>
+        </View>
+        <View style={styles.cardItem}>
+          <FontAwesomeIcon icon={faCodeBranch} size={16} color="#777" style={styles.icon} />
+          <Text style={styles.cardText}>{item.domain}</Text>
+        </View>
+        <View style={styles.cardItem}>
+          <FontAwesomeIcon icon={faCommentDots} size={16} color="#777" style={styles.icon} />
+          <Text style={styles.cardText}>{item.comment || 'No comment'}</Text>
+        </View>
+      </View>
     </View>
   );
 
@@ -216,7 +244,7 @@ const MentorDashboardScreen = () => {
         </TouchableOpacity>
       </View>
 
-      <ScrollView horizontal>
+      {/* <ScrollView horizontal>
         <View style={styles.table}>
           <View style={[styles.row, styles.headerRow]}>
             <Text style={[styles.cell, styles.headerCell]}>Name</Text>
@@ -238,7 +266,14 @@ const MentorDashboardScreen = () => {
             />
           )}
         </View>
-      </ScrollView>
+      </ScrollView> */}
+
+<FlatList
+  data={approved}
+  keyExtractor={item => item.id.toString()}
+  renderItem={renderMenteeCard}
+/>
+
     </View>
   );
 };
@@ -250,6 +285,48 @@ const styles = StyleSheet.create({
     flex: 1,
     padding: 16,
   },
+  card: {
+    backgroundColor: '#E0F7FA',
+    padding: 16,
+    marginBottom: 12,
+    borderRadius: 10,
+    elevation: 4,
+    shadowColor: '#000',
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    shadowOffset: { width: 0, height: 2 },
+  },
+  
+  cardHeader: {
+    marginBottom: 10,
+  },
+  
+  cardTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: '#333',
+  },
+  
+  cardBody: {
+    paddingLeft: 6,
+  },
+  
+  cardItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 8,
+  },
+  
+  icon: {
+    marginRight: 10,
+  },
+  
+  cardText: {
+    fontSize: 14,
+    color: '#555',
+  },
+  
+  
   separator: {
     height: 1,
     backgroundColor: 'white', // Adjust color as needed
