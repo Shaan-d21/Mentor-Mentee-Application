@@ -54,17 +54,17 @@ const SignInPage: React.FC<ScreenProps<"SignInPage">> = ({navigation}) => {
       switch (userType) {
         case 'mentor':
           if(profileStatus === false) {
-            navigation.navigate('MentorProfileScreen');
+            navigation.replace('MentorProfileScreen');
           break;
           }
-        navigation.navigate('MentorDashboard');
+        navigation.replace('MentorDashboard');
           break;
         case 'mentee':
           if(profileStatus === false) {
-            navigation.navigate('MenteeProfileScreen');
+            navigation.replace('MenteeProfileScreen');
           break;
           }
-          navigation.navigate('MenteeDashboard');
+          navigation.replace('MenteeDashboard');
           break;
         default:
           console.log('No user role found');
