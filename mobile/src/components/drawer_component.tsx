@@ -360,12 +360,12 @@ const CustomDrawerContent = (props: CustomDrawerContentProps) => {
                   title="My Mentors"
                 />
               </View>
-              {/* <View style={styles.menuItem}>
+              <View style={styles.menuItem}>
                 <Button
-                  onPress={() => navigation.navigate("MenteeProfileScreen")}
-                  title="Mentee Profile"
+                  onPress={() => navigation.navigate("MenteeRequests")}
+                  title="My Requests"
                 />
-              </View> */}
+              </View>
               <View style={styles.menuItem}>
                 <Button
                   onPress={() => {
