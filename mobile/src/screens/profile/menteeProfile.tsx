@@ -55,6 +55,7 @@ useEffect(() => {
   const dispatch = useDispatch<AppDispatch>();
   const storage = new MMKV();
 
+
   useEffect(() => {
     dispatch(getmenteeprofile());
   }, [dispatch]);
@@ -179,6 +180,18 @@ useEffect(() => {
           style: 'cancel',
         }
       ],
+
+      Alert.alert('Error', 'Failed to load Profile.', [
+        {
+          text: 'Retry',
+          onPress: () => dispatch(getmenteeprofile()),
+        },
+        {
+          text: 'Cancel',
+          onPress: () => navigation.pop(),
+          style: 'cancel',
+        }
+      ],
       );
     }
   }, [currentStatus]);
@@ -217,15 +230,18 @@ useEffect(() => {
                 <Text style={profileStyles.infoText}>{fullName}</Text>
               </View>
 
+
               <View style={profileStyles.infoRow}>
                 <FontAwesomeIcon icon={faEnvelope} size={18} color="#3498db" style={profileStyles.infoIcon} />
                 <Text style={profileStyles.infoText}>{email}</Text>
               </View>
 
+
               <View style={profileStyles.infoRow}>
                 <FontAwesomeIcon icon={faPhone} size={18} color="#3498db" style={profileStyles.infoIcon} />
                 <Text style={profileStyles.infoText}>{mobile}</Text>
               </View>
+
 
               <View style={profileStyles.infoRow}>
                 <FontAwesomeIcon icon={faBriefcase} size={18} color="#3498db" style={profileStyles.infoIcon} />
@@ -346,6 +362,11 @@ useEffect(() => {
             handleEditToggle();
           }
         }}>
+        <FontAwesomeIcon
+          icon={isEditing ? faSave : faEdit}
+          size={16}
+          color="#fff"
+          style={profileStyles.buttonIcon}
         <FontAwesomeIcon
           icon={isEditing ? faSave : faEdit}
           size={16}
