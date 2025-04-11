@@ -11,7 +11,7 @@ import MentorProfile from '../screens/profile/mentorprofile';
 import CheckRequestScreen from '../screens/Dashboards/mentorcheckRequest';
 import MenteeRoadmap from '../screens/CourseRoadmap/menteeRoadmap';
 
-import CustomDrawerContent from '../components/drawer_component';
+// import CustomDrawerContent from '../components/drawer_component';
 import temp from '../screens/temp';
 import { MentorRoadmapGeneration } from '../screens/CourseRoadmap/mentorRoadmapGenerationScreen';
 import RoadmapScreen from '../screens/CourseRoadmap/viewRoadmap';
