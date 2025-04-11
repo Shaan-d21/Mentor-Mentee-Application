@@ -6,11 +6,14 @@ enum currentStatus { idle = 'idle', loading = 'loading', success = 'success', fa
 interface MenteeProfilestate {
   response: MenteeProfile | undefined;
   status: currentStatus;
+  Menteeprofile_status: boolean;
 }
 
 const initialState: MenteeProfilestate = {
   response: undefined,
-  status: currentStatus.idle
+  status: currentStatus.idle,
+  Menteeprofile_status: false,
+
 };
 
 const sliceProfile = createSlice({
@@ -28,6 +31,10 @@ const sliceProfile = createSlice({
           state.response = MenteeProfileImpl.fromJSON(JSON.stringify(action.payload)) as MenteeProfile;
           console.log(`Get menteeProfileSlice extraReducer state: ${JSON.stringify(state.response)}`)
         }
+        if ('contact' in action.payload) {
+          // Set profile status to true only when contact is NOT null
+          state.Menteeprofile_status = action.payload['contact'] !== null;
+        }
         state.status = currentStatus.success;
       } catch (error) {
         console.error("mentee/profile error: ", error);
@@ -37,6 +44,7 @@ const sliceProfile = createSlice({
       state.status = currentStatus.failed;
     }).addCase(updateprofileskill.fulfilled, (state, action) => {
       try {
+        console.log(`action.payload['contact'] : ${JSON.stringify(action.payload)}`);
         state.response = MenteeProfileImpl.fromJSON(JSON.stringify(action.payload)) as MenteeProfile;
         state.status = currentStatus.success;
       } catch (error) {
@@ -49,6 +57,7 @@ const sliceProfile = createSlice({
       })
       .addCase(updateProfileData.fulfilled, (state, action) => {
         try {
+        state.Menteeprofile_status = true;
           state.response = MenteeProfileImpl.fromJSON(JSON.stringify(action.payload)) as MenteeProfile;
           state.status = currentStatus.success;
         } catch (error) {
@@ -81,7 +90,7 @@ export const getmenteeprofile = createAsyncThunk("profile/get", async () => {
 
 
 });
-export const updateProfileData = createAsyncThunk("profile/update", async ({ name, contact, designation }: {  name: string,contact: string, designation: string }) => {
+export const updateProfileData = createAsyncThunk("profile/update", async ({ name, contact, designation }: { name: string, contact: string, designation: string }) => {
 
 
   const response = await apiUpdateMenteeProfile(name, contact, designation);
@@ -99,6 +108,7 @@ export const updateprofileskill = createAsyncThunk(
     // Call your API to add the new skill
     const response = await apiaddMenteeProfileSkill(skill);
     if (response === 1) {
+      
       const updatedProfile = await apigetMenteeProfile();
       return updatedProfile;
     }

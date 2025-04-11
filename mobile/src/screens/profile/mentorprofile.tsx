@@ -21,7 +21,7 @@ import {
 } from '../../redux/slices/profileSlice/mentorProfileSlice';
 import { Skill } from '../../types/MentorProfileTypes';
 import { ScreenProps } from '../../navigation/types';
-import { setName } from '../../redux/slices/sliceLogin';
+import {  setName } from '../../redux/slices/sliceLogin';
 import { MMKV } from 'react-native-mmkv';
 
 import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome';
@@ -41,6 +41,7 @@ import {
 } from '@fortawesome/free-solid-svg-icons';
 import { mentorSpecificStyles, profileStyles } from './profileStyle';
 import AppBar from '../../components/appbar_component';
+import {changeProfileStatus} from '../../redux/slices/sliceLogin';
 
 interface LocalMentorProfile {
   name: string;
@@ -53,7 +54,6 @@ interface LocalMentorProfile {
 }
 
 const domainOptions = [
-  { label: 'Programming Languages', value: 'Programming Languages' },
   { label: 'Database & Backend', value: 'Database & Backend' },
   { label: 'Cloud Computing', value: 'Cloud Computing' },
   { label: 'DevOps & Deployment', value: 'DevOps & Deployment' },
@@ -71,6 +71,10 @@ const MentorProfile: FC<ScreenProps<'MentorProfileScreen'>> = ({ navigation }) =
     (state: RootState) => state.mentorProfile.status,
   );
   const mentorData = useSelector((state: RootState) => state.mentorProfile.response);
+  const Mentorprofile_status = useSelector(
+    (state: RootState) => state.mentorProfile.Mentorprofile_status,)
+  const profile_status = useSelector((state:RootState)=> state.login.profile_status);
+  console.log(`profile status is at mentorProfile ${profile_status}`)
 
   // Separate error states
   const [nameError, setNameError] = useState('');
@@ -87,11 +91,11 @@ const MentorProfile: FC<ScreenProps<'MentorProfileScreen'>> = ({ navigation }) =
     designation: '',
     domain: '',
   });
-
   
   const [updateDomain, setUpdateDomain] = useState(profile.domain);
   const [selectedSkill, setSelectedSkill] = useState<string | null>(null);
   const [proficiencyModal, setProficiencyModal] = useState(false);
+  const [domainError, setDomainError] = useState('');
   const [isEditing, setIsEditing] = useState(false);
   // const storage = new MMKV();
 
@@ -114,8 +118,7 @@ const MentorProfile: FC<ScreenProps<'MentorProfileScreen'>> = ({ navigation }) =
         domain: mentorData.domain,
       });
       setUpdateDomain(mentorData.domain);
-    } else 
-    // if (currentStatus === 'failed')
+    } else if (currentStatus === 'failed')
        {
       Alert.alert('Error', 'Failed to load Profile.', [
         {
@@ -130,6 +133,15 @@ const MentorProfile: FC<ScreenProps<'MentorProfileScreen'>> = ({ navigation }) =
       ],
     );    }
   }, [currentStatus, mentorData]);
+
+  useEffect(() => {
+    if (Mentorprofile_status) {
+      dispatch(changeProfileStatus(Mentorprofile_status));
+      
+    }
+    // dispatch(changeProfileStatus(true));
+  },[Mentorprofile_status])
+
 
   function handleChange<K extends keyof LocalMentorProfile>(
     key: K,
@@ -171,6 +183,7 @@ const MentorProfile: FC<ScreenProps<'MentorProfileScreen'>> = ({ navigation }) =
   };
 
   const handleSubmit = () => {
+    console.log('Submitting profile data:', profile);console.log('updateDomain:', updateDomain);
     let isValid = true;
 
     // Check name
@@ -193,11 +206,17 @@ const MentorProfile: FC<ScreenProps<'MentorProfileScreen'>> = ({ navigation }) =
     }
 
     // Check designation
-    if (!profile.designation.trim()) {
+    if (!profile.designation || !profile.designation.trim()) {
       setDesignationError('Designation cannot be empty.');
       isValid = false;
     } else {
       setDesignationError('');
+    }
+    if(!updateDomain || !updateDomain.trim()) {
+      setDomainError('Domain cannot be empty.');
+      isValid = false;
+    }else{
+      setDomainError('');
     }
 
     // If validations pass, save the profile
@@ -222,8 +241,11 @@ const MentorProfile: FC<ScreenProps<'MentorProfileScreen'>> = ({ navigation }) =
     </View>
   ) : (
     <ScrollView contentContainerStyle={profileStyles.container}>
-      {/* <AppBar onProfilePress={() => navigation.navigate('MenteeProfileScreen')} openDrawer={() => {}} /> */}
-
+{
+  
+profile_status? <AppBar onProfilePress={() => navigation.navigate('MentorProfileScreen')} openDrawer={() => {}} />
+  : <></>
+}
       <View style={profileStyles.profileContainer}>
         <View style={profileStyles.profileImageContainer}>
            <FontAwesomeIcon icon={ faUserCircle} size={150} color="#3498db" style={profileStyles.profileImage} />
@@ -338,7 +360,11 @@ const MentorProfile: FC<ScreenProps<'MentorProfileScreen'>> = ({ navigation }) =
                 <View style={mentorSpecificStyles.dropdownField}>
                   <DropdownComponent data={domainOptions} onSelect={setUpdateDomain} selectedValue={updateDomain} placeholder='Select Domain' />
                 </View>
+             
               </View>
+              {domainError ? (
+                <Text style={profileStyles.errorText}>{domainError}</Text>
+              ) : null}
             </>
           )}
         </View>
@@ -420,7 +446,7 @@ const MentorProfile: FC<ScreenProps<'MentorProfileScreen'>> = ({ navigation }) =
           {isEditing ? 'Save Profile' : 'Update Profile'}
         </Text>
       </TouchableOpacity>
-      <TouchableOpacity
+      {/* <TouchableOpacity
         style={[profileStyles.button, profileStyles.backButton]}
         onPress={() => {
           navigation.navigate('MentorDashboard');
@@ -428,7 +454,7 @@ const MentorProfile: FC<ScreenProps<'MentorProfileScreen'>> = ({ navigation }) =
       >
         <FontAwesomeIcon icon={faChevronLeft} size={16} color="#fff" style={profileStyles.buttonIcon} />
         <Text style={profileStyles.buttonText}>Go Back</Text>
-      </TouchableOpacity>
+      </TouchableOpacity> */}
 
       <Modal visible={proficiencyModal} transparent animationType="slide">
         <View style={mentorSpecificStyles.modalBackground}>

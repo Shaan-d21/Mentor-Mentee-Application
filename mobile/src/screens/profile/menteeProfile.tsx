@@ -15,6 +15,10 @@ import {
 } from '@fortawesome/free-solid-svg-icons';
 import { profileStyles } from './profileStyle';
 
+import {changeProfileStatus} from '../../redux/slices/sliceLogin';
+import AppBar from '../../components/appbar_component';
+import { get } from 'react-native/Libraries/TurboModule/TurboModuleRegistry';
+
 const MenteeProfileScreen: FC<ScreenProps<"MenteeProfileScreen">> = ({ navigation }) => {
   const [fullName, setFullName] = useState('');
   const [email, setEmail] = useState('');
@@ -29,9 +33,21 @@ const MenteeProfileScreen: FC<ScreenProps<"MenteeProfileScreen">> = ({ navigatio
 
   const [isEditing, setIsEditing] = useState(false);
   const [selectedSkill, setSelectedSkill] = useState<string | null>(null);
+  const profile_status = useSelector((state:RootState)=> state.login.profile_status);
+
+  
+
+  console.log('Profile status:', profile_status);
+useEffect(() => {
+
+  console.log('Profile status:', profile_status);
+},[])
 
   const currentStatus = useSelector(
     (state: RootState) => state.menteeProfile.status,
+  );
+  const menteeProfileStatus = useSelector(
+    (state: RootState) => state.menteeProfile.Menteeprofile_status,
   );
   const userType: MenteeProfile | undefined = useSelector(
     (state: RootState) => state.menteeProfile.response,
@@ -42,6 +58,19 @@ const MenteeProfileScreen: FC<ScreenProps<"MenteeProfileScreen">> = ({ navigatio
   useEffect(() => {
     dispatch(getmenteeprofile());
   }, [dispatch]);
+
+useEffect(() => {
+  console.log('MenteeProfileStatus:', menteeProfileStatus);
+  dispatch(changeProfileStatus(!!menteeProfileStatus));
+}, [menteeProfileStatus]);
+
+    // useEffect(() => {
+    //   if (Mentorprofile_status) {
+    //     dispatch(changeProfileStatus(Mentorprofile_status));
+        
+    //   }
+    //   // dispatch(changeProfileStatus(true));
+    // },[Mentorprofile_status])
 
   useEffect(() => {
     if (currentStatus === 'loading') {
@@ -82,7 +111,7 @@ const MenteeProfileScreen: FC<ScreenProps<"MenteeProfileScreen">> = ({ navigatio
     let isValid = true;
 
     // Validate name
-    if (!fullName.trim()) {
+    if (!fullName||!fullName.trim()) {
       setNameError('Name cannot be empty.');
       isValid = false;
     } else {
@@ -90,7 +119,7 @@ const MenteeProfileScreen: FC<ScreenProps<"MenteeProfileScreen">> = ({ navigatio
     }
 
     // Validate email
-    if (!email.trim()) {
+    if (!email||!email.trim()) {
       setEmailError('Email cannot be empty.');
       isValid = false;
     } else if (!validateEmail()) {
@@ -101,7 +130,7 @@ const MenteeProfileScreen: FC<ScreenProps<"MenteeProfileScreen">> = ({ navigatio
     }
 
     // Validate phone
-    if (!mobile.trim()) {
+    if (!mobile||!mobile.trim()) {
       setMobileError('Mobile number cannot be empty.');
       isValid = false;
     } else if (!validateMobile(mobile)) {
@@ -112,7 +141,7 @@ const MenteeProfileScreen: FC<ScreenProps<"MenteeProfileScreen">> = ({ navigatio
     }
 
     // Validate designation
-    if (!designation.trim()) {
+    if (!designation||!designation.trim()) {
       setDesignationError('Designation cannot be empty.');
       isValid = false;
     } else {
@@ -160,6 +189,21 @@ const MenteeProfileScreen: FC<ScreenProps<"MenteeProfileScreen">> = ({ navigatio
     </View>
   ) : (
     <ScrollView contentContainerStyle={profileStyles.container}>
+      {
+  
+  profile_status? <AppBar onProfilePress={() => navigation.navigate('MenteeProfileScreen')} openDrawer={() => {}} />
+    : <>
+    <TouchableOpacity
+      style={profileStyles.backButton}
+      onPress={() => {
+        dispatch(getmenteeprofile());
+      }}
+    >
+      {/* <FontAwesomeIcon icon={faChevronLeft} size={16} color="#fff" style={profileStyles.buttonIcon} /> */}
+      <Text style={profileStyles.buttonText}>Refresh</Text>
+    </TouchableOpacity>
+    </>
+  }
       <View style={profileStyles.profileContainer}>
         <View style={profileStyles.profileImageContainer}>
           <FontAwesomeIcon icon={faUserCircle} size={150} color="#3498db" style={profileStyles.profileImage} />
@@ -313,7 +357,7 @@ const MenteeProfileScreen: FC<ScreenProps<"MenteeProfileScreen">> = ({ navigatio
         </Text>
       </TouchableOpacity>
 
-      <TouchableOpacity
+      {/* <TouchableOpacity
         style={[profileStyles.button, profileStyles.backButton]}
         onPress={() => {
           navigation.navigate('MenteeDashboard');
@@ -321,7 +365,7 @@ const MenteeProfileScreen: FC<ScreenProps<"MenteeProfileScreen">> = ({ navigatio
       >
         <FontAwesomeIcon icon={faChevronLeft} size={16} color="#fff" style={profileStyles.buttonIcon} />
         <Text style={profileStyles.buttonText}>Go Back</Text>
-      </TouchableOpacity>
+      </TouchableOpacity> */}
     </ScrollView>
   );
 };

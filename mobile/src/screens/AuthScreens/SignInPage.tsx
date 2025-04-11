@@ -22,6 +22,7 @@ const SignInPage: React.FC<ScreenProps<"SignInPage">> = ({navigation}) => {
   const [isForgotPassword, setIsForgotPassword] = React.useState(false);
   const userType= useSelector((state:RootState)=> state.login.role);
   const currentStatus= useSelector((state:RootState)=> state.login.status);
+  const profileStatus= useSelector((state:RootState)=> state.login.profile_status);
 
   const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
 
@@ -49,12 +50,20 @@ const SignInPage: React.FC<ScreenProps<"SignInPage">> = ({navigation}) => {
 
   useEffect(()=>{
     if (currentStatus === 'success') {
+      
       switch (userType) {
         case 'mentor':
-          // userType.role=
-          navigation.navigate('MentorDashboard');
+          if(profileStatus === false) {
+            navigation.navigate('MentorProfileScreen');
+          break;
+          }
+        navigation.navigate('MentorDashboard');
           break;
         case 'mentee':
+          if(profileStatus === false) {
+            navigation.navigate('MenteeProfileScreen');
+          break;
+          }
           navigation.navigate('MenteeDashboard');
           break;
         default:
@@ -125,7 +134,7 @@ const SignInPage: React.FC<ScreenProps<"SignInPage">> = ({navigation}) => {
   return (
     currentStatus === 'loading' ? (
         <View style={styles.container}>
-          <Text style={styles.loadingText}>Loading Profile...</Text>
+          <Text style={styles.loadingText}>Loading</Text>
         </View>
       ) : (
     <KeyboardAvoidingView

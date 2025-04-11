@@ -11,6 +11,7 @@ interface User {
   password: string;
   status: currentStatus;
   name: string;
+  profile_status:boolean;
   role: 'mentee' | 'mentor' |'';
 }
 
@@ -20,6 +21,7 @@ const initialState: User = {
   password: '',
   name:'',
   role:'',
+  profile_status: false,
   status: currentStatus.idle
 };
 
@@ -35,6 +37,9 @@ const sliceLogin = createSlice({
       state.role= '';
       state.status= currentStatus.idle; 
       // state.currentStatus.idle
+    },
+    changeProfileStatus(state, action:PayloadAction<boolean>){
+      state.profile_status= action.payload;
     },
     setName(state, action:PayloadAction<string>){
       state.name= action.payload
@@ -52,6 +57,9 @@ const sliceLogin = createSlice({
       state.status= currentStatus.success;
       state.name= action.payload.user_name;
       state.role = action.payload.role;
+      state.profile_status= action.payload.profile_status;
+      console.log('Profile fulfilled' , action.payload.profile_status);
+      console.log('Profile fulfilled' , state.profile_status);
 
       // console.log('Current state is ', state.response);
       storage.set("role", state.role); 
@@ -76,5 +84,5 @@ export const loginUser= createAsyncThunk("userLogin/login", async({email, passwo
   return response;
 });
 
-export const { logout, setName }= sliceLogin.actions;
+export const { logout, setName,changeProfileStatus }= sliceLogin.actions;
 export default sliceLogin.reducer;

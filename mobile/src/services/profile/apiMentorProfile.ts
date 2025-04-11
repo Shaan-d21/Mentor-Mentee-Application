@@ -4,6 +4,11 @@ import { MMKV } from "react-native-mmkv";
 const storage= new MMKV();
 
 export const apigetMentorProfile = async () => {
+  console.log(`-------------------------------------------`);
+  console.log(`-------------------------------------------`);
+  console.log(`API get Mentor Profile call`);
+  console.log(`-------------------------------------------`);
+  console.log(`-------------------------------------------`);
     const api = axios.create({
         baseURL: process.env.API_URL,
         headers: {
@@ -33,6 +38,11 @@ console.log(`-------------------------------------------`, response.status);
 
 
 export const apiUpdateMentorProfile = async (name: string, exp: string, designation: string, contact: string,domain:string) => {
+  console.log(`-------------------------------------------`);
+  console.log(`-------------------------------------------`);
+  console.log(`API update Mentor Profile call`);
+  console.log(`-------------------------------------------`);
+  console.log(`-------------------------------------------`);
   const api = axios.create({
     baseURL: process.env.API_URL,
     headers: {
