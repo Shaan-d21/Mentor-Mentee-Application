@@ -23,6 +23,7 @@ const SignInPage: React.FC<ScreenProps<"SignInPage">> = ({navigation}) => {
   const userType= useSelector((state:RootState)=> state.login.role);
   const currentStatus= useSelector((state:RootState)=> state.login.status);
   const profileStatus= useSelector((state:RootState)=> state.login.profile_status);
+  const profileStatus= useSelector((state:RootState)=> state.login.profile_status);
 
   const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
 
@@ -54,17 +55,17 @@ const SignInPage: React.FC<ScreenProps<"SignInPage">> = ({navigation}) => {
       switch (userType) {
         case 'mentor':
           if(profileStatus === false) {
-            navigation.replace('MentorProfileScreen');
+            navigation.navigate('MentorProfileScreen');
           break;
           }
-        navigation.replace('MentorDashboard');
+        navigation.navigate('MentorDashboard');
           break;
         case 'mentee':
           if(profileStatus === false) {
-            navigation.replace('MenteeProfileScreen');
+            navigation.navigate('MenteeProfileScreen');
           break;
           }
-          navigation.replace('MenteeDashboard');
+          navigation.navigate('MenteeDashboard');
           break;
         default:
           console.log('No user role found');
@@ -134,6 +135,7 @@ const SignInPage: React.FC<ScreenProps<"SignInPage">> = ({navigation}) => {
   return (
     currentStatus === 'loading' ? (
         <View style={styles.container}>
+          <Text style={styles.loadingText}>Loading</Text>
           <Text style={styles.loadingText}>Loading</Text>
         </View>
       ) : (

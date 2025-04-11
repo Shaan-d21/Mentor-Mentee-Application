@@ -22,6 +22,7 @@ import {
 import { Skill } from '../../types/MentorProfileTypes';
 import { ScreenProps } from '../../navigation/types';
 import {  setName } from '../../redux/slices/sliceLogin';
+import {  setName } from '../../redux/slices/sliceLogin';
 import { MMKV } from 'react-native-mmkv';
 
 import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome';
@@ -41,6 +42,7 @@ import {
 } from '@fortawesome/free-solid-svg-icons';
 import { mentorSpecificStyles, profileStyles } from './profileStyle';
 import AppBar from '../../components/appbar_component';
+import {changeProfileStatus} from '../../redux/slices/sliceLogin';
 import {changeProfileStatus} from '../../redux/slices/sliceLogin';
 
 interface LocalMentorProfile {
@@ -75,6 +77,10 @@ const MentorProfile: FC<ScreenProps<'MentorProfileScreen'>> = ({ navigation }) =
     (state: RootState) => state.mentorProfile.Mentorprofile_status,)
   const profile_status = useSelector((state:RootState)=> state.login.profile_status);
   console.log(`profile status is at mentorProfile ${profile_status}`)
+  const Mentorprofile_status = useSelector(
+    (state: RootState) => state.mentorProfile.Mentorprofile_status,)
+  const profile_status = useSelector((state:RootState)=> state.login.profile_status);
+  console.log(`profile status is at mentorProfile ${profile_status}`)
 
   // Separate error states
   const [nameError, setNameError] = useState('');
@@ -95,6 +101,7 @@ const MentorProfile: FC<ScreenProps<'MentorProfileScreen'>> = ({ navigation }) =
   const [updateDomain, setUpdateDomain] = useState(profile.domain);
   const [selectedSkill, setSelectedSkill] = useState<string | null>(null);
   const [proficiencyModal, setProficiencyModal] = useState(false);
+  const [domainError, setDomainError] = useState('');
   const [domainError, setDomainError] = useState('');
   const [isEditing, setIsEditing] = useState(false);
   // const storage = new MMKV();
@@ -118,6 +125,7 @@ const MentorProfile: FC<ScreenProps<'MentorProfileScreen'>> = ({ navigation }) =
         domain: mentorData.domain,
       });
       setUpdateDomain(mentorData.domain);
+    } else if (currentStatus === 'failed')
     } else if (currentStatus === 'failed')
        {
       Alert.alert('Error', 'Failed to load Profile.', [
@@ -371,6 +379,9 @@ profile_status? <AppBar onProfilePress={() => navigation.navigate('MentorProfile
                   <DropdownComponent data={domainOptions} onSelect={setUpdateDomain} selectedValue={updateDomain} placeholder='Select Domain' />
                 </View>
               </View>
+              {domainError ? (
+                <Text style={profileStyles.errorText}>{domainError}</Text>
+              ) : null}
             </>
           )}
         </View>
