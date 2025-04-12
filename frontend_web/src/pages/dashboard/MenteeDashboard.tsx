@@ -7,6 +7,7 @@ import MenteeRequests from '../mentee/MenteeRequests';
 import MenteeProfile from './MenteeProfile';
 import MyMentors from '../mentee/MyMentors';
 import toast from 'react-hot-toast';
+import MenteeRoadmaps from '../mentee/MenteeRoadmaps';
 
 const DashboardHome = () => {
   const [userName, setUserName] = useState('');
@@ -52,6 +53,7 @@ const MenteeDashboard: React.FC = () => {
             <Route path="find-mentors" element={<FindMentors />} />
             <Route path="requests" element={<MenteeRequests />} />
             <Route path="my-mentors" element={<MyMentors />} />
+            <Route path="roadmaps" element={<MenteeRoadmaps />} />
           </Routes>
         </div>
       </div>

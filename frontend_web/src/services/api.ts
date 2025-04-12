@@ -29,11 +29,10 @@ api.interceptors.request.use((config) => {
     console.log(`Token format check: ${token.substring(0, 15)}...`);
     console.log(`Token length: ${token.length}`);
     
-    // Add Bearer prefix - the backend expects this format
-    const authToken = token.startsWith('Bearer ') ? token : `Bearer ${token}`;
-    config.headers['Token'] = authToken;
+    // Use Token header without Bearer prefix
+    config.headers['Token'] = token;
     
-    console.log(`Final auth header: ${authToken.substring(0, 20)}...`);
+    console.log(`Final token header: ${token.substring(0, 20)}...`);
   }
   
   // Log all headers being sent
@@ -87,8 +86,6 @@ const apiService = {
     const formData = new URLSearchParams();
     formData.append('username', username.trim().toLowerCase());
     formData.append('password', password);
-    
-    const apiBaseUrl = import.meta.env.VITE_API_URL || 'http://localhost:8000';
     
     return await axios.post(`${apiBaseUrl}/authentication/login`, formData, {
       headers: {

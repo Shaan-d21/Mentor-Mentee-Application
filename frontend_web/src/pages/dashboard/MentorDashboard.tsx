@@ -5,6 +5,7 @@ import Navbar from '../../components/Navbar';
 import MenteeRequests from '../mentor/MentorRequests';
 import MyMentees from './MyMentees';
 import MentorProfile from './MentorProfile';
+import RoadmapGenerator from '../../components/RoadmapGenerator';
 import toast from 'react-hot-toast';
 import axios from 'axios';
 import { Loader2 } from 'lucide-react';
@@ -105,10 +106,11 @@ const MentorDashboard: React.FC = () => {
         <Sidebar userRole="mentor" />
         <div className="flex-1 overflow-auto">
           <Routes>
-            <Route path="/" element={<DashboardHome />} />
-            <Route path="/profile" element={<MentorProfile />} />
-            <Route path="/requests" element={<MenteeRequests />} />
-            <Route path="/my-mentees" element={<MyMentees />} />
+            <Route index element={<DashboardHome />} />
+            <Route path="profile" element={<MentorProfile />} />
+            <Route path="requests" element={<MenteeRequests />} />
+            <Route path="my-mentees" element={<MyMentees />} />
+            <Route path="generate-roadmap" element={<RoadmapGenerator />} />
           </Routes>
         </div>
       </div>

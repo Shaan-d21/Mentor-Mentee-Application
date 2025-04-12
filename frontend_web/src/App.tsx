@@ -2,7 +2,7 @@ import ReactRouter from "./routes/ReactRouter";
 import { Toaster } from "react-hot-toast";
 import Navbar from "./components/Navbar";
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { useLocation } from 'react-router-dom';
+import { useLocation, Navigate } from 'react-router-dom';
 
 const queryClient = new QueryClient();
 
@@ -13,6 +13,11 @@ function App() {
   const isDashboardPath = 
     location.pathname.startsWith('/mentor/dashboard') || 
     location.pathname.startsWith('/mentee/dashboard');
+  
+  // Redirect root path to login if not authenticated
+  if (location.pathname === '/' && !localStorage.getItem('accessToken')) {
+    return <Navigate to="/auth/login" replace />;
+  }
   
   return (
     <QueryClientProvider client={queryClient}>
