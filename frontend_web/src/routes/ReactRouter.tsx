@@ -1,60 +1,43 @@
-import { Routes, Route, Navigate, useLocation, useSearchParams } from "react-router-dom";
-// import { useEffect } from "react";
-import HomePage from "../pages/HomePage";
-import RegisterPage from "~/pages/auth/RegisterPage";
-import LoginPage from "~/pages/auth/LoginPage";
-import ForgotPasswordPage from "~/pages/auth/ForgotPasswordPage";
-import DashboardPage from "~/pages/dashboard/DashboardPage";
-import PageError from "../pages/404";
+import React from "react";
+import { Routes, Route, Navigate } from "react-router-dom";
+import LoginPage from "../pages/auth/LoginPage";
+import RegisterPage from "../pages/auth/RegisterPage";
+import MentorDashboard from "../pages/dashboard/MentorDashboard";
+import MenteeDashboard from "../pages/dashboard/MenteeDashboard";
+import ProfileCompletion from "../pages/ProfileCompletion";
 
-const isAuthenticated = (): boolean => {
-  const token = localStorage.getItem("accessToken");
-  return !!token; // Convert to boolean
-};
+const AppRouter: React.FC = () => {
+  const isAuthenticated = localStorage.getItem('accessToken') !== null;
+  const userRole = localStorage.getItem('role')?.toLowerCase();
 
-// Redirect to login if not authenticated, or to dashboard if already authenticated
-// Unless "force=true" is in the URL query parameters
-const AuthRoute = ({ element }: { element: React.ReactNode }) => {
-  const location = useLocation();
-  const [searchParams] = useSearchParams();
-  const forceAccess = searchParams.get("force") === "true";
-  
-  // If force=true is set or user is not authenticated, show the page
-  // Otherwise redirect to dashboard
-  return !isAuthenticated() || forceAccess ? (
-    <>{element}</>
-  ) : (
-    <Navigate to="/dashboard" state={{ from: location }} replace />
-  );
-};
-
-// Protect routes that require authentication
-const PrivateRoute = ({ element }: { element: React.ReactNode }) => {
-  const location = useLocation();
-  return isAuthenticated() ? (
-    <>{element}</>
-  ) : (
-    <Navigate to="/auth/login" state={{ from: location }} replace />
-  );
-};
-
-export default () => (
-  <>
+  return (
     <Routes>
-      <Route path="/" element={<HomePage />} />
-      
-      {/* Auth routes - redirect to dashboard if already logged in (unless force=true) */}
-      <Route path="/auth/register" element={<AuthRoute element={<RegisterPage />} />} />
-      <Route path="/auth/login" element={<AuthRoute element={<LoginPage />} />} />
-      <Route path="/auth/forgot-password" element={<AuthRoute element={<ForgotPasswordPage />} />} />
-
-      {/* Protected routes - require authentication */}
+      <Route path="/auth/login" element={<LoginPage />} />
+      <Route path="/auth/register" element={<RegisterPage />} />
+      <Route path="/profile-completion" element={<ProfileCompletion />} />
       <Route
-        path="/dashboard/*"
-        element={<PrivateRoute element={<DashboardPage />} />}
+        path="/mentor/dashboard/*"
+        element={
+          isAuthenticated && userRole === "mentor" ? (
+            <MentorDashboard />
+          ) : (
+            <Navigate to="/auth/login" replace />
+          )
+        }
       />
-
-      <Route path="*" element={<PageError />} />
+      <Route
+        path="/mentee/dashboard/*"
+        element={
+          isAuthenticated && userRole === "mentee" ? (
+            <MenteeDashboard />
+          ) : (
+            <Navigate to="/auth/login" replace />
+          )
+        }
+      />
+      <Route path="/" element={<Navigate to="/auth/login" replace />} />
     </Routes>
-  </>
-);
+  );
+};
+
+export default AppRouter;
