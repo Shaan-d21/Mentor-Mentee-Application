@@ -372,14 +372,7 @@ onProfilePress={() => navigation.navigate('MentorProfileScreen')} openDrawer={()
                 <Text style={profileStyles.errorText}>{domainError}</Text>
               ) : null}
 
-              <View style={mentorSpecificStyles.dropdownWrapper}>
-                <View style={mentorSpecificStyles.dropdownField}>
-                  <DropdownComponent data={domainOptions} onSelect={setUpdateDomain} selectedValue={updateDomain} placeholder='Select Domain' />
-                </View>
-              </View>
-              {domainError ? (
-                <Text style={profileStyles.errorText}>{domainError}</Text>
-              ) : null}
+              
             </>
           )}
         </View>

@@ -34,8 +34,7 @@ const CreateAccountPage: React.FC<ScreenProps<"CreateAccountPage">> = ({ navigat
     /[a-z]/.test(passwordLocal) &&
     /[0-9]/.test(passwordLocal) &&
     /[^a-zA-Z0-9\s]/.test(passwordLocal);
-    const isNameValid = nameLocal.trim() !== '' && /^[a-zA-Z]+$/.test(nameLocal.trim());
-
+    const isNameValid = nameLocal.trim() !== '' && /^[a-zA-Z\s]+$/.test(nameLocal.trim());
 
     if (!isEmailValid && !isPasswordValid) {
       Alert.alert('Invalid Username and Password');
