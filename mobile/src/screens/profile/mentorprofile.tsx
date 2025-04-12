@@ -196,7 +196,9 @@ const MentorProfile: FC<ScreenProps<'MentorProfileScreen'>> = ({ navigation }) =
     if (!profile.name.trim()) {
       setNameError('Name cannot be empty.');
       isValid = false;
-    } else {
+    }
+    
+    else {
       setNameError('');
     }
 
