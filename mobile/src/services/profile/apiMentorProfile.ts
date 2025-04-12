@@ -4,6 +4,11 @@ import { MMKV } from "react-native-mmkv";
 const storage= new MMKV();
 
 export const apigetMentorProfile = async () => {
+  console.log(`-------------------------------------------`);
+  console.log(`-------------------------------------------`);
+  console.log(`API get Mentor Profile call`);
+  console.log(`-------------------------------------------`);
+  console.log(`-------------------------------------------`);
     const api = axios.create({
         baseURL: process.env.API_URL,
         headers: {
@@ -32,13 +37,18 @@ console.log(`-------------------------------------------`, response.status);
 };
 
 
-export const apiUpdateMentorProfile = async (name: string, exp: string, designation: string, contact: string) => {
+export const apiUpdateMentorProfile = async (name: string, exp: string, designation: string, contact: string,domain:string) => {
+  console.log(`-------------------------------------------`);
+  console.log(`-------------------------------------------`);
+  console.log(`API update Mentor Profile call`);
+  console.log(`-------------------------------------------`);
+  console.log(`-------------------------------------------`);
   const api = axios.create({
     baseURL: process.env.API_URL,
     headers: {
       "Content-Type": "application/json",
-      // "token": process.env.TOKEN
-      "token": storage.getString("token")
+      'accept': 'application/json',
+      "Token": storage.getString("token")
     },
   });
 
@@ -48,6 +58,7 @@ export const apiUpdateMentorProfile = async (name: string, exp: string, designat
       "designation": designation,
       "exp": exp,
       "contact": contact,
+      "domain_name" : domain,
     };
     console.log(`data in the apiMentorProfile is ${JSON.stringify(data)}`)
     const response = await api.put("users/mentor/profile_creation", data);

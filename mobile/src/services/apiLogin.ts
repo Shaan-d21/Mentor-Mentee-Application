@@ -2,14 +2,13 @@ import axios from "axios";
 
 
 export const apiLoginUser = async (credentials: { email: string; password: string }) => {
-    console.log("http://181.214.44.15:8080/");
+    // console.log("http://181.214.44.15:8080/");
     const api = axios.create({
-        baseURL: "http://181.214.44.15:8080/",
+        baseURL: process.env.API_URL,
         headers: {
             "Content-Type": "application/x-www-form-urlencoded",
         },
     });
-
     try {
         console.log(`Axios: ${credentials.email} and ${credentials.password}`)
         const formData = new URLSearchParams();

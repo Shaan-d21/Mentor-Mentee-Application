@@ -6,7 +6,7 @@ import CreateAccountPage from '../screens/AuthScreens/CreateAccountPage';
 import { FC } from 'react';
 import MenteeDashboard from '../screens/Dashboards/mentee_dashboard';
 import MentorDashboard from '../screens/Dashboards/mentor_dashboard';
-import MenteeProfileScreen from '../screens/profile/screenmenteeprofile';
+import MenteeProfileScreen from '../screens/profile/menteeProfile';
 import MentorProfile from '../screens/profile/mentorprofile';
 import CheckRequestScreen from '../screens/Dashboards/mentorcheckRequest';
 import MenteeRoadmap from '../screens/CourseRoadmap/menteeRoadmap';

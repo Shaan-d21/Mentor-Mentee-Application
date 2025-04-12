@@ -3,17 +3,18 @@ import {
   Text,
   TextInput,
   TouchableOpacity,
-  StyleSheet,
   KeyboardAvoidingView,
   Platform,
   Alert,
   View,
+  ActivityIndicator,
 } from 'react-native';
 import {useDispatch, useSelector} from 'react-redux';
-import { loginUser } from '../../redux/slices/sliceLogin';
+import { changeStatusToInitial, loginUser } from '../../redux/slices/auth/sliceLogin';
 import { AppDispatch, RootState } from '../../redux/store';
 import { ScreenProps } from '../../navigation/types';
 import { current } from '@reduxjs/toolkit';
+import { authStyles } from './authStyle';
 
 const SignInPage: React.FC<ScreenProps<"SignInPage">> = ({navigation}) => {
   const dispatch = useDispatch<AppDispatch>();
@@ -22,6 +23,7 @@ const SignInPage: React.FC<ScreenProps<"SignInPage">> = ({navigation}) => {
   const [isForgotPassword, setIsForgotPassword] = React.useState(false);
   const userType= useSelector((state:RootState)=> state.login.role);
   const currentStatus= useSelector((state:RootState)=> state.login.status);
+  const profileStatus= useSelector((state:RootState)=> state.login.profile_status);
 
   const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
 
@@ -49,18 +51,27 @@ const SignInPage: React.FC<ScreenProps<"SignInPage">> = ({navigation}) => {
 
   useEffect(()=>{
     if (currentStatus === 'success') {
+      
       switch (userType) {
         case 'mentor':
-          // userType.role=
-          navigation.navigate('MentorDashboard');
+          if(profileStatus === false) {
+            navigation.replace('MentorProfileScreen');
+          break;
+          }
+        navigation.replace('MentorDashboard');
           break;
         case 'mentee':
-          navigation.navigate('MenteeDashboard');
+          if(profileStatus === false) {
+            navigation.replace('MenteeProfileScreen');
+          break;
+          }
+          navigation.replace('MenteeDashboard');
           break;
         default:
           console.log('No user role found');
           break;
       }
+      dispatch(changeStatusToInitial());
     }
     else if(currentStatus === 'failed'){
       Alert.alert(
@@ -74,74 +85,37 @@ const SignInPage: React.FC<ScreenProps<"SignInPage">> = ({navigation}) => {
               console.log('Cancel Pressed')
               setEmailLocal('')
               setPasswordLocal('')
+              dispatch(changeStatusToInitial());
+      
             },
           }
         ]
       )
+      
     }
   },[userType, currentStatus])
   
-  // useEffect(() => {
-  //   console.log('useEffect');
-  //   console.log(userType);
-  //   if (currentStatus === 'success') {
-  //     switch (userType) {
-  //       case 'mentor':
-  //         // userType.role=
-  //         navigation.navigate('MentorDashboard');
-  //         break;
-  //       case 'mentee':
-  //         navigation.navigate('MenteeDashboard');
-  //         break;
-  //       default:
-  //         console.log('No user role found');
-  //         break;
-  //     }
-  //   }
-  // }, [userType]);
-  
-  
-  //If the user is not present in the database
-  // useEffect(()=>{
-  //   if(currentStatus === 'failed'){
-  //     Alert.alert(
-  //       'Alert Title',
-  //       'Invalid Credentials',
-  //       [
-  //         {
-  //           text: 'OK',
-  //           onPress: () => {
-  //             navigation.pop()
-  //             console.log('Cancel Pressed')
-  //             setEmailLocal('')
-  //             setPasswordLocal('')
-  //           },
-  //         }
-  //       ]
-  //     )
-  //   }
-  // },[currentStatus]);
 
   return (
     currentStatus === 'loading' ? (
-        <View style={styles.container}>
-          <Text style={styles.loadingText}>Loading Profile...</Text>
+        <View style={authStyles.container}>
+             <ActivityIndicator size="large" color="#0000ff" />
         </View>
       ) : (
     <KeyboardAvoidingView
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-      style={styles.container}>
-      <View style={styles.formContainer}>
-        <Text style={styles.title}>Sign In</Text>
+      style={authStyles.container}>
+      <View style={authStyles.formContainer}>
+        <Text style={authStyles.title}>Sign In</Text>
         <TextInput
-          style={styles.input}
+          style={authStyles.input}
           placeholder="Email"
           keyboardType="email-address"
           value={emailLocal}
           onChangeText={setEmailLocal}
         />
         <TextInput
-          style={styles.input}
+          style={authStyles.input}
           placeholder="Password"
           secureTextEntry
           value={passwordLocal}
@@ -149,85 +123,24 @@ const SignInPage: React.FC<ScreenProps<"SignInPage">> = ({navigation}) => {
         />
         <TouchableOpacity
           onPress={() => setIsForgotPassword(!isForgotPassword)}>
-          <Text style={styles.toggleText}>Forgot your password?</Text>
+          <Text style={authStyles.toggleText}>Forgot your password?</Text>
         </TouchableOpacity>
         
-        <TouchableOpacity style={styles.button} onPress={handleFormSubmit}>
-          <Text style={styles.buttonText}>
+        <TouchableOpacity style={authStyles.button} onPress={handleFormSubmit}>
+          <Text style={authStyles.buttonText}>
             {'Sign In'}
           </Text>
         </TouchableOpacity>
         <TouchableOpacity
           onPress={() => navigation.navigate('CreateAccountPage')}>
-          <Text style={styles.toggleText}>
+          <Text style={authStyles.toggleText}>
             <Text style={{color: 'gray'}}>Don't have an account? </Text>
-            <Text style={styles.toggleText}>Sign Up</Text>
+            <Text style={authStyles.toggleText}>Sign Up</Text>
           </Text>
         </TouchableOpacity>
       </View>
     </KeyboardAvoidingView>
   ));
 };
-
-const styles = StyleSheet.create({
-  loadingText: {
-    fontSize: 20,
-    fontWeight: 'bold',
-    marginBottom: 16,
-  },
-  container: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: '#f0f0f0',
-  },
-  formContainer: {
-    width: '80%',
-    padding: 20,
-    borderRadius: 12,
-    backgroundColor: 'white',
-    shadowColor: '#000',
-    shadowOffset: {width: 0, height: 2},
-    shadowOpacity: 0.25,
-    shadowRadius: 4,
-    elevation: 5,
-  },
-  title: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    marginBottom: 20,
-    textAlign: 'center',
-  },
-  input: {
-    borderWidth: 1,
-    borderColor: '#ccc',
-    borderRadius: 8,
-    padding: 10,
-    marginBottom: 15,
-  },
-  dropdown: {
-    marginVertical: 15,
-    borderWidth: 1,
-    borderColor: '#ccc',
-    borderRadius: 8,
-    padding: 10,
-  },
-  button: {
-    backgroundColor: '#1a73e8',
-    padding: 12,
-    borderRadius: 8,
-    marginTop: 10,
-  },
-  buttonText: {
-    color: 'white',
-    textAlign: 'center',
-    fontWeight: 'bold',
-  },
-  toggleText: {
-    color: '#1a73e8',
-    textAlign: 'center',
-    marginTop: 15,
-  },
-});
 
 export default SignInPage;

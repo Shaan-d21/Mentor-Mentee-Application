@@ -9,12 +9,13 @@ export const apiRegisterUser = async (credentials: { email: string; password: st
         // baseURL: "https://081d-2a09-bac1-36c0-28-00-242-50.ngrok-free.app/",
         headers: {
             "Content-Type": "application/json",
+             'accept': 'application/json'
         },
     });
     
     try {
         console.log(process.env.API_URL)
-        console.log(`Axios: ${credentials.email} and ${credentials.password}`)
+        console.log(`Axios:  ${JSON.stringify(credentials)}`);
         const data = {
             name:credentials.name,
             mail:credentials.email,
