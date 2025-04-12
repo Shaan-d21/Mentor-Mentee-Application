@@ -160,10 +160,9 @@ class Skillset(BaseModel):
 class SkillAdd(BaseModel):
     skills : List[Skillset]
 
-
 @router.post('/mentor/skills')
 async def update_skills(user : user_dependency, db : db_dependency, skills_list: SkillAdd): # user : user_dependency
-    # try:
+    try:
         if user is None or user.get('role') != 'mentor':
             return HTTPException(status_code=401, detail="Authentication Error")
         skills_list = skills_list.skills
@@ -178,27 +177,27 @@ async def update_skills(user : user_dependency, db : db_dependency, skills_list:
                 db.commit()
             skill_model = db.query(Skill).filter(Skill.name == skill.skill_name).first()
             proficiency_enum = ProficiencyLevel(skill.proficiency)
-            
-            mentor_skill = db.query(MentorSkill).filter(MentorSkill.mentor_id ==  user.get('user_id')).all()
-            if mentor_skill is not None:
-                for sk in mentor_skill:
-                    if sk.skill_id == skill_model.id:
-                        sk.proficiency = proficiency_enum.name
-                    db.add(sk)
-                    db.commit()
-            else:
-                skill_assign = MentorSkill(
-                    mentor_id = user.get('user_id'),
-                    skill_id = skill_model.id,
-                    proficiency = proficiency_enum.name
-                )
-                db.add(skill_assign)
-                db.commit()
 
-    # except :
-        # raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail='error')
-    # else :
-    #     return {"Message" : "Mentor skills updated",'status_code': 200}
+            mentor_skill = db.query(MentorSkill).filter(
+                MentorSkill.mentor_id == user.get('user_id'),
+                MentorSkill.skill_id == skill_model.id
+            ).first()
+
+            if mentor_skill:
+                mentor_skill.proficiency = proficiency_enum.name
+            else:
+                mentor_skill = MentorSkill(
+                    mentor_id=user.get('user_id'),
+                    skill_id=skill_model.id,
+                    proficiency=proficiency_enum.name
+                )
+                db.add(mentor_skill)
+
+            db.commit()
+    except :
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail='error')
+    else :
+        return {"Message" : "Mentor skills updated",'status_code': 200}
         
 @router.get("/mentor/profile", status_code=status.HTTP_200_OK)
 def mentor_profile(user: user_dependency, db: db_dependency):
