@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, FC } from 'react';
 import {
   View,
   Text,
@@ -9,6 +9,7 @@ import {
 import AppBar from '../../components/appbar_component';
 import axios from 'axios';
 import { MMKV } from 'react-native-mmkv';
+import { ScreenProps } from '../../navigation/types';
 // import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome'; // Removed import
 // import { faEnvelope, faBriefcase, faCode, faClock } from '@fortawesome/free-solid-svg-icons'; // Removed import
 
@@ -24,7 +25,7 @@ interface Request {
 
 const storage = new MMKV();
 
-const MenteeRequests = () => {
+const MenteeRequests: FC<ScreenProps<"MenteeRequests">> = ({navigation}) => {
   const [requests, setRequests] = useState<Request[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -108,7 +109,7 @@ const MenteeRequests = () => {
 
   return (
     <View style={styles.container}>
-      <AppBar onProfilePress={() => { }} openDrawer={() => { }} title='My Requests'/>
+      <AppBar onProfilePress={() => { navigation.navigate("MenteeProfileScreen")}} openDrawer={() => { }} title='My Requests'/>
       <FlatList
         data={requests}
         renderItem={renderItem}

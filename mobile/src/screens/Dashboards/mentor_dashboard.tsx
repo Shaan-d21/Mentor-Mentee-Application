@@ -134,7 +134,7 @@
 // });
 
 // export default MentorDashboard;
-import React, {useEffect} from 'react';
+import React, {FC, useEffect} from 'react';
 import {
   View,
   Text,
@@ -233,7 +233,7 @@ const MentorDashboardScreen = () => {
 
       <View style={styles.header}>
         <Text style={styles.headerText}>Hello, {userName} 👋</Text>
-        <Avatar rounded icon={{name: 'user', type: 'font-awesome'}} />
+        {/* <Avatar rounded icon={{name: 'user', type: 'font-awesome'}} /> */}
       </View>
       <View style={styles.rowHeaderContainer}>
         <Text style={styles.title}>Approved Mentees</Text>

@@ -70,11 +70,7 @@ export const MentorRoadmapGeneration: FC<ScreenProps<'MentorRoadmapGeneration'>>
 
   return (
     <View style={styles.container}>
-      <AppBar onProfilePress={() => {
-        navigation.navigate('MentorProfileScreen');
-      }}
-        title='Roadmap Generation'
-        openDrawer={() => { }} />
+      <AppBar onProfilePress={() => { navigation.navigate("MentorProfileScreen")}} openDrawer={() => { }} />
 
       <ScrollView contentContainerStyle={styles.scrollContent}>
         {status === 'loading' && (

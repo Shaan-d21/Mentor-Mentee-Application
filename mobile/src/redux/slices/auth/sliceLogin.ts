@@ -49,7 +49,7 @@ const sliceLogin = createSlice({
       state.response= [];
       state.email= '';
       state.password=  '';
-      state.name= '';
+      // state.name= '';
       state.role= '';
       state.profile_status= false;
 
