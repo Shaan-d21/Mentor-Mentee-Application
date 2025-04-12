@@ -178,20 +178,20 @@ useEffect(() => {
           onPress: () => navigation.pop(),
           style: 'cancel',
         }
-      ],
+      ],);
 
-      Alert.alert('Error', 'Failed to load Profile.', [
-        {
-          text: 'Retry',
-          onPress: () => dispatch(getmenteeprofile()),
-        },
-        {
-          text: 'Cancel',
-          onPress: () => navigation.pop(),
-          style: 'cancel',
-        }
-      ],
-      );
+      // Alert.alert('Error', 'Failed to load Profile.', [
+      //   {
+      //     text: 'Retry',
+      //     onPress: () => dispatch(getmenteeprofile()),
+      //   },
+      //   {
+      //     text: 'Cancel',
+      //     onPress: () => navigation.pop(),
+      //     style: 'cancel',
+      //   }
+      // ],
+      // );
     }
   }, [currentStatus]);
 
@@ -363,11 +363,6 @@ title= {isEditing ? 'Mentee Profile Edit' : 'Mentee Profile'}
             handleEditToggle();
           }
         }}>
-        <FontAwesomeIcon
-          icon={isEditing ? faSave : faEdit}
-          size={16}
-          color="#fff"
-          style={profileStyles.buttonIcon}
         <FontAwesomeIcon
           icon={isEditing ? faSave : faEdit}
           size={16}

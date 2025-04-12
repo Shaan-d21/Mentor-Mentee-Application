@@ -24,7 +24,6 @@ const SignInPage: React.FC<ScreenProps<"SignInPage">> = ({navigation}) => {
   const userType= useSelector((state:RootState)=> state.login.role);
   const currentStatus= useSelector((state:RootState)=> state.login.status);
   const profileStatus= useSelector((state:RootState)=> state.login.profile_status);
-  const profileStatus= useSelector((state:RootState)=> state.login.profile_status);
 
   const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
 

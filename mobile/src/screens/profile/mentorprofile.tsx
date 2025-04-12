@@ -75,10 +75,6 @@ const MentorProfile: FC<ScreenProps<'MentorProfileScreen'>> = ({ navigation }) =
     (state: RootState) => state.mentorProfile.Mentorprofile_status,)
   const profile_status = useSelector((state:RootState)=> state.login.profile_status);
   console.log(`profile status is at mentorProfile ${profile_status}`)
-  const Mentorprofile_status = useSelector(
-    (state: RootState) => state.mentorProfile.Mentorprofile_status,)
-  const profile_status = useSelector((state:RootState)=> state.login.profile_status);
-  console.log(`profile status is at mentorProfile ${profile_status}`)
 
   // Separate error states
   const [nameError, setNameError] = useState('');
@@ -99,7 +95,6 @@ const MentorProfile: FC<ScreenProps<'MentorProfileScreen'>> = ({ navigation }) =
   const [updateDomain, setUpdateDomain] = useState(profile.domain);
   const [selectedSkill, setSelectedSkill] = useState<string | null>(null);
   const [proficiencyModal, setProficiencyModal] = useState(false);
-  const [domainError, setDomainError] = useState('');
   const [domainError, setDomainError] = useState('');
   const [isEditing, setIsEditing] = useState(false);
   // const storage = new MMKV();
@@ -123,7 +118,6 @@ const MentorProfile: FC<ScreenProps<'MentorProfileScreen'>> = ({ navigation }) =
         domain: mentorData.domain,
       });
       setUpdateDomain(mentorData.domain);
-    } else if (currentStatus === 'failed')
     } else if (currentStatus === 'failed')
        {
       Alert.alert('Error', 'Failed to load Profile.', [
