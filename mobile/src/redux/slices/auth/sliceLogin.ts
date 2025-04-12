@@ -1,5 +1,5 @@
 import { createAsyncThunk, createSlice, PayloadAction } from '@reduxjs/toolkit';
-import { apiLoginUser } from '../../services/apiLogin';
+import { apiLoginUser } from '../../../services/apiLogin';
 import { MMKV } from 'react-native-mmkv'
 
 const storage= new MMKV();
@@ -43,7 +43,18 @@ const sliceLogin = createSlice({
     },
     setName(state, action:PayloadAction<string>){
       state.name= action.payload
+    },
+    changeStatusToInitial(state){
+      state.status= currentStatus.idle;
+      state.response= [];
+      state.email= '';
+      state.password=  '';
+      state.name= '';
+      state.role= '';
+      state.profile_status= false;
+
     }
+    
   },
 
   extraReducers(builder){
@@ -84,5 +95,5 @@ export const loginUser= createAsyncThunk("userLogin/login", async({email, passwo
   return response;
 });
 
-export const { logout, setName,changeProfileStatus }= sliceLogin.actions;
+export const { logout, setName,changeProfileStatus,changeStatusToInitial }= sliceLogin.actions;
 export default sliceLogin.reducer;

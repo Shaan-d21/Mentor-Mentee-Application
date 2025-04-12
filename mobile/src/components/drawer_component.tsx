@@ -253,7 +253,7 @@ import {
 import { RootStackParamList } from "../navigation/types";
 import { MMKV } from "react-native-mmkv";
 import { useDispatch, useSelector } from "react-redux";
-import { logout } from "../redux/slices/sliceLogin";
+import { logout } from "../redux/slices/auth/sliceLogin";
 import { RootState } from "../redux/store";
 import { FontAwesomeIcon } from "@fortawesome/react-native-fontawesome";
 import { faUserCircle } from "@fortawesome/free-solid-svg-icons";

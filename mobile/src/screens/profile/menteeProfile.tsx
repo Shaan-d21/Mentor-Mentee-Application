@@ -7,7 +7,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import { MenteeProfile } from '../../types/MenteeProfileTypes';
 import { getmenteeprofile, updateProfileData, updateprofileskill, } from '../../redux/slices/profileSlice/menteeProfileSlice';
 import { ScreenProps } from '../../navigation/types';
-import { setName } from '../../redux/slices/sliceLogin';
+import { setName } from '../../redux/slices/auth/sliceLogin';
 import { MMKV } from 'react-native-mmkv';
 import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome';
 import {
@@ -15,9 +15,8 @@ import {
 } from '@fortawesome/free-solid-svg-icons';
 import { profileStyles } from './profileStyle';
 
-import {changeProfileStatus} from '../../redux/slices/sliceLogin';
+import {changeProfileStatus} from '../../redux/slices/auth/sliceLogin';
 import AppBar from '../../components/appbar_component';
-import { get } from 'react-native/Libraries/TurboModule/TurboModuleRegistry';
 
 const MenteeProfileScreen: FC<ScreenProps<"MenteeProfileScreen">> = ({ navigation }) => {
   const [fullName, setFullName] = useState('');
@@ -204,17 +203,19 @@ useEffect(() => {
     <ScrollView contentContainerStyle={profileStyles.container}>
       {
   
-  profile_status? <AppBar onProfilePress={() => navigation.navigate('MenteeProfileScreen')} openDrawer={() => {}} />
+  profile_status? <AppBar onProfilePress={() => navigation.navigate('MenteeProfileScreen')}
+title= {isEditing ? 'Mentee Profile Edit' : 'Mentee Profile'} 
+  openDrawer={() => {}} />
     : <>
-    <TouchableOpacity
+    {/* <TouchableOpacity
       style={profileStyles.backButton}
       onPress={() => {
         dispatch(getmenteeprofile());
       }}
     >
-      {/* <FontAwesomeIcon icon={faChevronLeft} size={16} color="#fff" style={profileStyles.buttonIcon} /> */}
+      <FontAwesomeIcon icon={faChevronLeft} size={16} color="#fff" style={profileStyles.buttonIcon} />
       <Text style={profileStyles.buttonText}>Refresh</Text>
-    </TouchableOpacity>
+    </TouchableOpacity> */}
     </>
   }
       <View style={profileStyles.profileContainer}>

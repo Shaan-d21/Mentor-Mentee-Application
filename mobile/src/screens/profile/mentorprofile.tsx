@@ -21,8 +21,7 @@ import {
 } from '../../redux/slices/profileSlice/mentorProfileSlice';
 import { Skill } from '../../types/MentorProfileTypes';
 import { ScreenProps } from '../../navigation/types';
-import {  setName } from '../../redux/slices/sliceLogin';
-import {  setName } from '../../redux/slices/sliceLogin';
+import {  setName } from '../../redux/slices/auth/sliceLogin';
 import { MMKV } from 'react-native-mmkv';
 
 import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome';
@@ -42,8 +41,7 @@ import {
 } from '@fortawesome/free-solid-svg-icons';
 import { mentorSpecificStyles, profileStyles } from './profileStyle';
 import AppBar from '../../components/appbar_component';
-import {changeProfileStatus} from '../../redux/slices/sliceLogin';
-import {changeProfileStatus} from '../../redux/slices/sliceLogin';
+import {changeProfileStatus} from '../../redux/slices/auth/sliceLogin';
 
 interface LocalMentorProfile {
   name: string;
@@ -247,11 +245,15 @@ const MentorProfile: FC<ScreenProps<'MentorProfileScreen'>> = ({ navigation }) =
     <View style={[profileStyles.container, { justifyContent: 'center', alignItems: 'center' }]}>
       <ActivityIndicator size="large" color="#0000ff" />
     </View>
+
+    
   ) : (
     <ScrollView contentContainerStyle={profileStyles.container}>
 {
   
-profile_status? <AppBar onProfilePress={() => navigation.navigate('MentorProfileScreen')} openDrawer={() => {}} />
+profile_status? <AppBar 
+title= {isEditing ? 'Mentor Profile Edit' : 'Mentor Profile'} 
+onProfilePress={() => navigation.navigate('MentorProfileScreen')} openDrawer={() => {}} />
   : <></>
 }
       <View style={profileStyles.profileContainer}>

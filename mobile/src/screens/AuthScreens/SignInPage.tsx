@@ -10,7 +10,7 @@ import {
   View,
 } from 'react-native';
 import {useDispatch, useSelector} from 'react-redux';
-import { loginUser } from '../../redux/slices/sliceLogin';
+import { changeStatusToInitial, loginUser } from '../../redux/slices/auth/sliceLogin';
 import { AppDispatch, RootState } from '../../redux/store';
 import { ScreenProps } from '../../navigation/types';
 import { current } from '@reduxjs/toolkit';
@@ -71,6 +71,7 @@ const SignInPage: React.FC<ScreenProps<"SignInPage">> = ({navigation}) => {
           console.log('No user role found');
           break;
       }
+      dispatch(changeStatusToInitial());
     }
     else if(currentStatus === 'failed'){
       Alert.alert(
@@ -84,53 +85,16 @@ const SignInPage: React.FC<ScreenProps<"SignInPage">> = ({navigation}) => {
               console.log('Cancel Pressed')
               setEmailLocal('')
               setPasswordLocal('')
+              dispatch(changeStatusToInitial());
+      
             },
           }
         ]
       )
+      
     }
   },[userType, currentStatus])
   
-  // useEffect(() => {
-  //   console.log('useEffect');
-  //   console.log(userType);
-  //   if (currentStatus === 'success') {
-  //     switch (userType) {
-  //       case 'mentor':
-  //         // userType.role=
-  //         navigation.navigate('MentorDashboard');
-  //         break;
-  //       case 'mentee':
-  //         navigation.navigate('MenteeDashboard');
-  //         break;
-  //       default:
-  //         console.log('No user role found');
-  //         break;
-  //     }
-  //   }
-  // }, [userType]);
-  
-  
-  //If the user is not present in the database
-  // useEffect(()=>{
-  //   if(currentStatus === 'failed'){
-  //     Alert.alert(
-  //       'Alert Title',
-  //       'Invalid Credentials',
-  //       [
-  //         {
-  //           text: 'OK',
-  //           onPress: () => {
-  //             navigation.pop()
-  //             console.log('Cancel Pressed')
-  //             setEmailLocal('')
-  //             setPasswordLocal('')
-  //           },
-  //         }
-  //       ]
-  //     )
-  //   }
-  // },[currentStatus]);
 
   return (
     currentStatus === 'loading' ? (

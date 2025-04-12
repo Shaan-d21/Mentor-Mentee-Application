@@ -12,7 +12,7 @@ import {
 import { Dropdown } from 'react-native-element-dropdown';
 import { useDispatch, useSelector } from 'react-redux';
 import { AppDispatch, RootState } from '../../redux/store';
-import { registerUser } from '../../redux/slices/sliceRegister';
+import { changeStatusToInitial, registerUser } from '../../redux/slices/auth/sliceRegister';
 import { ScreenProps } from '../../navigation/types';
 
 const CreateAccountPage: React.FC<ScreenProps<"CreateAccountPage">> = ({ navigation }) => {
@@ -62,9 +62,11 @@ const CreateAccountPage: React.FC<ScreenProps<"CreateAccountPage">> = ({ navigat
 
   useEffect(() => {
     if (currentStatus === 'success') {
+      dispatch(changeStatusToInitial())
       Alert.alert('Account Created Successfully!')
       navigation.replace('SignInPage');
     } else if (currentStatus === 'failed') {
+      dispatch(changeStatusToInitial())
       Alert.alert('Registration Failed. Please try again.');
     }
   }, [currentStatus, navigation]);
