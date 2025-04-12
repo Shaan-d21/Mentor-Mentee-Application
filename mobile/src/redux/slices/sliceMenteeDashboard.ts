@@ -3,6 +3,7 @@ import { apiGetMentorList } from "../../services/apiMenteeDashboard/apiGetMentor
 import { apiSendMentorRequest } from "../../services/apiMenteeDashboard/apiSendMentorRequest";
 import { MMKV } from "react-native-mmkv";
 import { apiGetApprovedMentorList } from "../../services/apiMenteeDashboard/apiGetApprovedMentorList";
+import { fetchApprovedDomain } from "../../services/apiFetchApprovedDomain";
 
 enum currentStatus { idle = "idle", loading = "loading", success = "success", failed = "failed" };
 
@@ -29,7 +30,8 @@ interface MenteeDashboardState {
     domain_mentors: Mentor[] | null,
     other_domain_mentors: Mentor[] | null,
     requestMentorId: number| null,
-    getApprovedMentors: MetorApprove[] | null
+    getApprovedMentors: MetorApprove[] | null,
+    getDomain: String[] | null
 }
 
 interface MentorListPayload {
@@ -43,9 +45,15 @@ const initialState: MenteeDashboardState = {
     domain_mentors: null,
     other_domain_mentors: null,
     requestMentorId: null,
-    getApprovedMentors: null
+    getApprovedMentors: null,
+    getDomain: null
 }
 
+export const getDomainList= createAsyncThunk("menteeDashboard/getDomainList", async()=>{
+    const response= await fetchApprovedDomain();
+    // console.log("getDomainList asyncThunk: ", response);
+    return response;
+});
 
 export const getMentorList = createAsyncThunk("menteeDashboard/getMentorList", async (domain: string) => {
     const response = await apiGetMentorList({domain:domain});
@@ -109,6 +117,27 @@ const sliceMenteeDashboard = createSlice({
         }).addCase(getApprovedMentorList.fulfilled, (state, action)=>{
             state.getApprovedMentors= action.payload.object
             // console.log("state is ", state.getApprovedMentors);
+        })
+
+        /* Get the list of domain that has to be avoided  */
+        .addCase(getDomainList.pending, (state)=>{
+            state.status= currentStatus.loading
+        }).addCase(getDomainList.rejected, (state)=>{
+            state.status= currentStatus.failed
+        }).addCase(getDomainList.fulfilled, (state, action)=>{
+            // console.log("Action.payload is ", action.payload);
+            // action.payload
+            state.getDomain= (action.payload as {
+                mentor_name: string;
+                mentor_mail: string;
+                mentor_designation: string;
+                domain_name: string;
+                status: 'approved' | 'pending' | 'not approved';
+                comment: string | null;
+              }[])
+                    .filter(item=> item.status=== "pending" || item.status=== "approved")
+                    .map(item=> item.domain_name)
+            // console.log("Domain that has to be disable are ", state.getDomain)
         })
 
     }
