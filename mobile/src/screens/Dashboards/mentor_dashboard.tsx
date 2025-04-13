@@ -213,10 +213,10 @@ const MentorDashboardScreen = () => {
           <FontAwesomeIcon icon={faCodeBranch} size={16} color="#777" style={styles.icon} />
           <Text style={styles.cardText}>{item.domain}</Text>
         </View>
-        <View style={styles.cardItem}>
+        {/* <View style={styles.cardItem}>
           <FontAwesomeIcon icon={faCommentDots} size={16} color="#777" style={styles.icon} />
           <Text style={styles.cardText}>{item.comment || 'No comment'}</Text>
-        </View>
+        </View> */}
       </View>
     </View>
   );

@@ -14,7 +14,7 @@ import { AppDispatch, RootState } from '../../redux/store';
 import { ScreenProps } from '../../navigation/types';
 import axios from 'axios';
 import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome';
-import { faEnvelope, faBriefcase, faCode, faClock } from '@fortawesome/free-solid-svg-icons';
+import { faEnvelope, faBriefcase, faCode, faClock, faCodeBranch } from '@fortawesome/free-solid-svg-icons';
 import { apiGetApprovedMentorList } from '../../services/apiMenteeDashboard/apiGetApprovedMentorList';
 import { getApprovedMentorList } from '../../redux/slices/sliceMenteeDashboard';
 
@@ -56,7 +56,7 @@ const MenteeDashboard: FC<ScreenProps<'MenteeDashboard'>> = ({ navigation }) => 
           <Text style={styles.cardText}>{item.designation}</Text>
         </View>
         <View style={styles.cardItem}>
-          <FontAwesomeIcon icon={faCode} size={16} color="#777" style={styles.icon} />
+          <FontAwesomeIcon icon={faCodeBranch} size={16} color="#777" style={styles.icon} />
           <Text style={styles.cardText}>{item.domain_name}</Text>
         </View>
         <View style={styles.cardItem}>

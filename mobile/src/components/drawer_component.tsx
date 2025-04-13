@@ -386,7 +386,7 @@ const CustomDrawerContent = (props: CustomDrawerContentProps) => {
           props.toggleDrawer(); // Close the drawer first
           navigation.navigate("MentorDashboard");
         }}
-        title="Mentor Dashboard"
+        title="My Mentees"
       />
     </View>
     <View style={styles.menuItem}>
