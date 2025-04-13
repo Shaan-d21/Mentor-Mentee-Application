@@ -789,7 +789,7 @@ const submitDomain = async () => { // Make submitDomain async
                       onPress={() => sendRequest(mentor.id, value)}
                       disabled={requestMentorId !== null}
                     >
-                      <Text style={styles.requestButtonText}>Request</Text>
+                      <Text style={styles.requestButtonText}>Request Mentorship</Text>
                     </TouchableOpacity>
                   )
                 }
@@ -837,7 +837,7 @@ const submitDomain = async () => { // Make submitDomain async
                       onPress={() => sendRequest(mentor.id, value)}
                       disabled={requestMentorId !== null}
                     >
-                      <Text style={styles.requestButtonText}>Request</Text>
+                      <Text style={styles.requestButtonText}>Request Mentorship</Text>
                     </TouchableOpacity>
                   )
                 }
