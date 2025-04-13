@@ -616,14 +616,15 @@ import {
   ScrollView,
   TouchableOpacity,
   Modal,
-  Dimensions,ActivityIndicator
+  Dimensions,ActivityIndicator,
+  Alert
 } from 'react-native';
-import { Avatar } from 'react-native-elements';
+import { Avatar, Button } from 'react-native-elements';
 import AppBar from '../../components/appbar_component';
 import { useSelector, useDispatch } from 'react-redux';
 import { RootState, AppDispatch } from '../../redux/store';
 import { Dropdown } from 'react-native-element-dropdown';
-import { Mentor } from '../../redux/slices/sliceMenteeDashboard';
+import { Mentor, resetRequestState} from '../../redux/slices/sliceMenteeDashboard';
 import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome';
 import { faEnvelope, faBriefcase, faUserGraduate } from '@fortawesome/free-solid-svg-icons';
 import { getDomainList, getMentorList, sendMentorRequest } from '../../redux/slices/sliceMenteeDashboard';
@@ -637,7 +638,7 @@ const CheckCompatibility:FC<ScreenProps<"CheckCompatibility">> = ({navigation}) 
   const [selectedMentor, setSelectedMentor] = useState<Mentor | null>(null);
   const [loading, setLoading] = useState(false);
 
-  const { domain_mentors, other_domain_mentors, getDomain } = useSelector((state: RootState) => state.menteeDashboard);
+  const { domain_mentors, other_domain_mentors, getDomain, requestMentorId } = useSelector((state: RootState) => state.menteeDashboard);
   const userName = useSelector((state: RootState) => state.login.name);
 
   const data = [
@@ -668,8 +669,24 @@ const submitDomain = async () => { // Make submitDomain async
 };
 
 
-  const sendRequest = (id: number, domain: string) => {
-    dispatch(sendMentorRequest({ id, domain }));
+  const sendRequest = async(id: number, domain: string) => {
+    try {
+      console.log("The request button is pressed by the mentor ", id);
+      // Dispatch the action to send the mentor request
+      const response = await dispatch(sendMentorRequest({ id, domain })).unwrap();
+  
+      // Check if the response contains an error
+      if (response.error) {
+        throw new Error(response.error);
+      }
+  
+      // Optionally, show a success message if needed
+      Alert.alert('Success', 'Mentor request sent successfully!');
+    } catch (error: any) {
+      // Show an alert with the error message
+      Alert.alert('Error', "Same mentor can't teach the 2 different courses");
+    }
+    // dispatch(sendMentorRequest({ id, domain }));
   };
 
   const showReason = (mentor: Mentor) => {
@@ -680,7 +697,9 @@ const submitDomain = async () => { // Make submitDomain async
 
   useEffect(() => {
     dispatch(getDomainList());
-  }, []);
+    dispatch(resetRequestState());
+  }, [dispatch, value]);
+  useEffect(()=>{console.log("Requested mentor id is ", requestMentorId)},[requestMentorId]);
 
   return (
     <View style={styles.container}>
@@ -758,12 +777,22 @@ const submitDomain = async () => { // Make submitDomain async
                     <Text style={styles.scoreText}>{mentor.score}</Text>
                   </TouchableOpacity>
                 </View>
-                <TouchableOpacity
-                  style={styles.requestButton}
-                  onPress={() => sendRequest(mentor.id, value)}
-                >
-                  <Text style={styles.requestButtonText}>Request Mentorship</Text>
-                </TouchableOpacity>
+                {
+                  requestMentorId === mentor.id ? (
+                    <Text style={{ color: "blue", marginTop: 5 }}>Pending</Text>
+                  ) : (
+                    <TouchableOpacity
+                      style={[
+                        styles.requestButton,
+                        requestMentorId !== null && { opacity: 0.5 } // Dim the button when disabled
+                      ]}
+                      onPress={() => sendRequest(mentor.id, value)}
+                      disabled={requestMentorId !== null}
+                    >
+                      <Text style={styles.requestButtonText}>Request</Text>
+                    </TouchableOpacity>
+                  )
+                }
               </View>
             </View>
           ))
@@ -796,12 +825,29 @@ const submitDomain = async () => { // Make submitDomain async
                     <Text style={styles.scoreText}>{mentor.score}</Text>
                   </TouchableOpacity>
                 </View>
-                <TouchableOpacity
+                {
+                  requestMentorId === mentor.id ? (
+                    <Text style={{ color: "blue", marginTop: 5 }}>Pending</Text>
+                  ) : (
+                    <TouchableOpacity
+                      style={[
+                        styles.requestButton,
+                        requestMentorId !== null && { opacity: 0.5 } // Dim the button when disabled
+                      ]}
+                      onPress={() => sendRequest(mentor.id, value)}
+                      disabled={requestMentorId !== null}
+                    >
+                      <Text style={styles.requestButtonText}>Request</Text>
+                    </TouchableOpacity>
+                  )
+                }
+
+                {/* <TouchableOpacity
                   style={styles.requestButton}
                   onPress={() => sendRequest(mentor.id, value)}
                 >
                   <Text style={styles.requestButtonText}>Request Mentorship</Text>
-                </TouchableOpacity>
+                </TouchableOpacity> */}
               </View>
             </View>
           ))

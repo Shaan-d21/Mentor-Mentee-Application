@@ -1,7 +1,7 @@
 import axios from "axios"
 import { MMKV } from "react-native-mmkv";
 
-export const fetchApprovedDomain= async()=>{
+export const apiGetRequests= async()=>{
     const storage= new MMKV();
 
     const api= axios.create({

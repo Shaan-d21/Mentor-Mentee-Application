@@ -3,7 +3,7 @@ import { apiGetMentorList } from "../../services/apiMenteeDashboard/apiGetMentor
 import { apiSendMentorRequest } from "../../services/apiMenteeDashboard/apiSendMentorRequest";
 import { MMKV } from "react-native-mmkv";
 import { apiGetApprovedMentorList } from "../../services/apiMenteeDashboard/apiGetApprovedMentorList";
-import { fetchApprovedDomain } from "../../services/apiFetchApprovedDomain";
+import { apiGetRequests } from "../../services/apiGetRequests";
 
 enum currentStatus { idle = "idle", loading = "loading", success = "success", failed = "failed" };
 
@@ -50,21 +50,49 @@ const initialState: MenteeDashboardState = {
 }
 
 export const getDomainList= createAsyncThunk("menteeDashboard/getDomainList", async()=>{
-    const response= await fetchApprovedDomain();
+    const response= await apiGetRequests();
     // console.log("getDomainList asyncThunk: ", response);
     return response;
 });
 
 export const getMentorList = createAsyncThunk("menteeDashboard/getMentorList", async (domain: string) => {
     const response = await apiGetMentorList({domain:domain});
-    // console.log("Async Thunk getMentorList: ", response);
-    return response;
+    const response1= await apiGetRequests();
+
+    const sendRequestMentorIds: Set<String>= new Set(response1.map((user: {mentor_name: string;
+        mentor_mail: string;
+        mentor_designation: string;
+        domain_name: string;
+        status: 'approved' | 'pending' | 'not approved';
+        comment: string | null;})=>{
+            // console.log("Hii", user.mentor_mail)
+            return user.mentor_mail}));
+        
+        // console.log(sendRequestMentorIds);
+    
+    const filterResponseDomainMentors= response.domain_mentors
+                                .filter(
+                                    (mentor: any) => !sendRequestMentorIds.has(mentor.mail)
+                                );
+    const filterResponseOtherDomainMentors= response.other_domain_mentors
+                                .filter(
+                                    (mentor: any)=> !sendRequestMentorIds.has(mentor.mail)
+                                );
+    // console.log("Response of the filteredDomainMentors: ", filterResponseDomainMentors);
+    // console.log("Response of the filteredOtherDomainMentors: ", filterResponseOtherDomainMentors);
+    // console.log("Async Thunk mentors that has to be avoided: ", sendRequestMentorIds);
+    // console.log("Async thunk all mentors: ", response);
+    // return response;
+    return {
+        domain_mentors: filterResponseDomainMentors,
+        other_domain_mentors: filterResponseOtherDomainMentors
+    };
 });
 
 export const sendMentorRequest = createAsyncThunk("menteeDashboard/sendRequest", async ({ id, domain }: { id: number; domain: string }) => {
     // console.log(`sendMentorRequest values are ${id} and ${domain}`);
     const response= await apiSendMentorRequest({domain: domain, mentorId: id});
-    console.log(`Requested id is ${response}`);
+    // console.log(`Requested id is ${JSON.stringify(response)}`);
     // if(response.data.status_code=== 200) return id;
     // return -1;
     return response.status_code;
@@ -80,7 +108,13 @@ export const getApprovedMentorList= createAsyncThunk("menteeDashboard/getApprove
 const sliceMenteeDashboard = createSlice({
     name: "menteeDashboard",
     initialState,
-    reducers: {},
+    reducers: {
+        resetRequestState: (state) => {
+            state.requestMentorId = null;
+            state.domain_mentors= null;
+            state.other_domain_mentors= null;
+        },
+    },
     extraReducers(builder) {
         /* To get all the list of the mentors of the specific domain */
         builder.addCase(getMentorList.pending, (state, action) => {
@@ -106,7 +140,10 @@ const sliceMenteeDashboard = createSlice({
             // else state.requestMentorId= action.payload
             if (action.payload === 200) {
                 state.requestMentorId = action.meta.arg.id; // Set only if successful
+                // console.log("Success");
+                // console.log(state.requestMentorId)
             }
+            // console.log("Lagg gaye Guru");
         })
 
         /* Get the list of the approved mentors*/
@@ -143,4 +180,5 @@ const sliceMenteeDashboard = createSlice({
     }
 });
 
+export const {resetRequestState} = sliceMenteeDashboard.actions;
 export default sliceMenteeDashboard.reducer;
