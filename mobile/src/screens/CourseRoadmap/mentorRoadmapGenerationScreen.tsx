@@ -46,18 +46,10 @@ export const MentorRoadmapGeneration: FC<ScreenProps<'MentorRoadmapGeneration'>>
       id:
         mentees.find((mentee) => mentee.name === selectedMentee)?.id.toString() || ''
     }));
-    console.log("Selected Mentee ID:", mentees.find((mentee) => mentee.name === selectedMentee)?.id.toString() || '');
-    console.log("Selected Domain:", selectedDomain);
-    console.log("Selected Mentee Name:", selectedMentee);
-    console.log("Roadmap:", roadmap);
   };
 
   const handleAssignRoadmap = () => {
-    console.log("Roadmap ID:", roadmapId);
-    console.log("Selected Mentee ID:", mentees.find((mentee) => mentee.name === selectedMentee)?.id.toString() || '');
-    console.log("Selected Domain:", selectedDomain);
     dispatch(assignRoadmap({ roadmapId: roadmapId || "", menteeId: mentees.find((mentee) => mentee.name === selectedMentee)?.id.toString() || '', domainId: mentees.find((mentee) => mentee.name === selectedMentee)?.domain_id.toString() || '' }));
-    console.log("Selected Mentee Name:", selectedMentee);
   };
 
   return (

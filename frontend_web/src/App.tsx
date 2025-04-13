@@ -1,8 +1,10 @@
 import ReactRouter from "./routes/ReactRouter";
 import { Toaster } from "react-hot-toast";
 import Navbar from "./components/Navbar";
-import { useLocation } from 'react-router-dom';
+import { useLocation, Navigate } from 'react-router-dom';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 
+const queryClient = new QueryClient();
 
 function App() {
   const location = useLocation();
@@ -13,15 +15,21 @@ function App() {
     location.pathname.startsWith('/mentee/dashboard');
   
   return (
-    <>
-      <div className="min-h-screen">
-        {!isDashboardPath && <Navbar />}
-        <div className={!isDashboardPath ? "pt-0" : ""}>
-          <ReactRouter />
-        </div>
-      </div>
-      <Toaster position="top-center" reverseOrder={false} />
-    </>
+    <QueryClientProvider client={queryClient}>
+      {location.pathname === '/' && !localStorage.getItem('accessToken') ? (
+        <Navigate to="/auth/login" replace />
+      ) : (
+        <>
+          <div className="min-h-screen">
+            {!isDashboardPath && <Navbar />}
+            <div className={!isDashboardPath ? "pt-0" : ""}>
+              <ReactRouter />
+            </div>
+          </div>
+          <Toaster position="top-center" reverseOrder={false} />
+        </>
+      )}
+    </QueryClientProvider>
   );
 }
 

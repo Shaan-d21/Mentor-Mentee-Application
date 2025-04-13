@@ -65,15 +65,24 @@ const MentorProfile: React.FC = () => {
       setLoading(true);
       const accessToken = localStorage.getItem('accessToken');
       if (!accessToken) {
-        throw new Error('Unauthorized');
+        console.error('No access token found');
+        setError('No access token found');
+        return;
       }
 
+      const authToken = accessToken.startsWith('Bearer') ? accessToken.split('Bearer ')[1] : accessToken;
       const apiBaseUrl = import.meta.env.VITE_API_URL || 'http://localhost:8000';
-      const response = await axios.get(`${apiBaseUrl}/users/mentor/profile`, {
-        headers: { Token: accessToken }
-      });
 
-      if (response.status === 200) {
+      const response = await axios.get(
+        `${apiBaseUrl}/users/mentor/profile`,
+        {
+          headers: {
+            'Token': authToken
+          }
+        }
+      );
+
+      if (response.data) {
         const transformedData = {
           name: response.data.name || '',
           email: response.data.mail || '',
@@ -242,9 +251,12 @@ const MentorProfile: React.FC = () => {
       setSaving(true);
       const accessToken = localStorage.getItem('accessToken');
       if (!accessToken) {
-        throw new Error('Unauthorized');
+        console.error('No access token found');
+        setError('No access token found');
+        return;
       }
 
+      const authToken = accessToken.startsWith('Bearer') ? accessToken.split('Bearer ')[1] : accessToken;
       const apiBaseUrl = import.meta.env.VITE_API_URL || 'http://localhost:8000';
       
       // Update profile
@@ -258,7 +270,10 @@ const MentorProfile: React.FC = () => {
           domain_name: tempProfile.domain
         },
         {
-          headers: { Token: accessToken }
+          headers: {
+            'Token': authToken,
+            'Content-Type': 'application/json'
+          }
         }
       );
 

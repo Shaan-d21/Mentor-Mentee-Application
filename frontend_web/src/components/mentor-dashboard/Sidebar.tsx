@@ -6,7 +6,8 @@ import {
   UserCheck, 
   ChevronLeft,
   ChevronRight,
-  Menu
+  Menu,
+  Map
 } from 'lucide-react';
 
 interface SidebarProps {
@@ -23,6 +24,7 @@ const mentorNavItems: NavItem[] = [
   { name: 'Dashboard', path: '/mentor/dashboard', icon: <LayoutDashboard size={20} /> },
   { name: 'Mentee Requests', path: '/mentor/dashboard/requests', icon: <UserCheck size={20} /> },
   { name: 'My Mentees', path: '/mentor/dashboard/my-mentees', icon: <Users size={20} /> },
+  { name: 'Generate Roadmap', path: '/mentor/dashboard/generate-roadmap', icon: <Map size={20} /> },
 ];
 
 const menteeNavItems: NavItem[] = [
@@ -30,6 +32,7 @@ const menteeNavItems: NavItem[] = [
   { name: 'Find Mentors', path: '/mentee/dashboard/find-mentors', icon: <Users size={20} /> },
   { name: 'My Requests', path: '/mentee/dashboard/requests', icon: <UserCheck size={20} /> },
   { name: 'My Mentors', path: '/mentee/dashboard/my-mentors', icon: <Users size={20} /> },
+  { name: 'My Roadmaps', path: '/mentee/dashboard/roadmaps', icon: <Map size={20} /> },
 ];
 
 const Sidebar: React.FC<SidebarProps> = ({ userRole }) => {

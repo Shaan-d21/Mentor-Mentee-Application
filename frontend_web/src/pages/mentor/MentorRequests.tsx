@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { CheckCircle, XCircle } from 'lucide-react';
+import { toast } from 'react-hot-toast';
+import { Loader2 } from 'lucide-react';
 
 interface Request {
   id: number;
@@ -102,43 +104,37 @@ const MentorRequests: React.FC = () => {
   useEffect(() => {
     const fetchRequests = async () => {
       try {
-        setLoading(true);
         const accessToken = localStorage.getItem('accessToken');
-        
         if (!accessToken) {
-          console.error('No access token found in localStorage');
           setError('No access token found');
           return;
         }
-        
-        console.log('Retrieved token from localStorage:', accessToken);
-        
-        // Remove 'Bearer ' prefix if it exists
-        const authToken = accessToken.startsWith('Bearer ') ? accessToken.split('Bearer ')[1] : accessToken;
-        console.log('Formatted token for request:', authToken);
-        
+
+        const authToken = accessToken.startsWith('Bearer ') ? accessToken : `Bearer ${accessToken}`;
         const apiBaseUrl = import.meta.env.VITE_API_URL || 'http://localhost:8000';
-        console.log('Making request to:', `${apiBaseUrl}/mentor/get-requests`);
-        
-        const response = await axios.get(`${apiBaseUrl}/mentor/get-requests`, {
-          headers: { 
-            'Token': authToken,
-            'Content-Type': 'application/json'
+
+        const response = await axios.get(
+          `${apiBaseUrl}/mentor/get-requests`,
+          {
+            headers: {
+              'Token': authToken,
+              'Content-Type': 'application/json',
+              'Accept': 'application/json'
+            },
+            withCredentials: true
           }
-        });
-        
-        console.log('Response from server:', response.data);
-        
+        );
+
         if (response.data && response.data.object) {
+          console.log('Fetched requests successfully:', response.data.object.length);
           setRequests(response.data.object);
         } else {
-          setError('No requests data received');
+          console.log('No requests found');
           setRequests(MOCK_REQUESTS);
         }
-      } catch (err: any) {
-        console.error('Error fetching requests:', err);
-        console.error('Error response:', err.response);
-        setError('Failed to fetch requests from server');
+      } catch (error) {
+        console.error('Error fetching requests:', error);
+        setError('Failed to fetch requests');
         setRequests(MOCK_REQUESTS);
       } finally {
         setLoading(false);
@@ -151,9 +147,14 @@ const MentorRequests: React.FC = () => {
   const handleApprove = async (request: Request, comment: string) => {
     try {
       const accessToken = localStorage.getItem('accessToken');
-      const authToken = accessToken?.startsWith('Bearer ') ? accessToken.split('Bearer ')[1] : accessToken;
-      
+      if (!accessToken) {
+        setError('No access token found');
+        return;
+      }
+
+      const authToken = accessToken.startsWith('Bearer ') ? accessToken.split('Bearer ')[1] : accessToken;
       const apiBaseUrl = import.meta.env.VITE_API_URL || 'http://localhost:8000';
+
       await axios.put(
         `${apiBaseUrl}/mentor-approval/approve-mentee`,
         {
@@ -162,35 +163,33 @@ const MentorRequests: React.FC = () => {
           comment: comment || null
         },
         {
-          headers: { 
+          headers: {
             'Token': authToken,
             'Content-Type': 'application/json'
           }
         }
       );
-      
-      // Remove the approved request from the list
+
+      console.log('Request approved successfully:', request.id);
       setRequests(requests.filter(r => r.id !== request.id));
-    } catch (err) {
-      console.error('Error approving request:', err);
-      alert('Failed to approve request');
+      toast.success('Request approved successfully');
+    } catch (error) {
+      console.error('Error approving request:', error);
+      setError('Failed to approve request');
     }
   };
 
   const handleReject = async (request: Request, comment: string) => {
     try {
       const accessToken = localStorage.getItem('accessToken');
-      const authToken = accessToken?.startsWith('Bearer ') ? accessToken.split('Bearer ')[1] : accessToken;
-      
+      if (!accessToken) {
+        setError('No access token found');
+        return;
+      }
+
+      const authToken = accessToken.startsWith('Bearer ') ? accessToken.split('Bearer ')[1] : accessToken;
       const apiBaseUrl = import.meta.env.VITE_API_URL || 'http://localhost:8000';
-      
-      // Log the request data for debugging
-      console.log('Rejecting request with data:', {
-        status: 'not approved',
-        mentee_id: request.id,
-        comment: comment
-      });
-      
+
       await axios.put(
         `${apiBaseUrl}/mentor-approval/approve-mentee`,
         {
@@ -199,18 +198,19 @@ const MentorRequests: React.FC = () => {
           comment: comment
         },
         {
-          headers: { 
+          headers: {
             'Token': authToken,
             'Content-Type': 'application/json'
           }
         }
       );
-      
-      // Remove the rejected request from the list
+
+      console.log('Request rejected successfully:', request.id);
       setRequests(requests.filter(r => r.id !== request.id));
-    } catch (err) {
-      console.error('Error rejecting request:', err);
-      alert('Failed to reject request');
+      toast.success('Request rejected successfully');
+    } catch (error) {
+      console.error('Error rejecting request:', error);
+      setError('Failed to reject request');
     }
   };
 
@@ -227,16 +227,17 @@ const MentorRequests: React.FC = () => {
 
   if (loading) {
     return (
-      <div className="flex justify-center items-center p-12">
-        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
+      <div className="flex justify-center items-center h-64">
+        <Loader2 className="h-8 w-8 animate-spin text-blue-600" />
+        <span className="ml-2 text-gray-600">Loading...</span>
       </div>
     );
   }
 
   if (error) {
     return (
-      <div className="flex justify-center items-center p-12">
-        <div className="text-red-500 text-xl">{error}</div>
+      <div className="text-red-500 text-center p-4">
+        {error}
       </div>
     );
   }

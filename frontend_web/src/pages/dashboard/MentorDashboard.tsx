@@ -8,9 +8,9 @@ import MentorProfile from './MentorProfile';
 import toast from 'react-hot-toast';
 import axios from 'axios';
 import { Loader2 } from 'lucide-react';
+import RoadmapGenerator from '../../components/RoadmapGenerator';
 
 const DashboardHome: React.FC = () => {
-  console.log('DashboardHome mounted');
   const [mentorName, setMentorName] = useState<string>('Mentor');
   const [loading, setLoading] = useState(true);
 
@@ -36,7 +36,6 @@ const DashboardHome: React.FC = () => {
         );
 
         if (response.data && response.data.name) {
-          console.log('Mentor profile fetched:', response.data);
           setMentorName(response.data.name);
         }
       } catch (error) {
@@ -79,13 +78,9 @@ const MentorDashboard: React.FC = () => {
   const location = useLocation();
 
   useEffect(() => {
-    console.log('MentorDashboard mounted');
-    console.log('Current path:', location.pathname);
     const role = localStorage.getItem('role')?.toLowerCase();
-    console.log('Current role:', role);
     
     if (role !== 'mentor') {
-      console.log('Unauthorized access - redirecting to dashboard');
       toast.error('You are not authorized to access this page');
       navigate('/dashboard');
       return;
@@ -93,7 +88,6 @@ const MentorDashboard: React.FC = () => {
 
     // Handle route redirection if needed
     if (location.pathname === '/mentor/dashboard/mentees') {
-      console.log('Redirecting from /mentees to /my-mentees');
       navigate('/mentor/dashboard/my-mentees', { replace: true });
     }
   }, [navigate, location.pathname]);
@@ -109,6 +103,7 @@ const MentorDashboard: React.FC = () => {
             <Route path="/profile" element={<MentorProfile />} />
             <Route path="/requests" element={<MenteeRequests />} />
             <Route path="/my-mentees" element={<MyMentees />} />
+            <Route path="/generate-roadmap" element={<RoadmapGenerator />} />
           </Routes>
         </div>
       </div>

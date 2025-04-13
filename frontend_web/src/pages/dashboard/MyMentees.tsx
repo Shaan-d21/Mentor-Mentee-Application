@@ -35,31 +35,22 @@ const MyMentees: React.FC = () => {
   const [mentees, setMentees] = useState<Mentee[]>([]);
   const [loading, setLoading] = useState(true);
 
-  console.log('MyMentees component mounted');
-
   useEffect(() => {
-    console.log('useEffect triggered');
     const fetchMentees = async () => {
       try {
         setLoading(true);
         const accessToken = localStorage.getItem('accessToken');
         const role = localStorage.getItem('role');
         
-        console.log('Current role:', role);
-        console.log('Access token exists:', !!accessToken);
-        
         if (!accessToken) {
-          console.error('No access token found');
           toast.error('Authentication token missing. Please log in again.');
           navigate('/auth/login');
           return;
         }
-        
+
         const authToken = accessToken.startsWith('Bearer ') ? accessToken.split('Bearer ')[1] : accessToken;
         const apiBaseUrl = import.meta.env.VITE_API_URL || 'http://localhost:8000';
-        
-        console.log('Making API call to:', `${apiBaseUrl}/mentor/get-approved-mentee`);
-        
+
         try {
           const response = await axios.get(
             `${apiBaseUrl}/mentor/get-approved-mentee`,
@@ -69,14 +60,9 @@ const MyMentees: React.FC = () => {
               }
             }
           );
-          
-          console.log('API Response status:', response.status);
-          console.log('API Response data:', response.data);
-          
+
           if (response.data && response.data.object) {
             const menteesData = response.data.object;
-            console.log('Extracted mentees data:', menteesData);
-            
             const mappedMentees = menteesData.map((mentee: any) => ({
               id: mentee.id,
               name: mentee.name,
@@ -84,24 +70,15 @@ const MyMentees: React.FC = () => {
               designation: mentee.designation || "Not specified",
               domain: mentee.domain_name || "Not specified"
             }));
-            
-            console.log('Mapped mentees:', mappedMentees);
             setMentees(mappedMentees);
           } else {
-            console.log("No mentees data received, using mock data");
             setMentees(MOCK_MENTEES);
           }
         } catch (apiError: any) {
-          console.error("API error details:", {
-            message: apiError.message,
-            response: apiError.response?.data,
-            status: apiError.response?.status
-          });
           toast.error('Failed to fetch mentees. Using mock data.');
           setMentees(MOCK_MENTEES);
         }
       } catch (error: any) {
-        console.error('Error in fetchMentees:', error);
         toast.error('An error occurred while fetching mentees.');
         setMentees(MOCK_MENTEES);
       } finally {
@@ -111,9 +88,6 @@ const MyMentees: React.FC = () => {
 
     fetchMentees();
   }, [navigate]);
-
-  console.log('Current mentees state:', mentees);
-  console.log('Loading state:', loading);
 
   if (loading) {
     return (
