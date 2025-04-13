@@ -4,7 +4,8 @@ from fastapi.responses import JSONResponse
 import models
 from database import engine
 
-from Routers import auth, user, mentee, mentor_approval,get_approved_mentees, get_approved_mentors, get_requests, predict, mentee_roadmap, assign_roadmap, roadmap_route
+from Routers import auth, user, mentee, mentor_approval,get_approved_mentees, get_approved_mentors, get_requests, \
+    predict, mentee_roadmap, assign_roadmap, roadmap_route, mentor_topics_update, progress_tracking
 
 from fastapi.middleware.cors import CORSMiddleware
 from starlette import status
@@ -32,6 +33,8 @@ app.include_router(predict.router)
 app.include_router(roadmap_route.router)
 app.include_router(mentee_roadmap.router)
 app.include_router(assign_roadmap.router)
+app.include_router(mentor_topics_update.router)
+app.include_router(progress_tracking.router)
 
 
 @app.get("/")

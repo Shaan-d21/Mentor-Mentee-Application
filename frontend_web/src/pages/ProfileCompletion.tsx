@@ -110,9 +110,17 @@ const ProfileCompletion = () => {
     "Web Development"
   ];
 
-  const validateContactNumber = (number: string) => {
-    // Only check for 10 digits
-    return /^\d{10}$/.test(number);
+  const validateName = (name: string): string => {
+    if (!name) return "Name is required";
+    if (!/^[a-zA-Z\s]*$/.test(name)) return "Name should only contain letters";
+    return "";
+  };
+
+  const validateContactNumber = (number: string): string => {
+    if (!number) return "Contact number is required";
+    if (!/^\d+$/.test(number)) return "Contact number should only contain digits";
+    if (number.length !== 10) return "Contact number must be exactly 10 digits";
+    return "";
   };
 
   // Check profile completion status on component mount
@@ -203,43 +211,39 @@ const ProfileCompletion = () => {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  // Handle input change with validation
+  // Handle input changes
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
-    let error = "";
-
-    // Validate based on field type
-    if (name === "contact_number") {
-      // Only allow numbers and limit to 10 digits
-      if (!/^\d*$/.test(value)) {
-        error = "Only numbers are allowed";
-        return; // Don't update if non-numeric
-      }
-      if (value.length > 0 && !validateContactNumber(value)) {
-        error = "Phone number must be 10 digits";
-      }
-    }
     
-    // For experience field, ensure it's a valid number
-    if (name === "experience") {
-      const numValue = Number(value);
-      if (isNaN(numValue) || numValue < 0) {
-        error = "Experience must be a positive number";
-        return; // Don't update if invalid
+    // Update profile state first
+    if (name === 'contact_number') {
+      const numericValue = value.replace(/\D/g, '').slice(0, 10);
+      setProfile(prev => ({
+        ...prev,
+        [name]: numericValue
+      }));
+
+      // Validate contact number immediately
+      const contactError = validateContactNumber(numericValue);
+      setErrors(prev => ({
+        ...prev,
+        contact_number: contactError
+      }));
+    } else {
+      setProfile(prev => ({
+        ...prev,
+        [name]: value
+      }));
+
+      // Validate name immediately
+      if (name === 'full_name') {
+        const nameError = validateName(value);
+        setErrors(prev => ({
+          ...prev,
+          full_name: nameError
+        }));
       }
     }
-
-    // Update errors state
-    setErrors(prev => ({
-      ...prev,
-      [name]: error
-    }));
-
-    // Update profile state
-    setProfile(prev => ({
-      ...prev,
-      [name]: name === "experience" ? Number(value) : value
-    }));
   };
 
   // Add skill selection
@@ -313,9 +317,9 @@ const ProfileCompletion = () => {
   // Form validation before submission
   const validateForm = () => {
     const newErrors = {
-      full_name: !profile.full_name.trim() ? "Full name is required" : "",
+      full_name: validateName(profile.full_name),
       email: "", // Email is read-only
-      contact_number: !validateContactNumber(profile.contact_number) ? "Invalid phone number" : "",
+      contact_number: validateContactNumber(profile.contact_number),
       skills: profile.skills.length === 0 ? "Please select at least one skill" : "",
       domain: role === 'mentor' && !profile.domain ? "Please select a domain" : "",
     };

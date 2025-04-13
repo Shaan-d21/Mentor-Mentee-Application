@@ -124,17 +124,32 @@ const RegisterPage: React.FC = () => {
     } catch (error: any) {
       console.error("Registration error:", error);
       
-      // Handle CORS errors
-      if (error.message && error.message.includes('Network Error')) {
-        toast.error(
-          "Network error connecting to the server. Please check if the backend server is running."
-        );
-      } else {
-        const errorMessage =
-          error?.response?.data?.detail ||
-          error?.message ||
-          "Registration failed. Please try again.";
-        toast.error(errorMessage);
+      // Handle specific error cases
+      if (error.response) {
+        // If the backend returns a specific error message
+        if (error.response.data && error.response.data.detail) {
+          toast.error(error.response.data.detail);
+        } 
+        // If the email is already registered (common case)
+        else if (error.response.status === 400) {
+          toast.error("This email is already registered. Please use a different email or login.");
+        }
+        // For other 4xx errors
+        else if (error.response.status >= 400 && error.response.status < 500) {
+          toast.error("Invalid registration data. Please check your input.");
+        }
+        // For 5xx errors
+        else {
+          toast.error("Server error. Please try again later.");
+        }
+      } 
+      // Handle network errors
+      else if (error.message && error.message.includes('Network Error')) {
+        toast.error("Cannot connect to the server. Please check your internet connection.");
+      }
+      // For any other errors
+      else {
+        toast.error("Registration failed. Please try again.");
       }
     } finally {
       setIsSubmitting(false);

@@ -1,40 +1,20 @@
 import React from 'react';
-import { useQuery } from '@tanstack/react-query';
-import axios from 'axios';
+// import { useQuery } from '@tanstack/react-query';
+// import axios from 'axios';
 import { CalendarEvent } from './types';
 import { FaCalendarAlt, FaClock, FaUsers } from 'react-icons/fa';
 
 const CalendarWidget: React.FC = () => {
-  const { data: events, isLoading, error } = useQuery<CalendarEvent[]>({
-    queryKey: ['calendarEvents'],
-    queryFn: async () => {
-      const response = await axios.get('/api/v1/mentor/calendar-events');
-      return response.data;
-    },
-  });
+  // const { data: events, isLoading, error } = useQuery<CalendarEvent[]>({
+  //   queryKey: ['calendarEvents'],
+  //   queryFn: async () => {
+  //     const response = await axios.get('/api/v1/mentor/calendar-events');
+  //     return response.data;
+  //   },
+  // });
 
-  if (isLoading) {
-    return (
-      <div className="bg-white rounded-lg shadow p-6">
-        <div className="animate-pulse">
-          <div className="h-4 bg-gray-200 rounded w-1/4 mb-4"></div>
-          <div className="space-y-3">
-            <div className="h-4 bg-gray-200 rounded"></div>
-            <div className="h-4 bg-gray-200 rounded"></div>
-            <div className="h-4 bg-gray-200 rounded"></div>
-          </div>
-        </div>
-      </div>
-    );
-  }
-
-  if (error) {
-    return (
-      <div className="bg-white rounded-lg shadow p-6">
-        <div className="text-red-500">Error loading calendar events</div>
-      </div>
-    );
-  }
+  // Define events as an empty array
+  const events: CalendarEvent[] = [];
 
   const getEventIcon = (type: string) => {
     switch (type) {
@@ -62,7 +42,7 @@ const CalendarWidget: React.FC = () => {
     <div className="bg-white rounded-lg shadow p-6">
       <h3 className="text-lg font-semibold text-gray-900 mb-4">Upcoming Events</h3>
       <div className="space-y-4">
-        {events?.map((event) => (
+        {events?.map((event: CalendarEvent) => (
           <div
             key={event.id}
             className="flex items-start space-x-3 p-3 bg-gray-50 rounded-lg"

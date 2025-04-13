@@ -365,6 +365,8 @@ const FindMentors: React.FC = () => {
       // Also fetch fresh data from server
       await fetchActiveRequests();
       
+      // Remove the pending request error message
+      toast.dismiss();
       toast.success(`Mentorship request sent for ${compatibilityDomain}`);
     } catch (err: any) {
       console.error('Error sending mentorship request:', err);
@@ -453,7 +455,6 @@ const FindMentors: React.FC = () => {
         <div className="bg-white p-4 rounded-lg shadow-md mb-4">
           <div className="flex items-center">
             <div className="animate-spin mr-2 h-5 w-5 border-2 border-blue-500 border-t-transparent rounded-full"></div>
-            <p className="text-gray-600">Loading your active mentorship requests...</p>
           </div>
         </div>
       )}

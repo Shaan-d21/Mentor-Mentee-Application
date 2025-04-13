@@ -8,13 +8,6 @@ import {
   ChevronRight,
   Menu
 } from 'lucide-react';
-import { useQuery } from '@tanstack/react-query';
-
-interface NotificationCount {
-  reports: number;
-  messages: number;
-  requests: number;
-}
 
 interface SidebarProps {
   userRole: 'mentor' | 'mentee';
@@ -41,19 +34,11 @@ const menteeNavItems: NavItem[] = [
 
 const Sidebar: React.FC<SidebarProps> = ({ userRole }) => {
   const location = useLocation();
-  const { data: notifications = { reports: 0, messages: 0, requests: 0 } } = useQuery<NotificationCount>({
-    queryKey: ['notifications'],
-    queryFn: async () => {
-      try {
-        // This is a mock endpoint - in production replace with actual endpoint
-        // const response = await axios.get(`/api/v1/${userRole}/notifications`);
-        return { reports: 0, messages: 0, requests: 0 };
-      } catch (error) {
-        console.error('Error fetching notifications:', error);
-        return { reports: 0, messages: 0, requests: 0 };
-      }
-    },
-  });
+  // const { data: notifications = { reports: 0, messages: 0, requests: 0 } } = useQuery<NotificationCount>({
+  //   queryKey: ['notifications'],
+  //   queryFn: fetchNotifications,
+  //   staleTime: 1000 * 60 * 5, // 5 minutes
+  // });
 
   const [isCollapsed, setIsCollapsed] = useState(false);
   // Get role directly from props instead of localStorage
@@ -79,8 +64,6 @@ const Sidebar: React.FC<SidebarProps> = ({ userRole }) => {
           const isActive = location.pathname === item.path || 
                           (item.path !== `/${userRole}/dashboard` && location.pathname.startsWith(item.path));
           
-          const hasNotification = item.name === 'Mentee Requests' && notifications.requests > 0;
-          
           return (
             <Link
               key={item.path}
@@ -98,18 +81,7 @@ const Sidebar: React.FC<SidebarProps> = ({ userRole }) => {
               {!isCollapsed && (
                 <div className="flex-1 flex items-center justify-between ml-3 overflow-hidden">
                   <span className="truncate">{item.name}</span>
-                  {hasNotification && (
-                    <span className="bg-red-500 text-white text-xs w-5 h-5 flex items-center justify-center rounded-full ml-2">
-                      {notifications.requests}
-                    </span>
-                  )}
                 </div>
-              )}
-              
-              {isCollapsed && hasNotification && (
-                <span className="absolute right-1 top-1 bg-red-500 text-white text-xs w-4 h-4 flex items-center justify-center rounded-full">
-                  {notifications.requests}
-                </span>
               )}
             </Link>
           );

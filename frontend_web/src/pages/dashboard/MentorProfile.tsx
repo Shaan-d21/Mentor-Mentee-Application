@@ -1,8 +1,13 @@
 import React, { useState, useEffect } from 'react';
-import { Edit2, Save, X, Loader2, User } from 'lucide-react';
+import { Edit2, Save, Loader2, User } from 'lucide-react';
 import axios from 'axios';
 import toast from 'react-hot-toast';
 import { useNavigate } from 'react-router-dom';
+
+interface Skill {
+  name: string;
+  proficiency: number;
+}
 
 interface MentorProfile {
   name: string;
@@ -12,22 +17,27 @@ interface MentorProfile {
   gender: string;
   designation: string;
   domain: string;
-  skills: Array<{
-    name: string;
-    proficiency: number;
-  }>;
+  skills: Skill[];
   profile_pic_url?: string;
+}
+
+interface ValidationErrors {
+  name?: string;
+  contact?: string;
+  designation?: string;
+  domain?: string;
+  skills?: string;
 }
 
 const MentorProfile: React.FC = () => {
   const [profile, setProfile] = useState<MentorProfile | null>(null);
   const [tempProfile, setTempProfile] = useState<MentorProfile | null>(null);
-  const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
-  const [error, setError] = useState<string | null>(null);
   const [editMode, setEditMode] = useState(false);
-  const [validationErrors, setValidationErrors] = useState<Record<string, string>>({});
+  const [validationErrors, setValidationErrors] = useState<ValidationErrors>({});
   const navigate = useNavigate();
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   const predefinedSkills = [
     "Python", "Java", "JavaScript", "C++", "SQL", "Node JS", "SpringBoot",
@@ -65,14 +75,17 @@ const MentorProfile: React.FC = () => {
 
       if (response.status === 200) {
         const transformedData = {
-          name: response.data.name,
-          email: response.data.mail,
-          contact: response.data.contact,
-          experience: response.data.exp,
-          gender: response.data.gender,
-          designation: response.data.designation,
-          domain: response.data.domain,
-          skills: response.data["Skill set"] || [],
+          name: response.data.name || '',
+          email: response.data.mail || '',
+          contact: response.data.contact || '',
+          experience: response.data.exp || 0,
+          gender: response.data.gender || '',
+          designation: response.data.designation || 'Not specified',
+          domain: response.data.domain || 'Not specified',
+          skills: response.data["Skill set"]?.map((skill: any) => ({
+            name: skill.name || '',
+            proficiency: skill.proficiency || 2
+          })) || [],
           profile_pic_url: response.data.profile_pic_url
         };
         setProfile(transformedData);
@@ -97,12 +110,92 @@ const MentorProfile: React.FC = () => {
     fetchProfile();
   }, []);
 
+  // Validation functions
+  const validateName = (name: string): string | undefined => {
+    if (!name) return 'Name is required';
+    if (!/^[a-zA-Z\s]*$/.test(name)) return 'Name should only contain letters';
+    return undefined;
+  };
+
+  const validateContact = (contact: string): string | undefined => {
+    if (!contact) return 'Contact number is required';
+    if (!/^\d+$/.test(contact)) return 'Contact number should only contain digits';
+    if (contact.length !== 10) return 'Contact number must be exactly 10 digits';
+    return undefined;
+  };
+
+  const validateDesignation = (designation: string): string | undefined => {
+    if (!designation) return 'Designation is required';
+    return undefined;
+  };
+
+  const validateDomain = (domain: string): string | undefined => {
+    if (!domain) return 'Domain is required';
+    return undefined;
+  };
+
+  const validateSkills = (skills: Skill[]): string | undefined => {
+    if (!skills.length) return 'At least one skill is required';
+    if (skills.some(skill => !skill.name)) return 'All skills must have a name';
+    if (skills.some(skill => skill.proficiency < 1 || skill.proficiency > 5)) return 'Skill proficiency must be between 1 and 5';
+    return undefined;
+  };
+
+  const validateProfile = (): boolean => {
+    if (!tempProfile) return false;
+    
+    const nameError = validateName(tempProfile.name);
+    const contactError = validateContact(tempProfile.contact);
+    const designationError = validateDesignation(tempProfile.designation);
+    const domainError = validateDomain(tempProfile.domain);
+    const skillsError = validateSkills(tempProfile.skills);
+    
+    setValidationErrors({
+      name: nameError,
+      contact: contactError,
+      designation: designationError,
+      domain: domainError,
+      skills: skillsError
+    });
+
+    return !nameError && !contactError && !designationError && !domainError && !skillsError;
+  };
+
+  // Handle field changes
   const handleChange = (field: keyof MentorProfile, value: string | number) => {
     if (!tempProfile) return;
-    setTempProfile({
-      ...tempProfile,
+    
+    setTempProfile(prev => ({
+      ...prev!,
       [field]: value
-    });
+    }));
+
+    // Validate the field immediately
+    if (field === 'name') {
+      const nameError = validateName(value as string);
+      setValidationErrors(prev => ({
+        ...prev,
+        name: nameError
+      }));
+    } else if (field === 'contact') {
+      const contactError = validateContact(value as string);
+      setValidationErrors(prev => ({
+        ...prev,
+        contact: contactError
+      }));
+    } else if (field === 'designation') {
+      const designationError = validateDesignation(value as string);
+      setValidationErrors(prev => ({
+        ...prev,
+        designation: designationError
+      }));
+    } else if (field === 'domain') {
+      const domainError = validateDomain(value as string);
+      setValidationErrors(prev => ({
+        ...prev,
+        domain: domainError
+      }));
+    }
   };
 
   const handleSkillChange = (index: number, field: 'name' | 'proficiency', value: string | number) => {
@@ -129,15 +222,6 @@ const MentorProfile: React.FC = () => {
     }
   };
 
-  const removeSkill = (index: number) => {
-    if (!tempProfile) return;
-    const newSkills = tempProfile.skills.filter((_, i) => i !== index);
-    setTempProfile({
-      ...tempProfile,
-      skills: newSkills
-    });
-  };
-
   const getAvailableSkills = () => {
     if (!tempProfile) return predefinedSkills;
     const selectedSkills = tempProfile.skills.map(skill => skill.name);
@@ -151,26 +235,8 @@ const MentorProfile: React.FC = () => {
     );
   };
 
-  const validateForm = () => {
-    const errors: Record<string, string> = {};
-    if (!tempProfile?.contact) {
-      errors.contact = 'Contact number is required';
-    }
-    if (!tempProfile?.designation) {
-      errors.designation = 'Designation is required';
-    }
-    if (!tempProfile?.domain) {
-      errors.domain = 'Domain is required';
-    }
-    if (tempProfile?.skills.some(skill => !skill.name)) {
-      errors.skills = 'All skills must have a name';
-    }
-    setValidationErrors(errors);
-    return Object.keys(errors).length === 0;
-  };
-
   const saveChanges = async () => {
-    if (!tempProfile || !validateForm()) return;
+    if (!tempProfile || !validateProfile()) return;
 
     try {
       setSaving(true);
@@ -181,7 +247,7 @@ const MentorProfile: React.FC = () => {
 
       const apiBaseUrl = import.meta.env.VITE_API_URL || 'http://localhost:8000';
       
-      // Update profile with PUT request to the correct endpoint
+      // Update profile
       const profileResponse = await axios.put(
         `${apiBaseUrl}/users/mentor/profile_creation`,
         {
@@ -197,90 +263,51 @@ const MentorProfile: React.FC = () => {
       );
 
       if (profileResponse.status === 200) {
-        // Get current skills from the backend
-        const currentSkillsResponse = await axios.get(
-          `${apiBaseUrl}/users/mentor/profile`,
+        // Update skills
+        const skillsToKeep = tempProfile.skills.filter(skill => skill.name);
+        const skillsResponse = await axios.post(
+          `${apiBaseUrl}/users/mentor/skills`,
+          {
+            skills: skillsToKeep.map(skill => ({
+              skill_name: skill.name,
+              proficiency: skill.proficiency
+            }))
+          },
           {
             headers: { Token: accessToken }
           }
         );
         
-        // Get the current skill names from the backend
-        const currentSkillNames = currentSkillsResponse.data["Skill set"]?.map((skill: any) => skill.name) || [];
-        
-        // Get the new skill names from tempProfile
-        const newSkillNames = tempProfile.skills.map(skill => skill.name);
-        
-        // Check if skills have changed
-        const skillsChanged = 
-          currentSkillNames.length !== newSkillNames.length || 
-          currentSkillNames.some((name: string) => !newSkillNames.includes(name)) ||
-          newSkillNames.some((name: string) => !currentSkillNames.includes(name));
-        
-        if (skillsChanged) {
-          console.log('Skills have changed, updating...');
-          
-          // Create a new array with only the skills that should be kept
-          const skillsToKeep = tempProfile.skills.filter(skill => skill.name);
-          
-          // Send the complete list of skills to the backend
-          // This will replace all existing skills with this new list
-          const skillsResponse = await axios.post(
-            `${apiBaseUrl}/users/mentor/skills`,
-            {
-              skills: skillsToKeep.map(skill => ({
-                skill_name: skill.name,
-                proficiency: skill.proficiency
-              }))
-            },
+        if (skillsResponse.status === 200) {
+          // Fetch updated profile
+          const updatedProfileResponse = await axios.get(
+            `${apiBaseUrl}/users/mentor/profile`,
             {
               headers: { Token: accessToken }
             }
           );
           
-          if (skillsResponse.status !== 200) {
-            console.error('Failed to update skills:', skillsResponse.data);
-            toast.error('Failed to update skills. Please try again.');
-            return;
+          if (updatedProfileResponse.status === 200) {
+            const updatedProfile = {
+              name: updatedProfileResponse.data.name || '',
+              email: updatedProfileResponse.data.mail || '',
+              contact: updatedProfileResponse.data.contact || '',
+              experience: updatedProfileResponse.data.exp || 0,
+              gender: updatedProfileResponse.data.gender || '',
+              designation: updatedProfileResponse.data.designation || 'Not specified',
+              domain: updatedProfileResponse.data.domain || 'Not specified',
+              skills: updatedProfileResponse.data["Skill set"]?.map((skill: any) => ({
+                name: skill.name || '',
+                proficiency: skill.proficiency || 2
+              })) || [],
+              profile_pic_url: updatedProfileResponse.data.profile_pic_url
+            };
+            
+            setProfile(updatedProfile);
+            setTempProfile(updatedProfile);
+            setEditMode(false);
+            toast.success('Profile updated successfully');
           }
-          
-          // Wait a moment to ensure the backend has processed the skills update
-          await new Promise(resolve => setTimeout(resolve, 3000));
-        }
-        
-        // Fetch the updated profile data from the server
-        const updatedProfileResponse = await axios.get(
-          `${apiBaseUrl}/users/mentor/profile`,
-          {
-            headers: { Token: accessToken }
-          }
-        );
-        
-        if (updatedProfileResponse.status === 200) {
-          // Transform the data to match our profile structure
-          const updatedProfile = {
-            name: updatedProfileResponse.data.name,
-            email: updatedProfileResponse.data.mail,
-            contact: updatedProfileResponse.data.contact,
-            experience: updatedProfileResponse.data.exp,
-            gender: updatedProfileResponse.data.gender,
-            designation: updatedProfileResponse.data.designation,
-            domain: updatedProfileResponse.data.domain,
-            skills: updatedProfileResponse.data["Skill set"] || [],
-            profile_pic_url: updatedProfileResponse.data.profile_pic_url
-          };
-          
-          // Update the UI state with the fresh data from the server
-          setProfile(updatedProfile);
-          setTempProfile(updatedProfile);
-          setEditMode(false);
-          toast.success('Profile updated successfully');
-          
-          // Log the updated skills for debugging
-          console.log('Updated skills from server:', updatedProfileResponse.data["Skill set"]);
-        } else {
-          console.error('Failed to fetch updated profile:', updatedProfileResponse.data);
-          toast.error('Profile updated, but failed to refresh data. Please reload the page.');
         }
       }
     } catch (error: any) {
@@ -326,10 +353,16 @@ const MentorProfile: React.FC = () => {
     );
   }
 
-  if (!profile) {
+  if (error) {
     return (
       <div className="text-center py-8">
         <p className="text-gray-600">Failed to load profile data</p>
+        <button 
+          onClick={fetchProfile} 
+          className="mt-2 px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
+        >
+          Retry
+        </button>
       </div>
     );
   }
@@ -348,34 +381,13 @@ const MentorProfile: React.FC = () => {
         )}
       </div>
 
-      {error && (
-        <div className="bg-red-50 border-l-4 border-red-500 text-red-700 p-4 rounded mb-6">
-          <p>{error}</p>
-          <div className="mt-2 pt-2 border-t border-red-300">
-            <p className="text-sm">Troubleshooting steps:</p>
-            <ol className="text-sm list-decimal ml-5 mt-1">
-              <li>Check if your backend server is running at http://localhost:8000</li>
-              <li>Try logging out and logging back in</li>
-              <li>Make sure you have completed your profile</li>
-              <li>Check console logs for detailed error information</li>
-            </ol>
-            <button 
-              onClick={fetchProfile} 
-              className="mt-2 px-2 py-1 bg-red-100 hover:bg-red-200 text-red-700 text-sm rounded"
-            >
-              Retry
-            </button>
-          </div>
-        </div>
-      )}
-
       <div className="space-y-6">
         {/* View Mode */}
         {!editMode && (
           <>
             {/* Profile Header */}
             <div className="flex items-center space-x-4 mb-8">
-              {profile.profile_pic_url ? (
+              {profile?.profile_pic_url ? (
                 <img
                   src={profile.profile_pic_url}
                   alt="Profile"
@@ -387,8 +399,8 @@ const MentorProfile: React.FC = () => {
                 </div>
               )}
               <div>
-                <h2 className="text-xl font-semibold text-gray-800">{profile.name}</h2>
-                <p className="text-gray-600">{profile.email}</p>
+                <h2 className="text-xl font-semibold text-gray-800">{profile?.name}</h2>
+                <p className="text-gray-600">{profile?.email}</p>
               </div>
             </div>
 
@@ -400,19 +412,19 @@ const MentorProfile: React.FC = () => {
                 <div className="space-y-2">
                   <div className="flex items-center">
                     <span className="w-24 text-gray-600">Contact:</span>
-                    <span className="text-gray-800">{profile.contact || 'Not specified'}</span>
+                    <span className="text-gray-800">{profile?.contact || 'Not specified'}</span>
                   </div>
                   <div className="flex items-center">
                     <span className="w-24 text-gray-600">Designation:</span>
-                    <span className="text-gray-800">{profile.designation || 'Not specified'}</span>
+                    <span className="text-gray-800">{profile?.designation || 'Not specified'}</span>
                   </div>
                   <div className="flex items-center">
                     <span className="w-24 text-gray-600">Domain:</span>
-                    <span className="text-gray-800">{profile.domain || 'Not specified'}</span>
+                    <span className="text-gray-800">{profile?.domain || 'Not specified'}</span>
                   </div>
                   <div className="flex items-center">
                     <span className="w-24 text-gray-600">Experience:</span>
-                    <span className="text-gray-800">{profile.experience} years</span>
+                    <span className="text-gray-800">{profile?.experience} years</span>
                   </div>
                 </div>
               </div>
@@ -420,7 +432,7 @@ const MentorProfile: React.FC = () => {
               {/* Skills */}
               <div className="bg-gray-50 p-4 rounded-lg">
                 <h3 className="text-lg font-semibold text-gray-800 mb-3">Skills</h3>
-                {profile.skills && profile.skills.length > 0 ? (
+                {profile?.skills && profile.skills.length > 0 ? (
                   <div className="grid grid-cols-2 gap-4">
                     {profile.skills.map((skill, index) => (
                       <div 
@@ -455,15 +467,20 @@ const MentorProfile: React.FC = () => {
                   <label className="block text-sm font-medium text-gray-700 mb-1">Name</label>
                   <input
                     type="text"
-                    className="w-full px-4 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-500 border-gray-300"
+                    className={`w-full px-4 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-500 ${
+                      validationErrors.name ? 'border-red-500' : 'border-gray-300'
+                    }`}
                     value={tempProfile?.name || ''}
                     onChange={(e) => handleChange('name', e.target.value)}
                     placeholder="Your name"
                   />
+                  {validationErrors.name && (
+                    <p className="mt-1 text-sm text-red-500">{validationErrors.name}</p>
+                  )}
                 </div>
                 <div className="flex items-center">
                   <span className="w-24 text-gray-600">Email:</span>
-                  <span className="text-gray-800">{profile.email}</span>
+                  <span className="text-gray-800">{profile?.email}</span>
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">Designation</label>
@@ -488,11 +505,15 @@ const MentorProfile: React.FC = () => {
                       validationErrors.contact ? 'border-red-500' : 'border-gray-300'
                     }`}
                     value={tempProfile?.contact || ''}
-                    onChange={(e) => handleChange('contact', e.target.value)}
-                    placeholder="Your contact number"
+                    onChange={(e) => {
+                      const value = e.target.value.replace(/\D/g, '').slice(0, 10);
+                      handleChange('contact', value);
+                    }}
+                    placeholder="10-digit contact number"
+                    maxLength={10}
                   />
                   {validationErrors.contact && (
-                    <p className="text-sm text-red-500 mt-1">{validationErrors.contact}</p>
+                    <p className="mt-1 text-sm text-red-500">{validationErrors.contact}</p>
                   )}
                 </div>
                 <div>
@@ -536,7 +557,7 @@ const MentorProfile: React.FC = () => {
               <div className="space-y-4">
                 {tempProfile?.skills.map((skill, index) => (
                   <div key={index} className="space-y-2">
-                    <div className="flex items-center justify-between gap-2">
+                    <div className="flex items-center gap-2">
                       <select
                         className={`w-full px-4 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-500 ${
                           validationErrors.skills ? 'border-red-500' : 'border-gray-300'
@@ -550,18 +571,11 @@ const MentorProfile: React.FC = () => {
                             key={skillName} 
                             value={skillName}
                             disabled={isSkillSelected(skillName, index)}
-                            className={isSkillSelected(skillName, index) ? 'text-gray-400' : ''}
                           >
                             {skillName}
                           </option>
                         ))}
                       </select>
-                      <button
-                        onClick={() => removeSkill(index)}
-                        className="p-2 text-red-600 hover:text-red-800"
-                      >
-                        <X size={16} />
-                      </button>
                     </div>
                     <div className="flex items-center space-x-2">
                       <span className="text-sm text-gray-600">Proficiency:</span>

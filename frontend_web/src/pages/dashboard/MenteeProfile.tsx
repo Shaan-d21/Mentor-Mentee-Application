@@ -21,6 +21,7 @@ interface ProfileData {
 interface ValidationErrors {
   name?: string;
   contact?: string;
+  designation?: string;
   skills?: string;
 }
 
@@ -66,25 +67,19 @@ const MenteeProfileContent: React.FC = () => {
   const [editMode, setEditMode] = useState(false);
   const [selectedSkill, setSelectedSkill] = useState<string>('');
   const [availableSkills, setAvailableSkills] = useState<string[]>(PREDEFINED_SKILLS);
+  const email = localStorage.getItem('email') || '';
 
   // Profile states
   const [profile, setProfile] = useState<ProfileData>({
     name: '',
-    mail: '',
+    mail: email,
     contact: '',
     designation: '',
     "Skill set": [],
-    role: ''
+    role: 'mentee'
   });
 
-  const [tempProfile, setTempProfile] = useState<ProfileData>({
-    name: '',
-    mail: '',
-    contact: '',
-    designation: '',
-    "Skill set": [],
-    role: ''
-  });
+  const [tempProfile, setTempProfile] = useState<ProfileData>(profile);
 
   // Update available skills when tempProfile changes
   useEffect(() => {
@@ -133,67 +128,44 @@ const MenteeProfileContent: React.FC = () => {
   };
 
   // Validation functions
-  const validateContact = (contact: string): string => {
-    if (!contact) return "Contact number is required";
-    if (!/^\d{10}$/.test(contact)) return "Contact number must be 10 digits";
-    return "";
+  const validateName = (name: string): string | undefined => {
+    if (!name) return 'Name is required';
+    if (/[0-9]/.test(name)) return 'Name should not contain numbers';
+    if (!/^[a-zA-Z\s]*$/.test(name)) return 'Name should only contain letters';
+    return undefined;
+  };
+
+  const validateContact = (contact: string): string | undefined => {
+    if (!contact) return 'Contact number is required';
+    if (!/^\d+$/.test(contact)) return 'Contact number should only contain digits';
+    if (contact.length !== 10) return 'Contact number must be exactly 10 digits';
+    return undefined;
   };
 
   const validateProfile = (): boolean => {
-    const errors: ValidationErrors = {};
-    let isValid = true;
-
-    // Contact validation
+    const nameError = validateName(tempProfile.name);
     const contactError = validateContact(tempProfile.contact);
-    if (contactError) {
-      errors.contact = contactError;
-      isValid = false;
-    }
+    
+    setValidationErrors({
+      name: nameError,
+      contact: contactError
+    });
 
-    // Skills validation
-    if (tempProfile["Skill set"].length === 0) {
-      errors.skills = "At least one skill is required";
-      isValid = false;
-    }
-
-    setValidationErrors(errors);
-    return isValid;
+    return !nameError && !contactError;
   };
 
   // Fetch profile data
   const fetchProfile = useCallback(async () => {
     try {
       setLoading(true);
-      setError(null); // Clear previous errors
-      
-      // Check for token first
       const token = localStorage.getItem('accessToken');
-      console.log('Token available for profile fetch:', token ? `${token.substring(0, 10)}...` : 'No token found');
-      
       if (!token) {
-        console.error('No authentication token found in localStorage');
-        setError('Authentication token missing. Please login again.');
-        navigate('/auth/login');
-        return;
-      }
-      
-      // Format token properly - ensure it has Bearer prefix
-      const authToken = token.startsWith('Bearer ') ? token : `Bearer ${token}`;
-      console.log('Using token with proper format:', authToken.substring(0, 15) + '...');
-      
-      const email = localStorage.getItem('email');
-      const name = localStorage.getItem('name');
-      
-      if (!email) {
-        setError('User email not found. Please log in again.');
-        navigate('/auth/login');
-        return;
+        throw new Error('No access token found');
       }
 
-      console.log("Fetching profile for user:", email);
-      
+      const authToken = token.startsWith('Bearer ') ? token : `Bearer ${token}`;
       const apiBaseUrl = import.meta.env.VITE_API_URL || 'http://localhost:8000';
-      
+
       // Try the mentee profile endpoint with proper token format
       try {
         console.log(`Calling API: GET ${apiBaseUrl}/mentee/mentee/profile`);
@@ -220,9 +192,9 @@ const MenteeProfileContent: React.FC = () => {
           
           const profileData: ProfileData = {
             name: profileResponse.data.name || '',
-            mail: profileResponse.data.mail || email || '',
+            mail: profileResponse.data.mail || email,
             contact: profileResponse.data.contact || '',
-            designation: profileResponse.data.designation || '',
+            designation: profileResponse.data.designation || 'Not specified',
             "Skill set": skills,
             role: profileResponse.data.role || 'mentee'
           };
@@ -234,63 +206,46 @@ const MenteeProfileContent: React.FC = () => {
           localStorage.setItem('name', profileData.name);
           localStorage.setItem('userContact', profileData.contact);
           localStorage.setItem('menteeSkills', JSON.stringify(profileData["Skill set"].map(s => s.name)));
+          localStorage.setItem('designation', profileData.designation);
           
           setLoading(false);
           return;
         }
-      } catch (profileError) {
-        console.error("Error fetching detailed profile:", profileError);
-        // Continue to fallback approach
-      }
-      
-      // Final fallback: Use data only from localStorage
-      console.log("Using fallback profile data from localStorage");
-      
-      // Get skills from localStorage or use empty array
-      const skillsString = localStorage.getItem('menteeSkills');
-      let skills = [];
-      try {
-        if (skillsString) {
-          skills = JSON.parse(skillsString);
+      } catch (profileError: any) {
+        console.error('Error fetching mentee profile:', profileError);
+        if (profileError.response?.status === 404) {
+          // Profile doesn't exist yet, create a default one
+          const defaultProfile: ProfileData = {
+            name: '',
+            mail: email,
+            contact: '',
+            designation: 'Not specified',
+            "Skill set": [],
+            role: 'mentee'
+          };
+          setProfile(defaultProfile);
+          setTempProfile(defaultProfile);
+          setLoading(false);
+          return;
         }
-      } catch (e) {
-        console.error("Error parsing skills from localStorage:", e);
+        throw profileError;
       }
-      
-      const fallbackProfile: ProfileData = {
-        name: name || 'User',
-        mail: email || '',
-        contact: localStorage.getItem('userContact') || '',
-        designation: '',
-        "Skill set": skills.length > 0 ? skills.map((skill: string) => ({ name: skill })) : [],
-        role: 'mentee'
-      };
-      
-      setProfile(fallbackProfile);
-      setTempProfile(fallbackProfile);
-      
     } catch (error: any) {
-      console.error('Error fetching profile:', error);
-      
-      if (error.response?.status === 401) {
-        toast.error('Session expired. Please log in again.');
-        localStorage.removeItem('accessToken');
-        localStorage.removeItem('userInfo');
-        navigate('/auth/login');
-      } else if (error.message && error.message.includes('Network Error')) {
-        setError('Unable to connect to the server. Please check your connection.');
-      } else {
-        // Don't show detailed error to user
-        setError('Unable to load profile. Please try again later.');
-      }
-    } finally {
+      console.error('Error in fetchProfile:', error);
+      setError(error.message || 'Failed to fetch profile');
       setLoading(false);
     }
-  }, [navigate]);
+  }, [email]);
 
   useEffect(() => {
-    fetchProfile();
-  }, [fetchProfile]);
+    const storedEmail = localStorage.getItem('email');
+    if (storedEmail) {
+      fetchProfile();
+    } else {
+      setError('Email not found. Please log in again.');
+      navigate('/auth/login');
+    }
+  }, [fetchProfile, navigate]);
 
   // Avatar animation
   // useEffect(() => {
@@ -307,24 +262,32 @@ const MenteeProfileContent: React.FC = () => {
       [field]: value
     }));
 
-    // Clear validation error when field is modified
-    if (validationErrors[field as keyof ValidationErrors]) {
+    // Validate the field immediately
+    if (field === 'name') {
+      const nameError = validateName(value);
       setValidationErrors(prev => ({
         ...prev,
-        [field]: undefined
+        name: nameError
+      }));
+    } else if (field === 'contact') {
+      const contactError = validateContact(value);
+      setValidationErrors(prev => ({
+        ...prev,
+        contact: contactError
       }));
     }
   };
 
   // Save profile changes
   const saveChanges = async () => {
+    // First validate the profile
+    if (!validateProfile()) {
+      toast.error('Please fix the validation errors before saving');
+      return;
+    }
+
     setSaving(true);
     try {
-      if (!validateProfile()) {
-        setSaving(false);
-        return;
-      }
-
       const token = localStorage.getItem('accessToken');
       if (!token) {
         setError('Authentication token not found. Please log in again.');
@@ -341,7 +304,7 @@ const MenteeProfileContent: React.FC = () => {
       const profileData = {
         name: tempProfile.name,
         contact: tempProfile.contact,
-        designation: tempProfile.designation,
+        designation: tempProfile.designation || 'Not specified'
       };
       
       console.log('Updating mentee profile with data:', profileData);
@@ -349,7 +312,7 @@ const MenteeProfileContent: React.FC = () => {
       console.log('API URL:', `${apiBaseUrl}/mentee/mentee/profile_creation`);
       console.log('Headers:', {
         'Content-Type': 'application/json',
-        'Token': authToken.substring(0, 15) + '...'  
+        'Token': authToken
       });
       
       try {
@@ -422,6 +385,7 @@ const MenteeProfileContent: React.FC = () => {
         localStorage.setItem('name', tempProfile.name);
         localStorage.setItem('userContact', tempProfile.contact);
         localStorage.setItem('menteeSkills', JSON.stringify(tempProfile["Skill set"].map(s => s.name)));
+        localStorage.setItem('designation', tempProfile.designation);
         
         // Update the displayed profile
         setProfile(tempProfile);
@@ -579,11 +543,16 @@ const MenteeProfileContent: React.FC = () => {
                   <label className="block text-sm font-medium text-gray-700 mb-1">Name</label>
                   <input
                     type="text"
-                    className="w-full px-4 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-500 border-gray-300"
+                    className={`w-full px-4 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-500 ${
+                      validationErrors.name ? 'border-red-500' : 'border-gray-300'
+                    }`}
                     value={tempProfile.name}
                     onChange={(e) => handleChange('name', e.target.value)}
                     placeholder="Your name"
                   />
+                  {validationErrors.name && (
+                    <p className="mt-1 text-sm text-red-500">{validationErrors.name}</p>
+                  )}
                 </div>
                 <div className="flex items-center">
                   <span className="w-24 text-gray-600">Email:</span>
@@ -609,8 +578,8 @@ const MenteeProfileContent: React.FC = () => {
             </div>
 
             {/* Contact Information */}
-            <div>
-              <h3 className="text-lg font-semibold mb-3">Contact Information</h3>
+            <div className="bg-gray-50 p-4 rounded-lg">
+              <h3 className="text-lg font-semibold text-gray-800 mb-3">Contact Information</h3>
               <div className="space-y-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">Contact Number</label>
@@ -620,7 +589,10 @@ const MenteeProfileContent: React.FC = () => {
                       validationErrors.contact ? 'border-red-500' : 'border-gray-300'
                     }`}
                     value={tempProfile.contact}
-                    onChange={(e) => handleChange('contact', e.target.value)}
+                    onChange={(e) => {
+                      const value = e.target.value.replace(/\D/g, '').slice(0, 10);
+                      handleChange('contact', value);
+                    }}
                     placeholder="10-digit contact number"
                     maxLength={10}
                   />
