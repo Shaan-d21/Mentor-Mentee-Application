@@ -33,6 +33,7 @@ interface MentorshipRequest {
   domain: string;
   domain_name: string;
   status: 'pending' | 'not approved' | 'approved';
+  mentor_id: string;
 }
 
 const FindMentors: React.FC = () => {
@@ -45,12 +46,24 @@ const FindMentors: React.FC = () => {
   const [isCheckingCompatibility, setIsCheckingCompatibility] = useState(false);
   const [compatibleMentors, setCompatibleMentors] = useState<CompatibleMentor[]>([]);
   const [showCompatibilityResults, setShowCompatibilityResults] = useState(false);
+  const [toastCooldown, setToastCooldown] = useState<boolean>(false);
   
   // States for mentor requests
   const [pendingRequestDomains, setPendingRequestDomains] = useState<Set<string>>(new Set());
   const [approvedRequestDomains, setApprovedRequestDomains] = useState<Set<string>>(new Set());
   const [requestingMentorId, setRequestingMentorId] = useState<string | null>(null);
   const [isLoadingRequests, setIsLoadingRequests] = useState(true);
+  const [requestedMentorIds, setRequestedMentorIds] = useState<Set<string>>(new Set());
+
+  const showErrorToast = (message: string) => {
+    if (!toastCooldown) {
+      toast.error(message);
+      setToastCooldown(true);
+      setTimeout(() => {
+        setToastCooldown(false);
+      }, 5000);
+    }
+  };
 
   // Function to fetch active requests from the server
   const fetchActiveRequests = async () => {
@@ -91,6 +104,10 @@ const FindMentors: React.FC = () => {
       
       console.log('All requests:', requests);
       
+      // Extract mentor IDs from all requests (both pending and approved)
+      const mentorIds = new Set(requests.map(req => req.mentor_id));
+      setRequestedMentorIds(mentorIds);
+      
       // Filter requests for pending status
       const pendingRequests = requests.filter(req => req.status === 'pending');
       console.log('Pending requests:', pendingRequests);
@@ -122,9 +139,9 @@ const FindMentors: React.FC = () => {
       if (compatibilityDomain && (pendingDomains.has(compatibilityDomain) || approvedDomains.has(compatibilityDomain))) {
         setShowCompatibilityResults(false);
         if (pendingDomains.has(compatibilityDomain)) {
-          toast.error(`You already have a pending request for ${compatibilityDomain}`);
+          showErrorToast(`You already have a pending request for ${compatibilityDomain}`);
         } else {
-          toast.error(`You already have an approved mentorship for ${compatibilityDomain}`);
+          showErrorToast(`You already have an approved mentorship for ${compatibilityDomain}`);
         }
       }
     } catch (err) {
@@ -150,21 +167,21 @@ const FindMentors: React.FC = () => {
   // Handle checking compatibility
   const handleCheckCompatibility = async () => {
     if (!compatibilityDomain) {
-      toast.error('Please select a domain for compatibility check');
+      showErrorToast('Please select a domain for compatibility check');
       return;
     }
 
     // Check if there's already a pending request for this domain
     if (pendingRequestDomains.has(compatibilityDomain)) {
-      toast.error(`You already have a pending request for ${compatibilityDomain}`);
-      setShowCompatibilityResults(false); // Ensure results are hidden
+      showErrorToast(`You already have a pending request for ${compatibilityDomain}`);
+      setShowCompatibilityResults(false);
       return;
     }
     
     // Check if there's already an approved mentorship for this domain
     if (approvedRequestDomains.has(compatibilityDomain)) {
-      toast.error(`You already have an approved mentorship for ${compatibilityDomain}`);
-      setShowCompatibilityResults(false); // Ensure results are hidden
+      showErrorToast(`You already have an approved mentorship for ${compatibilityDomain}`);
+      setShowCompatibilityResults(false);
       return;
     }
 
@@ -254,8 +271,8 @@ const FindMentors: React.FC = () => {
         
         // Check again if there's a pending request for this domain before showing results
         if (pendingRequestDomains.has(trimmedDomain)) {
-          toast.error(`You already have a pending request for ${trimmedDomain}`);
-          setShowCompatibilityResults(false); // Ensure results are hidden
+          showErrorToast(`You already have a pending request for ${trimmedDomain}`);
+          setShowCompatibilityResults(false);
           return;
         }
         
@@ -281,20 +298,20 @@ const FindMentors: React.FC = () => {
         if (err.response.status === 400) {
           // Check if the error is related to the domain format
           if (err.response.data?.detail && err.response.data.detail.includes('value is not a valid enumeration member')) {
-            toast.error(`Invalid domain format. Please select a valid domain from the dropdown.`);
+            showErrorToast(`Invalid domain format. Please select a valid domain from the dropdown.`);
           } else {
-            toast.error(`Bad request: ${err.response.data?.detail || 'Invalid domain format'}`);
+            showErrorToast(`Bad request: ${err.response.data?.detail || 'Invalid domain format'}`);
           }
         } else if (err.response.status === 401) {
-          toast.error('Authentication failed. Please log in again.');
+          showErrorToast('Authentication failed. Please log in again.');
           // Optionally redirect to login page
         } else {
-          toast.error(`Server error: ${err.response.data?.detail || 'Unknown error'}`);
+          showErrorToast(`Server error: ${err.response.data?.detail || 'Unknown error'}`);
         }
       } else if (err.request) {
-        toast.error('No response from server. Please check your connection.');
+        showErrorToast('No response from server. Please check your connection.');
       } else {
-        toast.error('Failed to check compatibility. Please try again.');
+        showErrorToast('Failed to check compatibility. Please try again.');
       }
     } finally {
       setIsCheckingCompatibility(false);
@@ -304,19 +321,19 @@ const FindMentors: React.FC = () => {
   // Handle sending mentorship request
   const handleSendRequest = async (mentorId: string) => {
     if (!compatibilityDomain) {
-      toast.error('Domain information missing');
+      showErrorToast('Domain information missing');
       return;
     }
 
     // Check if there's already a pending request for this domain
     if (pendingRequestDomains.has(compatibilityDomain)) {
-      toast.error(`You already have a pending request for ${compatibilityDomain}`);
+      showErrorToast(`You already have a pending request for ${compatibilityDomain}`);
       return;
     }
     
     // Check if there's already an approved mentorship for this domain
     if (approvedRequestDomains.has(compatibilityDomain)) {
-      toast.error(`You already have an approved mentorship for ${compatibilityDomain}`);
+      showErrorToast(`You already have an approved mentorship for ${compatibilityDomain}`);
       return;
     }
 
@@ -333,7 +350,6 @@ const FindMentors: React.FC = () => {
       
       console.log('Sending mentorship request for domain:', compatibilityDomain);
       
-      // Add withCredentials to handle CORS issues
       await axios.post(
         'http://181.214.44.15:8080/mentee/mentorship',
         {
@@ -349,12 +365,13 @@ const FindMentors: React.FC = () => {
         }
       );
       
-      // Immediately add the domain to pending domains
+      // Add the mentor to requested mentors set
+      setRequestedMentorIds(prev => new Set([...prev, mentorId]));
+      
+      // Add the domain to pending domains
       const updatedDomains = new Set(pendingRequestDomains);
       updatedDomains.add(compatibilityDomain);
       setPendingRequestDomains(updatedDomains);
-      console.log('Added domain to pending domains:', compatibilityDomain);
-      console.log('Updated pending domains:', updatedDomains);
       
       // Also fetch fresh data from server
       await fetchActiveRequests();
@@ -365,16 +382,15 @@ const FindMentors: React.FC = () => {
     } catch (err: any) {
       console.error('Error sending mentorship request:', err);
       if (err.response?.status === 409) {
-        toast.error('You already have a pending request for this domain');
+        showErrorToast('You already have a pending request for this domain');
         // Update pending domains in case the local state is out of sync
         const updatedDomains = new Set(pendingRequestDomains);
         updatedDomains.add(compatibilityDomain);
         setPendingRequestDomains(updatedDomains);
-        console.log('Added domain to pending domains after 409 error:', compatibilityDomain);
       } else if (err.code === 'ERR_NETWORK') {
-        toast.error('Network error. Please check your connection and try again.');
+        showErrorToast('Network error. Please check your connection and try again.');
       } else {
-        toast.error('Failed to send request. Please try again.');
+        showErrorToast('Failed to send request. Please try again.');
       }
     } finally {
       setRequestingMentorId(null);
@@ -532,7 +548,11 @@ const FindMentors: React.FC = () => {
           <div className="mb-6">
             <h4 className="text-md font-medium mb-3 text-blue-700">Domain Mentors</h4>
             
-            {compatibleMentors.filter(mentor => mentor.domain === compatibilityDomain).length > 0 ? (
+            {compatibleMentors
+              .filter(mentor => 
+                mentor.domain === compatibilityDomain && 
+                !requestedMentorIds.has(mentor.id || '')
+              ).length > 0 ? (
               <div className="overflow-x-auto bg-white rounded-lg shadow">
                 <table className="min-w-full divide-y divide-gray-200">
                   <thead className="bg-gray-50">
@@ -555,7 +575,11 @@ const FindMentors: React.FC = () => {
                     </tr>
                   </thead>
                   <tbody className="bg-white divide-y divide-gray-200">
-                    {compatibleMentors.filter(mentor => mentor.domain === compatibilityDomain).map((mentor, index) => (
+                    {compatibleMentors
+                      .filter(mentor => 
+                        mentor.domain === compatibilityDomain && 
+                        !requestedMentorIds.has(mentor.id || '')
+                      ).map((mentor, index) => (
                       <tr key={index} className="hover:bg-gray-50">
                         <td className="px-6 py-4 whitespace-nowrap">
                           <div className="text-sm font-medium text-gray-900">{mentor.name}</div>
@@ -638,7 +662,11 @@ const FindMentors: React.FC = () => {
           <div>
             <h4 className="text-md font-medium mb-3 text-blue-700">Other Domain Mentors</h4>
             
-            {compatibleMentors.filter(mentor => mentor.domain !== compatibilityDomain).length > 0 ? (
+            {compatibleMentors
+              .filter(mentor => 
+                mentor.domain !== compatibilityDomain && 
+                !requestedMentorIds.has(mentor.id || '')
+              ).length > 0 ? (
               <div className="overflow-x-auto bg-white rounded-lg shadow">
                 <table className="min-w-full divide-y divide-gray-200">
                   <thead className="bg-gray-50">
@@ -664,7 +692,11 @@ const FindMentors: React.FC = () => {
                     </tr>
                   </thead>
                   <tbody className="bg-white divide-y divide-gray-200">
-                    {compatibleMentors.filter(mentor => mentor.domain !== compatibilityDomain).map((mentor, index) => (
+                    {compatibleMentors
+                      .filter(mentor => 
+                        mentor.domain !== compatibilityDomain && 
+                        !requestedMentorIds.has(mentor.id || '')
+                      ).map((mentor, index) => (
                       <tr key={index} className="hover:bg-gray-50">
                         <td className="px-6 py-4 whitespace-nowrap">
                           <div className="text-sm font-medium text-gray-900">{mentor.name}</div>
