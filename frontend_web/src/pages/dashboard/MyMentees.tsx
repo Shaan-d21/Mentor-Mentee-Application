@@ -40,7 +40,6 @@ const MyMentees: React.FC = () => {
       try {
         setLoading(true);
         const accessToken = localStorage.getItem('accessToken');
-        const role = localStorage.getItem('role');
         
         if (!accessToken) {
           toast.error('Authentication token missing. Please log in again.');
