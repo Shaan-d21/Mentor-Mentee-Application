@@ -125,6 +125,10 @@ interface Props {
 
 const AppBar: React.FC<Props> = ({ openDrawer, onProfilePress, title }) => {
     const { isDrawerOpen, toggleDrawer } = useDrawer();
+    const showProfileIcon = title !== "Mentor Profile" && 
+    title !== "Mentee Profile" &&
+    title !== "Mentor Profile Edit" && 
+    title !== "Mentee Profile Edit";
 
     return (
         <View style={styles.header}>
@@ -132,9 +136,16 @@ const AppBar: React.FC<Props> = ({ openDrawer, onProfilePress, title }) => {
                 <FontAwesomeIcon icon={faBars} size={24} color="#333333" />
             </TouchableOpacity>
             {title && <Text style={styles.title}>{title}</Text>} {/* Render title if provided */}
-            <TouchableOpacity onPress={onProfilePress} style={styles.icon}>
+            
+            {showProfileIcon ?
+                (<TouchableOpacity onPress={onProfilePress} style={styles.icon}>
                 <FontAwesomeIcon icon={faUserCircle} size={24} color="#333333" />
-            </TouchableOpacity>
+            </TouchableOpacity>):(
+                <View style={styles.icon}>
+                    <FontAwesomeIcon icon={faUserCircle} size={24} color="transparent" />
+                </View>
+            )
+            }
         </View>
     );
 };

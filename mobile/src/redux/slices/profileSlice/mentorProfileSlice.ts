@@ -1,14 +1,15 @@
 import {createAsyncThunk, createSlice, PayloadAction} from '@reduxjs/toolkit';
-import {MenteeProfile, MenteeProfileImpl} from '../../types/MenteeProfileTypes';
+import {MenteeProfile, MenteeProfileImpl} from '../../../types/MenteeProfileTypes';
 import {
   apiaddMentorProfileSkill,
   apigetMentorProfile,
   apiUpdateMentorProfile,
-} from '../../services/apiMentorProfile';
+} from '../../../services/profile/apiMentorProfile';
 import {
   MentorProfiletype,
   MentorProfileImpl,
-} from '../../types/MentorProfileTypes';
+} from '../../../types/MentorProfileTypes';
+
 
 enum currentStatus {
   idle = 'idle',
@@ -19,12 +20,15 @@ enum currentStatus {
 interface MenteeProfilestate {
   response: MentorProfiletype | undefined;
   status: currentStatus;
+  Mentorprofile_status: boolean;
 }
 
 const initialState: MenteeProfilestate = {
   response: undefined,
   status: currentStatus.idle,
+  Mentorprofile_status: false,
 };
+
 
 const sliceProfile = createSlice({
   name: 'userProfile',
@@ -43,6 +47,14 @@ const sliceProfile = createSlice({
               JSON.stringify(action.payload),
             ) as MentorProfiletype;
           }
+          if ('contact' in action.payload)
+            if (action.payload['contact'] === null) {
+              
+              state.Mentorprofile_status = false;
+            }
+          else {
+            state.Mentorprofile_status = true;
+          }
           state.status = currentStatus.success;
         } catch (error) {
           console.error('mentee/profile error: ', error);
@@ -53,13 +65,15 @@ const sliceProfile = createSlice({
         state.status = currentStatus.failed;
       })
       .addCase(updateMentorProfileData.fulfilled, (state, action) => {
+        // TODO:
         try {
+          state.Mentorprofile_status = true;
           console.log(`action payload is ${JSON.stringify(action.payload)}`);
           state.response = MentorProfileImpl.fromJSON(
             JSON.stringify(action.payload),
           ) as MentorProfiletype;
           console.log("json response is ",JSON.stringify(state.response))
-
+          
           state.status = currentStatus.success;
         } catch (error) {
           console.error('mentee/profile error: ', error);
@@ -114,17 +128,20 @@ export const updateMentorProfileData = createAsyncThunk(
     designation,
     contact,
     exp,
+    domain
   }: {
     name: string;
     designation: string;
     contact: string;
     exp: string;
+    domain: string;
   }) => {
     const response = await apiUpdateMentorProfile(
       name,
       exp,
       designation,
       contact,
+      domain,
     );
     if (response === 1) {
       const updatedProfile = await apigetMentorProfile();

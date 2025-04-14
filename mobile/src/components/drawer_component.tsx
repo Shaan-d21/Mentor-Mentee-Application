@@ -253,7 +253,7 @@ import {
 import { RootStackParamList } from "../navigation/types";
 import { MMKV } from "react-native-mmkv";
 import { useDispatch, useSelector } from "react-redux";
-import { logout } from "../redux/slices/sliceLogin";
+import { logout } from "../redux/slices/auth/sliceLogin";
 import { RootState } from "../redux/store";
 import { FontAwesomeIcon } from "@fortawesome/react-native-fontawesome";
 import { faUserCircle } from "@fortawesome/free-solid-svg-icons";
@@ -360,12 +360,14 @@ const CustomDrawerContent = (props: CustomDrawerContentProps) => {
                   title="My Mentors"
                 />
               </View>
-              {/* <View style={styles.menuItem}>
+              <View style={styles.menuItem}>
                 <Button
-                  onPress={() => navigation.navigate("MenteeProfileScreen")}
-                  title="Mentee Profile"
+                  onPress={() =>{
+                    closeDrawer(); // Close the drawer first
+                    navigation.navigate("MenteeRequests")}}
+                  title="My Requests"
                 />
-              </View> */}
+              </View>
               <View style={styles.menuItem}>
                 <Button
                   onPress={() => {
@@ -386,7 +388,7 @@ const CustomDrawerContent = (props: CustomDrawerContentProps) => {
           props.toggleDrawer(); // Close the drawer first
           navigation.navigate("MentorDashboard");
         }}
-        title="Mentor Dashboard"
+        title="My Mentees"
       />
     </View>
     <View style={styles.menuItem}>

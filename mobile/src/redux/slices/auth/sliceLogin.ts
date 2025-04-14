@@ -1,5 +1,5 @@
 import { createAsyncThunk, createSlice, PayloadAction } from '@reduxjs/toolkit';
-import { apiLoginUser } from '../../services/apiLogin';
+import { apiLoginUser } from '../../../services/apiLogin';
 import { MMKV } from 'react-native-mmkv'
 
 const storage= new MMKV();
@@ -11,6 +11,7 @@ interface User {
   password: string;
   status: currentStatus;
   name: string;
+  profile_status:boolean;
   role: 'mentee' | 'mentor' |'';
 }
 
@@ -20,6 +21,7 @@ const initialState: User = {
   password: '',
   name:'',
   role:'',
+  profile_status: false,
   status: currentStatus.idle
 };
 
@@ -36,9 +38,23 @@ const sliceLogin = createSlice({
       state.status= currentStatus.idle; 
       // state.currentStatus.idle
     },
+    changeProfileStatus(state, action:PayloadAction<boolean>){
+      state.profile_status= action.payload;
+    },
     setName(state, action:PayloadAction<string>){
       state.name= action.payload
+    },
+    changeStatusToInitial(state){
+      state.status= currentStatus.idle;
+      state.response= [];
+      state.email= '';
+      state.password=  '';
+      // state.name= '';
+      state.role= '';
+      state.profile_status= false;
+
     }
+    
   },
 
   extraReducers(builder){
@@ -52,6 +68,9 @@ const sliceLogin = createSlice({
       state.status= currentStatus.success;
       state.name= action.payload.user_name;
       state.role = action.payload.role;
+      state.profile_status= action.payload.profile_status;
+      console.log('Profile fulfilled' , action.payload.profile_status);
+      console.log('Profile fulfilled' , state.profile_status);
 
       // console.log('Current state is ', state.response);
       storage.set("role", state.role); 
@@ -76,5 +95,5 @@ export const loginUser= createAsyncThunk("userLogin/login", async({email, passwo
   return response;
 });
 
-export const { logout, setName }= sliceLogin.actions;
+export const { logout, setName,changeProfileStatus,changeStatusToInitial }= sliceLogin.actions;
 export default sliceLogin.reducer;

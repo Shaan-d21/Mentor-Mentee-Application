@@ -1,7 +1,7 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { SafeAreaView, StatusBar, View } from 'react-native';
 import { NavigationContainer } from '@react-navigation/native';
-import { Provider } from 'react-redux';
+import { Provider, useSelector } from 'react-redux';
 import {store} from './src/redux/store';
 import 'react-native-gesture-handler';
 import { DrawerProvider, useDrawer } from './src/context/drawer_context';
@@ -15,7 +15,11 @@ LogBox.ignoreAllLogs(); // Disable all warnings and errors
 
 const AppContent: React.FC = () => {
   const { isDrawerOpen, toggleDrawer } = useDrawer();
-
+  const Menteeprofile_status = useSelector((state: any) => state.menteeProfile.Menteeprofile_status);
+useEffect(() => {
+  console.log(`APP from Mentee Profile Status: ${Menteeprofile_status}`);
+}
+, [Menteeprofile_status]);
   return (
     <SafeAreaView style={{ flex: 1 }}>
       <StatusBar barStyle="dark-content" />

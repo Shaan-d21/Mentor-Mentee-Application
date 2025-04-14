@@ -8,6 +8,8 @@ import {
   TouchableOpacity,
   Image,
   Modal,
+  ActivityIndicator,
+  Alert,
 } from 'react-native';
 import DropdownComponent from '../../components/Dropdown';
 import { useDispatch, useSelector } from 'react-redux';
@@ -16,11 +18,30 @@ import {
   getmentorprofile,
   updateMentorProfileData,
   updateMentorprofileskill,
-} from '../../redux/slices/mentorProfileSlice';
+} from '../../redux/slices/profileSlice/mentorProfileSlice';
 import { Skill } from '../../types/MentorProfileTypes';
 import { ScreenProps } from '../../navigation/types';
-import { setName } from '../../redux/slices/sliceLogin';
+import {  setName } from '../../redux/slices/auth/sliceLogin';
 import { MMKV } from 'react-native-mmkv';
+
+import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome';
+import { 
+  faEnvelope, 
+  faBriefcase, 
+  faGraduationCap, 
+  faClock, 
+  faUser, 
+  faPhone, 
+  faCode, 
+  faLayerGroup,
+  faChevronLeft,
+  faEdit,
+  faSave,
+  faUserCircle
+} from '@fortawesome/free-solid-svg-icons';
+import { mentorSpecificStyles, profileStyles } from './profileStyle';
+import AppBar from '../../components/appbar_component';
+import {changeProfileStatus} from '../../redux/slices/auth/sliceLogin';
 
 interface LocalMentorProfile {
   name: string;
@@ -29,7 +50,20 @@ interface LocalMentorProfile {
   contact: string;
   skillSet: Skill[];
   designation: string;
+  domain: string;
 }
+
+const domainOptions = [
+  { label: 'Artificial Intelligence & Machine Learning', value: 'Artificial Intelligence & Machine Learning' },
+  { label: 'Database & Backend', value: 'Database & Backend' },
+  { label: 'Cloud Computing', value: 'Cloud Computing' },
+  { label: 'DevOps & Deployment', value: 'DevOps & Deployment' },
+  { label: 'Data Science & Analytics', value: 'Data Science & Analytics' },
+  { label: 'Software Development', value: 'Software Development' },
+  { label: 'Project & Team Management', value: 'Project & Team Management' },
+  { label: 'Soft Skills', value: 'Soft Skills' },
+  { label: 'Web Development', value: 'Web Development' },
+];
 
 const MentorProfile: FC<ScreenProps<'MentorProfileScreen'>> = ({ navigation }) => {
   const dispatch = useDispatch<AppDispatch>();
@@ -37,6 +71,10 @@ const MentorProfile: FC<ScreenProps<'MentorProfileScreen'>> = ({ navigation }) =
     (state: RootState) => state.mentorProfile.status,
   );
   const mentorData = useSelector((state: RootState) => state.mentorProfile.response);
+  const Mentorprofile_status = useSelector(
+    (state: RootState) => state.mentorProfile.Mentorprofile_status,)
+  const profile_status = useSelector((state:RootState)=> state.login.profile_status);
+  console.log(`profile status is at mentorProfile ${profile_status}`)
 
   // Separate error states
   const [nameError, setNameError] = useState('');
@@ -51,21 +89,17 @@ const MentorProfile: FC<ScreenProps<'MentorProfileScreen'>> = ({ navigation }) =
     contact: '',
     skillSet: [],
     designation: '',
+    domain: '',
   });
-
-  const [_imageUri] = useState(
-    'https://images.unsplash.com/photo-1511367461989-f85a21fda167?q=80&w=1931&auto=format',
-  );
+  
+  const [updateDomain, setUpdateDomain] = useState(profile.domain);
   const [selectedSkill, setSelectedSkill] = useState<string | null>(null);
   const [proficiencyModal, setProficiencyModal] = useState(false);
+  const [domainError, setDomainError] = useState('');
   const [isEditing, setIsEditing] = useState(false);
-  const storage = new MMKV();
+  // const storage = new MMKV();
 
   useEffect(() => {
-    // storage.set(
-    //   'token',
-    //   'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJmYWxndW5pIiwiaWQiOjQzLCJyb2xlIjoibWVudG9yIiwiZXhwIjoxNzQ1MzY4NTE0fQ.rqFMnkss6Vq2l-8Q1r0kGQ78rvOBRk1KF6b0egQYHCY',
-    // );
     dispatch(getmentorprofile());
   }, [dispatch]);
 
@@ -81,11 +115,33 @@ const MentorProfile: FC<ScreenProps<'MentorProfileScreen'>> = ({ navigation }) =
         contact: mentorData.contact || '',
         skillSet: mentorData.skillSet || [],
         designation: mentorData.designation,
+        domain: mentorData.domain,
       });
-    } else if (currentStatus === 'failed') {
-      console.log('Failed to fetch mentor profile data');
-    }
+      setUpdateDomain(mentorData.domain);
+    } else if (currentStatus === 'failed')
+       {
+      Alert.alert('Error', 'Failed to load Profile.', [
+        {
+          text: 'Retry',
+          onPress: () => dispatch(getmentorprofile()),
+        },
+        {
+          text: 'Cancel',
+          onPress: () => navigation.pop(),
+          style: 'cancel',
+        }
+      ],
+    );    }
   }, [currentStatus, mentorData]);
+
+  useEffect(() => {
+    if (Mentorprofile_status) {
+      dispatch(changeProfileStatus(Mentorprofile_status));
+      
+    }
+    // dispatch(changeProfileStatus(true));
+  },[Mentorprofile_status])
+
 
   function handleChange<K extends keyof LocalMentorProfile>(
     key: K,
@@ -127,13 +183,16 @@ const MentorProfile: FC<ScreenProps<'MentorProfileScreen'>> = ({ navigation }) =
   };
 
   const handleSubmit = () => {
+    console.log('Submitting profile data:', profile);console.log('updateDomain:', updateDomain);
     let isValid = true;
 
     // Check name
     if (!profile.name.trim()) {
       setNameError('Name cannot be empty.');
       isValid = false;
-    } else {
+    }
+    
+    else {
       setNameError('');
     }
 
@@ -149,11 +208,17 @@ const MentorProfile: FC<ScreenProps<'MentorProfileScreen'>> = ({ navigation }) =
     }
 
     // Check designation
-    if (!profile.designation.trim()) {
+    if (!profile.designation || !profile.designation.trim()) {
       setDesignationError('Designation cannot be empty.');
       isValid = false;
     } else {
       setDesignationError('');
+    }
+    if(!updateDomain || !updateDomain.trim()) {
+      setDomainError('Domain cannot be empty.');
+      isValid = false;
+    }else{
+      setDomainError('');
     }
 
     // If validations pass, save the profile
@@ -165,6 +230,7 @@ const MentorProfile: FC<ScreenProps<'MentorProfileScreen'>> = ({ navigation }) =
           exp: profile.exp,
           contact: profile.contact,
           designation: profile.designation,
+          domain: updateDomain,
         }),
       );
       dispatch(setName(profile.name));
@@ -172,103 +238,153 @@ const MentorProfile: FC<ScreenProps<'MentorProfileScreen'>> = ({ navigation }) =
   };
 
   return currentStatus === 'loading' ? (
-    <View style={styles.container}>
-      <Text style={styles.loadingText}>Loading Profile...</Text>
+    <View style={[profileStyles.container, { justifyContent: 'center', alignItems: 'center' }]}>
+      <ActivityIndicator size="large" color="#0000ff" />
     </View>
-  ) : currentStatus === 'failed' ? (
-    <View style={styles.container}>
-      <Text style={styles.loadingText}>Failed to load Profile.</Text>
-    </View>
+
+    
   ) : (
-    <ScrollView contentContainerStyle={styles.container}>
-      <View style={styles.profileContainer}>
-        <View style={styles.profileImageContainer}>
-          <Image style={styles.profileImage} source={{ uri: _imageUri }} />
+    <ScrollView contentContainerStyle={profileStyles.container}>
+{
+  
+profile_status? <AppBar 
+title= {isEditing ? 'Mentor Profile Edit' : 'Mentor Profile'} 
+onProfilePress={() => navigation.navigate('MentorProfileScreen')} openDrawer={() => {}} />
+  : <></>
+}
+      <View style={profileStyles.profileContainer}>
+        <View style={profileStyles.profileImageContainer}>
+           <FontAwesomeIcon icon={ faUserCircle} size={150} color="#3498db" style={profileStyles.profileImage} />
         </View>
 
-        <View style={styles.infoContainer}>
+        <View style={profileStyles.infoContainer}>
           {!isEditing ? (
-            <>
-              <Text style={styles.profileText}>Full Name: {profile.name}</Text>
-              <Text style={styles.profileText}>Email: {profile.mail}</Text>
-              <Text style={styles.profileText}>Mobile: {profile.contact}</Text>
-              <Text style={styles.profileText}>
-                Experience: {profile.exp} years
-              </Text>
-              <Text style={styles.profileText}>
-                Designation: {profile.designation}
-              </Text>
-            </>
+            <View style={profileStyles.profileInfoSection}>
+              <View style={profileStyles.infoRow}>
+                <FontAwesomeIcon icon={faUser} size={18} color="#3498db" style={profileStyles.infoIcon} />
+                <Text style={profileStyles.infoText}>{profile.name}</Text>
+              </View>
+              
+              <View style={profileStyles.infoRow}>
+                <FontAwesomeIcon icon={faEnvelope} size={18} color="#3498db" style={profileStyles.infoIcon} />
+                <Text style={profileStyles.infoText}>{profile.mail}</Text>
+              </View>
+              
+              <View style={profileStyles.infoRow}>
+                <FontAwesomeIcon icon={faPhone} size={18} color="#3498db" style={profileStyles.infoIcon} />
+                <Text style={profileStyles.infoText}>{profile.contact}</Text>
+              </View>
+              
+              <View style={profileStyles.infoRow}>
+                <FontAwesomeIcon icon={faClock} size={18} color="#3498db" style={profileStyles.infoIcon} />
+                <Text style={profileStyles.infoText}>{profile.exp} years</Text>
+              </View>
+              
+              <View style={profileStyles.infoRow}>
+                <FontAwesomeIcon icon={faBriefcase} size={18} color="#3498db" style={profileStyles.infoIcon} />
+                <Text style={profileStyles.infoText}>{profile.designation}</Text>
+              </View>
+              
+              <View style={profileStyles.infoRow}>
+                <FontAwesomeIcon icon={faLayerGroup} size={18} color="#3498db" style={profileStyles.infoIcon} />
+                <Text style={profileStyles.infoText}>{profile.domain}</Text>
+              </View>
+            </View>
           ) : (
             <>
-              <Text>Full Name</Text>
-              <TextInput
-                style={[
-                  styles.infoText,
-                  nameError ? styles.inputError : undefined,
-                ]}
-                value={profile.name}
-                onChangeText={txt => handleChange('name', txt)}
-                placeholder="Full Name"
-              />
+              <View style={profileStyles.inputContainer}>
+                <FontAwesomeIcon icon={faUser} size={18} color="#3498db" style={profileStyles.inputIcon} />
+                <TextInput
+                  style={[
+                    profileStyles.inputField,
+                    nameError ? profileStyles.inputError : undefined,
+                  ]}
+                  value={profile.name}
+                  onChangeText={txt => handleChange('name', txt)}
+                  placeholder="Full Name"
+                />
+              </View>
               {nameError ? (
-                <Text style={styles.errorText}>{nameError}</Text>
+                <Text style={profileStyles.errorText}>{nameError}</Text>
               ) : null}
 
-              <Text>Email</Text>
-              <Text style={[styles.infoText, emailError && styles.inputError]}>
-                {profile.mail}
-              </Text>
+              <View style={profileStyles.inputContainer}>
+                <FontAwesomeIcon icon={faEnvelope} size={18} color="#3498db" style={profileStyles.inputIcon} />
+                <Text style={[profileStyles.inputField, profileStyles.disabledInput]}>
+                  {profile.mail}
+                </Text>
+              </View>
               {emailError ? (
-                <Text style={styles.errorText}>{emailError}</Text>
+                <Text style={profileStyles.errorText}>{emailError}</Text>
               ) : null}
 
-              <Text>Mobile</Text>
-              <TextInput
-                style={[
-                  styles.infoText,
-                  mobileError ? styles.inputError : undefined,
-                ]}
-                value={profile.contact}
-                keyboardType="phone-pad"
-                onChangeText={txt => handleChange('contact', txt)}
-                placeholder="Mobile Number"
-              />
+              <View style={profileStyles.inputContainer}>
+                <FontAwesomeIcon icon={faPhone} size={18} color="#3498db" style={profileStyles.inputIcon} />
+                <TextInput
+                  style={[
+                    profileStyles.inputField,
+                    mobileError ? profileStyles.inputError : undefined,
+                  ]}
+                  value={profile.contact}
+                  keyboardType="phone-pad"
+                  onChangeText={txt => handleChange('contact', txt)}
+                  placeholder="Mobile Number"
+                />
+              </View>
               {mobileError ? (
-                <Text style={styles.errorText}>{mobileError}</Text>
+                <Text style={profileStyles.errorText}>{mobileError}</Text>
               ) : null}
 
-              <Text>Experience (Years)</Text>
-              <TextInput
-                style={styles.infoText}
-                value={profile.exp}
-                keyboardType="numeric"
-                onChangeText={txt => handleChange('exp', txt)}
-                placeholder="Experience in Years"
-              />
+              <View style={profileStyles.inputContainer}>
+                <FontAwesomeIcon icon={faClock} size={18} color="#3498db" style={profileStyles.inputIcon} />
+                <TextInput
+                  style={profileStyles.inputField}
+                  value={profile.exp}
+                  keyboardType="numeric"
+                  onChangeText={txt => handleChange('exp', txt)}
+                  placeholder="Experience in Years"
+                />
+              </View>
 
-              <Text>Designation</Text>
-              <TextInput
-                style={[
-                  styles.infoText,
-                  designationError ? styles.inputError : undefined,
-                ]}
-                value={profile.designation}
-                onChangeText={txt => handleChange('designation', txt)}
-                placeholder="Designation"
-              />
+              <View style={profileStyles.inputContainer}>
+                <FontAwesomeIcon icon={faBriefcase} size={18} color="#3498db" style={profileStyles.inputIcon} />
+                <TextInput
+                  style={[
+                    profileStyles.inputField,
+                    designationError ? profileStyles.inputError : undefined,
+                  ]}
+                  value={profile.designation}
+                  onChangeText={txt => handleChange('designation', txt)}
+                  placeholder="Designation"
+                />
+              </View>
               {designationError ? (
-                <Text style={styles.errorText}>{designationError}</Text>
+                <Text style={profileStyles.errorText}>{designationError}</Text>
               ) : null}
+
+              <View style={mentorSpecificStyles.dropdownWrapper}>
+                <View style={mentorSpecificStyles.dropdownField}>
+                  <DropdownComponent data={domainOptions} onSelect={setUpdateDomain} selectedValue={updateDomain} placeholder='Select Domain' />
+                </View>
+             
+              </View>
+              {domainError ? (
+                <Text style={profileStyles.errorText}>{domainError}</Text>
+              ) : null}
+
+              
             </>
           )}
         </View>
       </View>
 
       {!!profile.skillSet?.length && (
-        <View style={styles.domainsContainer}>
-          <Text style={styles.domainsTitle}>Skills</Text>
-          <View style={styles.domainsList}>
+        <View style={profileStyles.domainsContainer}>
+          <View style={profileStyles.sectionHeaderRow}>
+            <FontAwesomeIcon icon={faCode} size={18} color="#3498db" />
+            <Text style={profileStyles.domainsTitle}>Skills</Text>
+          </View>
+          <View style={profileStyles.domainsList}>
             {Array.from(
               profile.skillSet.reduce((map, item) => {
                 const nameKey = item.name.trim().toLowerCase();
@@ -281,37 +397,64 @@ const MentorProfile: FC<ScreenProps<'MentorProfileScreen'>> = ({ navigation }) =
                 return map;
               }, new Map()).values()
             ).map((item, index) => (
-              <Text key={index} style={styles.domainItem}>
-                {item.name} — Level: {item.proficiency}
-              </Text>
+              <View key={index} style={profileStyles.skillItem}>
+                <Text style={profileStyles.skillText}>
+                  {item.name}
+                </Text>
+                <View style={mentorSpecificStyles.skillLevel}>
+                  <Text style={mentorSpecificStyles.levelText}>Level {item.proficiency}</Text>
+                </View>
+              </View>
             ))}
-// ...existing code...
           </View>
         </View>
       )}
 
-      <View style={styles.dropdownContainer}>
+      <View style={profileStyles.dropdownContainer}>
+        <View style={profileStyles.sectionHeaderRow}>
+          <FontAwesomeIcon icon={faCode} size={18} color="#3498db" />
+          <Text style={profileStyles.domainsTitle}>Add New Skill</Text>
+        </View>
         <DropdownComponent
           data={[
-            { label: 'JavaScript', value: 'JavaScript' },
             { label: 'Python', value: 'Python' },
             { label: 'Java', value: 'Java' },
+            { label: 'JavaScript', value: 'JavaScript' },
             { label: 'C++', value: 'C++' },
-            { label: 'React', value: 'React' },
-            { label: 'Node.js', value: 'Node.js' },
             { label: 'SQL', value: 'SQL' },
+            { label: 'Node JS', value: 'Node JS' },
+            { label: 'SpringBoot', value: 'SpringBoot' },
+            { label: 'AWS', value: 'AWS' },
+            { label: 'GCP', value: 'GCP' },
+            { label: 'Docker', value: 'Docker' },
             { label: 'Machine Learning', value: 'Machine Learning' },
-            { label: 'Data Science', value: 'Data Science' },
-            { label: 'Cybersecurity', value: 'Cybersecurity' },
+            { label: 'Deep Learning', value: 'Deep Learning' },
+            { label: 'NLP', value: 'NLP' },
+            { label: 'TensorFlow', value: 'TensorFlow' },
+            { label: 'LangChain', value: 'LangChain' },
+            { label: 'GenAI', value: 'GenAI' },
+            { label: 'Data Analysis', value: 'Data Analysis' },
+            { label: 'Big Data', value: 'Big Data' },
+            { label: 'Data Structure', value: 'Data Structure' },
+            { label: 'Problem Solving', value: 'Problem Solving' },
+            { label: 'Project Management', value: 'Project Management' },
+            { label: 'Leadership', value: 'Leadership' },
+            { label: 'Time Management', value: 'Time Management' },
+            { label: 'Communication', value: 'Communication' },
+            { label: 'Public Speaking', value: 'Public Speaking' },
+            { label: 'Critical Thinking', value: 'Critical Thinking' },
+            { label: 'Teamwork', value: 'Teamwork' },
+            { label: 'HTML', value: 'HTML' },
+            { label: 'CSS', value: 'CSS' },
           ]}
           selectedValue={selectedSkill || ''}
           onSelect={handleSkillSelection}
-          placeholder="Add Skills"
+          placeholder="Select Skill"
         />
       </View>
 
       <TouchableOpacity
-        style={styles.button}
+        style={profileStyles.button}
         onPress={() => {
           if (isEditing) {
             handleSubmit();
@@ -320,32 +463,39 @@ const MentorProfile: FC<ScreenProps<'MentorProfileScreen'>> = ({ navigation }) =
           }
         }}
       >
-        <Text style={styles.buttonText}>
+        <FontAwesomeIcon 
+          icon={isEditing ? faSave : faEdit} 
+          size={16} 
+          color="#fff" 
+          style={profileStyles.buttonIcon} 
+        />
+        <Text style={profileStyles.buttonText}>
           {isEditing ? 'Save Profile' : 'Update Profile'}
         </Text>
       </TouchableOpacity>
-      <TouchableOpacity
-        style={styles.button}
+      {/* <TouchableOpacity
+        style={[profileStyles.button, profileStyles.backButton]}
         onPress={() => {
           navigation.navigate('MentorDashboard');
         }}
       >
-        <Text style={styles.buttonText}>Go Back</Text>
-      </TouchableOpacity>
+        <FontAwesomeIcon icon={faChevronLeft} size={16} color="#fff" style={profileStyles.buttonIcon} />
+        <Text style={profileStyles.buttonText}>Go Back</Text>
+      </TouchableOpacity> */}
 
       <Modal visible={proficiencyModal} transparent animationType="slide">
-        <View style={styles.modalBackground}>
-          <View style={styles.modalContainer}>
-            <Text style={styles.modalTitle}>
+        <View style={mentorSpecificStyles.modalBackground}>
+          <View style={mentorSpecificStyles.modalContainer}>
+            <Text style={mentorSpecificStyles.modalTitle}>
               Select proficiency for {selectedSkill}
             </Text>
             {[1, 2, 3].map(level => (
               <TouchableOpacity
                 key={level}
-                style={styles.proficiencyButton}
+                style={mentorSpecificStyles.proficiencyButton}
                 onPress={() => handleProficiencySelection(level)}
               >
-                <Text style={styles.proficiencyText}>Level {level}</Text>
+                <Text style={mentorSpecificStyles.proficiencyText}>Level {level}</Text>
               </TouchableOpacity>
             ))}
           </View>
@@ -355,164 +505,5 @@ const MentorProfile: FC<ScreenProps<'MentorProfileScreen'>> = ({ navigation }) =
   );
 };
 
-const styles = StyleSheet.create({
-  container: {
-    flexGrow: 1,
-    padding: 16,
-    backgroundColor: '#fff',
-  },
-  loadingText: {
-    fontSize: 20,
-    fontWeight: 'bold',
-    marginBottom: 16,
-  },
-  dropdownContainer: {
-    marginBottom: 16,
-  },
-  dropdown: {
-    width: '100%',
-    height: 40,
-    borderWidth: 1,
-    borderColor: '#ccc',
-    borderRadius: 5,
-    backgroundColor: '#fff',
-    paddingHorizontal: 10,
-    marginTop: 10,
-    zIndex: 10,
-  },
-  profileContainer: {
-    marginTop: 16,
-    flexDirection: 'column',
-    marginBottom: 16,
-  },
-  profileImageContainer: {
-    marginRight: 16,
-    alignItems: 'center',
-    position: 'relative',
-  },
-  profileImage: {
-    width: 170,
-    height: 200,
-    marginBottom: 8,
-    marginTop: 16,
-    overflow: 'hidden',
-  },
-  domainsTitle: {
-    fontSize: 16,
-    fontWeight: 'bold',
-    marginBottom: 8,
-  },
-  domainsList: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-  },
-  domainItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#eee',
-    padding: 8,
-    margin: 4,
-    borderRadius: 4,
-  },
-  domainText: {
-    marginRight: 8,
-  },
-  editButton: {
-    position: 'absolute',
-    bottom: 10,
-    right: 0,
-    backgroundColor: '#007bff',
-    paddingVertical: 4,
-    paddingHorizontal: 12,
-    borderRadius: 4,
-  },
-  editButtonText: {
-    color: '#fff',
-    fontSize: 16,
-  },
-  companyInput: {
-    backgroundColor: '#eee',
-    borderWidth: 1,
-    borderColor: '#eee',
-    borderRadius: 5,
-    padding: 10,
-    fontSize: 16,
-    marginBottom: 10,
-  },
-  infoText: {
-    backgroundColor: '#eee',
-    padding: 8,
-    marginBottom: 8,
-    borderRadius: 4,
-  },
-  infoContainer: {
-    marginTop: 16,
-    flex: 1,
-  },
-  inputError: {
-    borderColor: 'red',
-    borderWidth: 1,
-  },
-  errorText: {
-    color: 'red',
-    fontSize: 12,
-    marginBottom: 8,
-  },
-  genderPickerContainer: {
-    marginBottom: 16,
-  },
-  domainsContainer: {
-    marginBottom: 16,
-  },
-  profileText: {
-    backgroundColor: '#eee',
-    padding: 8,
-    marginBottom: 8,
-    borderRadius: 4,
-  },
-  button: {
-    marginBottom: 10,
-    backgroundColor: '#3498db',
-    paddingVertical: 12,
-    paddingHorizontal: 20,
-    borderRadius: 8,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  buttonText: {
-    color: '#fff',
-    fontSize: 16,
-    fontWeight: 'bold',
-  },
-  modalBackground: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: 'rgba(0,0,0,0.5)',
-  },
-  modalContainer: {
-    backgroundColor: 'white',
-    padding: 20,
-    borderRadius: 10,
-    width: 300,
-    alignItems: 'center',
-  },
-  modalTitle: {
-    fontSize: 18,
-    marginBottom: 10,
-  },
-  proficiencyButton: {
-    backgroundColor: '#4CAF50',
-    padding: 10,
-    marginVertical: 5,
-    width: 200,
-    alignItems: 'center',
-    borderRadius: 5,
-  },
-  proficiencyText: {
-    color: '#fff',
-    fontSize: 16,
-  },
-});
 
 export default MentorProfile;

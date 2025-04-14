@@ -91,7 +91,20 @@ export const assignRoadmap = createAsyncThunk("mentorRoadmap/assignRoadmap", asy
 const mentorRoadmapSlice = createSlice({
   name: "mentorRoadmap",
   initialState,
-  reducers: {},
+  reducers: {
+initialStateMentorRoadmap (state)  {
+      state.mentees = [];
+      state.roadmap = null;
+      state.roadmapId = null;
+      state.status = currentStatus.idle;
+      state.error = null;
+      state.assignStatus = null;
+    }
+  
+
+
+
+  },
   extraReducers: (builder) => {
     builder
       // Fetch approved mentees
@@ -148,5 +161,5 @@ const mentorRoadmapSlice = createSlice({
       );
   },
 });
-
+export const { initialStateMentorRoadmap } = mentorRoadmapSlice.actions;
 export default mentorRoadmapSlice.reducer;
