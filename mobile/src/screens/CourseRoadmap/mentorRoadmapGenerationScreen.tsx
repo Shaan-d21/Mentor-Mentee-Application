@@ -4,11 +4,12 @@ import { useDispatch, useSelector } from 'react-redux';
 import DropdownComponent from '../../components/Dropdown';
 import { ScreenProps } from '../../navigation/types';
 import AppBar from '../../components/appbar_component';
-import { fetchApprovedMentees, generateRoadmap, assignRoadmap } from '../../redux/slices/sliceMentorRoadmap'; // <-- Added
+import { fetchApprovedMentees, generateRoadmap, assignRoadmap, initialStateMentorRoadmap } from '../../redux/slices/sliceMentorRoadmap'; // <-- Added
 import { AppDispatch, RootState } from '../../redux/store'; // Adjust import to match your store file
 import { ListRoadmapItems } from '../../components/roadmap/RoadmapListItemsComponent';
 import DomainView from '../../components/roadmap/domainView';
 import { MMKV } from 'react-native-mmkv';
+import { useIsFocused } from '@react-navigation/native';
 
 export const MentorRoadmapGeneration: FC<ScreenProps<'MentorRoadmapGeneration'>> = ({ navigation }) => {
   const dispatch = useDispatch<AppDispatch>();
@@ -17,10 +18,17 @@ export const MentorRoadmapGeneration: FC<ScreenProps<'MentorRoadmapGeneration'>>
   const [selectedMentee, setSelectedMentee] = useState('');
   const [selectedDomain, setSelectedDomain] = useState('');
   const storage = new MMKV();
+  const isFocused = useIsFocused();
 
   useEffect(() => {
-    // storage.set("token", "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJmYWxndW5pIiwiaWQiOjQzLCJyb2xlIjoibWVudG9yIiwiZXhwIjoxNzQ1MzY4NTE0fQ.rqFMnkss6Vq2l-8Q1r0kGQ78rvOBRk1KF6b0egQYHCY")
+    if (!isFocused) {
+      dispatch(initialStateMentorRoadmap())
+      dispatch(fetchApprovedMentees());
 
+    }
+  }, [isFocused]);
+
+  useEffect(() => {
     dispatch(fetchApprovedMentees());
 
   }, [dispatch]);
@@ -62,7 +70,8 @@ export const MentorRoadmapGeneration: FC<ScreenProps<'MentorRoadmapGeneration'>>
 
   return (
     <View style={styles.container}>
-      <AppBar onProfilePress={() => { }} openDrawer={() => { }} />
+
+      <AppBar onProfilePress={() => { navigation.navigate("MentorProfileScreen")}} openDrawer={() => { }} />
 
       <ScrollView contentContainerStyle={styles.scrollContent}>
         {status === 'loading' && (
@@ -114,6 +123,9 @@ export const MentorRoadmapGeneration: FC<ScreenProps<'MentorRoadmapGeneration'>>
       )}
       {roadmap && status !== 'loading' && (
         <View style={styles.bottomBar}>
+          {/* <TouchableOpacity style={styles.button} onPress={handleAssignRoadmap}>
+            <Text style={styles.buttonText}>Go Back</Text>
+          </TouchableOpacity> */}
           <TouchableOpacity style={styles.button} onPress={handleAssignRoadmap}>
             <Text style={styles.buttonText}>Assign to {selectedMentee}</Text>
           </TouchableOpacity>
@@ -165,6 +177,8 @@ const styles = StyleSheet.create({
     color: '#000',
   },
   bottomBar: {
+    display: 'flex',
+    flexDirection: 'row',
     backgroundColor: '#ffffff',
     borderTopWidth: 1,
     borderTopColor: '#ddd',

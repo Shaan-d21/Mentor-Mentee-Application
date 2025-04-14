@@ -52,6 +52,10 @@ export const fetchApprovedMentees = createAsyncThunk("mentorRoadmap/fetchMentees
   }
 });
 
+function splitByNewLine(input: string): string[] {
+  return input.split('\n').map(item => item.trim()).filter(item => item.length > 0);
+}
+
 // Async thunk to generate a roadmap
 export const generateRoadmap = createAsyncThunk(
   "mentorRoadmap/generateRoadmap", async ({domainId,id}:{domainId: string,id:string}) => {
@@ -87,7 +91,20 @@ export const assignRoadmap = createAsyncThunk("mentorRoadmap/assignRoadmap", asy
 const mentorRoadmapSlice = createSlice({
   name: "mentorRoadmap",
   initialState,
-  reducers: {},
+  reducers: {
+initialStateMentorRoadmap (state)  {
+      state.mentees = [];
+      state.roadmap = null;
+      state.roadmapId = null;
+      state.status = currentStatus.idle;
+      state.error = null;
+      state.assignStatus = null;
+    }
+  
+
+
+
+  },
   extraReducers: (builder) => {
     builder
       // Fetch approved mentees
@@ -114,7 +131,12 @@ const mentorRoadmapSlice = createSlice({
         state.error = null;
         console.log("Roadmap generated:", action.payload);
         state.roadmapId = action.payload.roadmap_id; 
-        state.roadmap = action.payload.topics;
+    //     state.roadmap = action.payload.topics
+    // .split('\n')
+    // .map((topic: string) => topic.trim())
+    // .filter(item => item.length > 0);
+    state.roadmap= splitByNewLine(action.payload.roadmap_name);
+    console.log("Roadmap topics:", state.roadmap);
       })
       .addCase(generateRoadmap.rejected, (state, action) => {
         state.status = currentStatus.failed;
@@ -139,5 +161,5 @@ const mentorRoadmapSlice = createSlice({
       );
   },
 });
-
+export const { initialStateMentorRoadmap } = mentorRoadmapSlice.actions;
 export default mentorRoadmapSlice.reducer;

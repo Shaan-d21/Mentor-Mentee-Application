@@ -3,7 +3,7 @@ from fastapi import APIRouter, Depends, HTTPException, Path
 from pydantic import BaseModel, Field
 from database import SessionLocal
 from sqlalchemy.orm import Session
-from models import User,Skill, MentorSkill, MentorMentee, Domain, MenteeSkill
+from models import User,Skill, MentorMentee, Domain, MenteeSkill
 from .auth import get_current_user
 from starlette import status
 

@@ -1,5 +1,5 @@
 import { createAsyncThunk, createSlice, PayloadAction } from "@reduxjs/toolkit";
-import { apiRegisterUser } from "../../services/apiRegister";
+import { apiRegisterUser } from "../../../services/apiRegister";
 
 enum currentStatus { idle = 'idle', loading = 'loading', success = 'success', failed = 'failed' }
 interface User {
@@ -27,6 +27,11 @@ const sliceRegister = createSlice({
     reducers: {
         setUserRole: (state, action: PayloadAction<"admin" | "mentee" | "mentor">) => {
             state.role = action.payload;
+        },
+        changeStatusToInitial: (state) => {
+            state.status = currentStatus.idle;
+            state = initialState;
+
         }
     },
     extraReducers(builder) {
@@ -46,5 +51,5 @@ export const registerUser = createAsyncThunk("userLogin/registerUser", async ({ 
     // console.log(`Response in the slice is `, response);
     return response;
 });
-
+export const {changeStatusToInitial} = sliceRegister.actions;
 export default sliceRegister.reducer;

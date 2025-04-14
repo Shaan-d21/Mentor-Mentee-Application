@@ -215,7 +215,7 @@ const MenteeRoadmap = () => {
       if (error.response && error.response.status === 404) {
         Alert.alert(
           'Roadmap Not Assigned',
-          'The roadmap for this mentor and domain has not been assigned yet.',
+          'The roadmap for this domain has not been assigned yet.',
           [{ text: 'OK' }]
         );
       } else {

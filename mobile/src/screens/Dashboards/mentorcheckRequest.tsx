@@ -335,6 +335,13 @@ import AppBar from '../../components/appbar_component';
 import {useNavigation, NavigationProp} from '@react-navigation/native';
 import {RootStackParamList} from '../../navigation/types'; // Adjust the path to your navigation types file
 import {Icon} from 'react-native-elements';
+import {FontAwesomeIcon} from '@fortawesome/react-native-fontawesome';
+import {
+  faEnvelope,
+  faUserTag,
+  faCodeBranch,
+} from '@fortawesome/free-solid-svg-icons';
+import {faChevronLeft} from '@fortawesome/free-solid-svg-icons';
 
 interface PendingRequest {
   id: number;
@@ -361,10 +368,13 @@ const CheckRequestScreen: React.FC = () => {
   >(null);
   const [approvedMentees, setApprovedMentees] = useState([]);
 
-  const {pending,isActionDone,error,status} = useSelector((state: RootState) => state.menteeRequests);
+  const {pending, isActionDone, error, status} = useSelector(
+    (state: RootState) => state.menteeRequests,
+  );
 
   useEffect(() => {
     const fetchData = async () => {
+      setLoading(true);
       await dispatch(fetchPendingRequest());
       setLoading(false);
     };
@@ -398,7 +408,6 @@ const CheckRequestScreen: React.FC = () => {
             comment: comment.trim(), // Use the comment provided by the user
           }),
         ).then(() => {
-          
           dispatch(fetchApprovedMentees());
           dispatch(fetchPendingRequest());
           setModalVisible(false);
@@ -435,17 +444,41 @@ const CheckRequestScreen: React.FC = () => {
     </View>
   );
 
-  const renderItem = ({item, index}: {item: PendingRequest; index: number}) => (
-    <View
-      style={[
-        styles.row,
-        {backgroundColor: index % 2 === 0 ? '#f2f2f2' : '#ffffff'},
-      ]}>
-      <Text style={styles.cell}>{item.name}</Text>
-      <Text style={styles.cell}>{item.email}</Text>
-      <Text style={styles.cell}>{item.role}</Text>
-      <Text style={styles.cell}>{item.domain}</Text>
-      <View style={styles.actionCell}>
+  const renderPendingRequestCard = ({item}: {item: PendingRequest}) => (
+    <View style={styles.card}>
+      <View style={styles.cardHeader}>
+        <Text style={styles.cardTitle}>{item.name}</Text>
+      </View>
+      <View style={styles.cardBody}>
+        <View style={styles.cardItem}>
+          <FontAwesomeIcon
+            icon={faEnvelope}
+            size={16}
+            color="#777"
+            style={styles.icon}
+          />
+          <Text style={styles.cardText}>{item.email}</Text>
+        </View>
+        <View style={styles.cardItem}>
+          <FontAwesomeIcon
+            icon={faUserTag}
+            size={16}
+            color="#777"
+            style={styles.icon}
+          />
+          <Text style={styles.cardText}>{item.role}</Text>
+        </View>
+        <View style={styles.cardItem}>
+          <FontAwesomeIcon
+            icon={faCodeBranch}
+            size={16}
+            color="#777"
+            style={styles.icon}
+          />
+          <Text style={styles.cardText}>{item.domain}</Text>
+        </View>
+      </View>
+      <View style={styles.cardActions}>
         <TouchableOpacity
           onPress={() => handleApprove(item.id)}
           style={styles.approve}>
@@ -462,15 +495,15 @@ const CheckRequestScreen: React.FC = () => {
 
   return (
     <View style={styles.container}>
-      <AppBar
+      {/* <AppBar
         onProfilePress={() => navigation.navigate('MentorProfileScreen')}
         openDrawer={() => {}}
-      />
+      /> */}
 
       <View style={styles.titleRow}>
         <TouchableOpacity
           onPress={() => navigation.navigate('MentorDashboard')}>
-          <Icon name="arrow-left" type="font-awesome" size={20} color="#333" />
+          <FontAwesomeIcon icon={faChevronLeft} size={24} color="black" />
         </TouchableOpacity>
         <Text style={styles.title}>Mentee Requests</Text>
       </View>
@@ -480,12 +513,12 @@ const CheckRequestScreen: React.FC = () => {
       ) : pending.length === 0 ? (
         <Text>No requests found.</Text>
       ) : (
-        <ScrollView horizontal>
+        <ScrollView>
           <View style={styles.table}>
-            {renderHeader()}
+            {/* {renderHeader()} */}
             <FlatList
               data={pending}
-              renderItem={renderItem}
+              renderItem={renderPendingRequestCard}
               keyExtractor={item => item.id.toString()}
               ItemSeparatorComponent={() => <View style={styles.separator} />}
             />
@@ -527,8 +560,11 @@ const CheckRequestScreen: React.FC = () => {
                 padding: 10,
                 borderRadius: 5,
                 marginBottom: 15,
+                height: 100, 
+                textAlignVertical: 'top', 
               }}
               multiline
+              scrollEnabled
             />
 
             <TouchableOpacity
@@ -552,7 +588,9 @@ const CheckRequestScreen: React.FC = () => {
                 paddingVertical: 10,
                 borderRadius: 5,
               }}
-              onPress={() => setModalVisible(false)}>
+              onPress={() => 
+              setModalVisible(false)
+              }>
               <Text
                 style={{color: '#fff', textAlign: 'center', fontWeight: '600'}}>
                 Cancel
@@ -585,11 +623,78 @@ export default CheckRequestScreen;
 const styles = StyleSheet.create({
   container: {flex: 1, padding: 16},
   title: {fontSize: 20, fontWeight: 'bold', marginVertical: 10},
-  table: {minWidth: 700}, // Allow horizontal scroll
+  table: {minWidth: 180}, // Allow horizontal scroll
 
   headerRow: {
     backgroundColor: 'black',
   },
+  card: {
+    backgroundColor: '#E0F7FA',
+    padding: 16,
+    marginBottom: 12,
+    borderRadius: 10,
+    elevation: 4,
+    shadowColor: '#000',
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    shadowOffset: {width: 0, height: 2},
+  },
+
+  cardHeader: {
+    marginBottom: 10,
+  },
+
+  cardTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: '#333',
+  },
+
+  cardBody: {
+    paddingLeft: 6,
+  },
+
+  cardItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 8,
+  },
+
+  icon: {
+    marginRight: 10,
+  },
+
+  cardText: {
+    fontSize: 14,
+    color: '#555',
+  },
+  cardActions: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginTop: 12,
+    alignItems: 'center',
+  },
+
+  approve: {
+    backgroundColor: '#4CAF50',
+    paddingVertical: 8,
+    paddingHorizontal: 16,
+    borderRadius: 8,
+  },
+
+  reject: {
+    backgroundColor: '#F44336',
+    paddingVertical: 8,
+    paddingHorizontal: 16,
+    borderRadius: 8,
+  },
+
+  btnText: {
+    color: '#fff',
+    fontWeight: 'bold',
+    fontSize: 14,
+  },
+
   headerCell: {
     fontWeight: 'bold',
     fontSize: 16,
@@ -621,26 +726,6 @@ const styles = StyleSheet.create({
     justifyContent: 'space-around', // or 'space-between' / 'flex-start'
     alignItems: 'center',
     gap: 8, // If using React Native 0.71+, or you can use margin manually
-  },
-
-  approve: {
-    backgroundColor: 'green',
-    paddingVertical: 6,
-    paddingHorizontal: 12,
-    borderRadius: 6,
-  },
-
-  reject: {
-    backgroundColor: 'red',
-    paddingVertical: 6,
-    paddingHorizontal: 12,
-    borderRadius: 6,
-  },
-
-  btnText: {
-    color: '#fff',
-    fontWeight: 'bold',
-    fontSize: 14,
   },
 
   separator: {

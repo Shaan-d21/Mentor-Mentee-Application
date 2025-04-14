@@ -6,10 +6,10 @@ from fastapi import HTTPException
 AI_SERVER_URL = "http://181.214.44.15:8003"
 
 async def fetch_predictions(domain: str) -> str:
-    async with httpx.AsyncClient() as client:
+    async with httpx.AsyncClient(timeout=100.0) as client:
         response = await client.get(f"{AI_SERVER_URL}/predict/", params={"d": domain})
         response.raise_for_status()
-        return response.text
+        return response.json()
 
 async def fetch_roadmap(domain_id: int, mentee_id: int):
     url = f"{AI_SERVER_URL}/roadmaps/generate/"

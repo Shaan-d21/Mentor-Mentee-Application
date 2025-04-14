@@ -3,7 +3,6 @@ import {
   Text,
   TextInput,
   TouchableOpacity,
-  StyleSheet,
   KeyboardAvoidingView,
   Platform,
   Alert,
@@ -12,8 +11,9 @@ import {
 import { Dropdown } from 'react-native-element-dropdown';
 import { useDispatch, useSelector } from 'react-redux';
 import { AppDispatch, RootState } from '../../redux/store';
-import { registerUser } from '../../redux/slices/sliceRegister';
+import { changeStatusToInitial, registerUser } from '../../redux/slices/auth/sliceRegister';
 import { ScreenProps } from '../../navigation/types';
+import { authStyles } from './authStyle';
 
 const CreateAccountPage: React.FC<ScreenProps<"CreateAccountPage">> = ({ navigation }) => {
   const dispatch = useDispatch<AppDispatch>();
@@ -28,7 +28,13 @@ const CreateAccountPage: React.FC<ScreenProps<"CreateAccountPage">> = ({ navigat
 
   const handleFormSubmit = () => {
     const isEmailValid = emailRegex.test(emailLocal);
-    const isPasswordValid = passwordLocal.length >= 6;
+    const isPasswordValid =
+    passwordLocal.length >= 8 &&
+    /[A-Z]/.test(passwordLocal) &&
+    /[a-z]/.test(passwordLocal) &&
+    /[0-9]/.test(passwordLocal) &&
+    /[^a-zA-Z0-9\s]/.test(passwordLocal);
+    const isNameValid = nameLocal.trim() !== '' && /^[a-zA-Z\s]+$/.test(nameLocal.trim());
 
     if (!isEmailValid && !isPasswordValid) {
       Alert.alert('Invalid Username and Password');
@@ -39,15 +45,17 @@ const CreateAccountPage: React.FC<ScreenProps<"CreateAccountPage">> = ({ navigat
       return;
     }
     if (!isPasswordValid) {
-      Alert.alert('Invalid Password');
+      Alert.alert('Invalid Password'
+        , '\nPassword must be at least 8 characters long and contain at least one uppercase letter, one lowercase letter, one number, and one special character.'
+      );
       return;
     }
     if (!userTypeLocal) {
       Alert.alert('Invalid User Type');
       return;
     }
-    if (!nameLocal) {
-      Alert.alert('Invalid Name');
+    if (!isNameValid) {
+      Alert.alert('Invalid Name', 'Name should only contain letters.');
       return;
     }
 
@@ -62,9 +70,11 @@ const CreateAccountPage: React.FC<ScreenProps<"CreateAccountPage">> = ({ navigat
 
   useEffect(() => {
     if (currentStatus === 'success') {
+      dispatch(changeStatusToInitial())
       Alert.alert('Account Created Successfully!')
       navigation.replace('SignInPage');
     } else if (currentStatus === 'failed') {
+      dispatch(changeStatusToInitial())
       Alert.alert('Registration Failed. Please try again.');
     }
   }, [currentStatus, navigation]);
@@ -77,12 +87,12 @@ const CreateAccountPage: React.FC<ScreenProps<"CreateAccountPage">> = ({ navigat
   return (
     <KeyboardAvoidingView
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-      style={styles.container}
+      style={authStyles.container}
     >
-      <View style={styles.formContainer}>
-        <Text style={styles.title}>Create Account</Text>
+      <View style={authStyles.formContainer}>
+        <Text style={authStyles.title}>Create Account</Text>
         <Dropdown
-          style={styles.dropdown}
+          style={authStyles.dropdown}
           data={userTypes}
           labelField="label"
           valueField="value"
@@ -91,27 +101,27 @@ const CreateAccountPage: React.FC<ScreenProps<"CreateAccountPage">> = ({ navigat
           onChange={(item) => setUserTypeLocal(item.value)}
         />
         <TextInput
-          style={styles.input}
+          style={authStyles.input}
           placeholder="Name"
           value={nameLocal}
           onChangeText={setNameLocal}
         />
         <TextInput
-          style={styles.input}
+          style={authStyles.input}
           placeholder="Email"
           keyboardType="email-address"
           value={emailLocal}
           onChangeText={setEmailLocal}
         />
         <TextInput
-          style={styles.input}
+          style={authStyles.input}
           placeholder="Password"
           secureTextEntry
           value={passwordLocal}
           onChangeText={setPasswordLocal}
         />
-        <TouchableOpacity style={styles.button} onPress={handleFormSubmit}>
-          <Text style={styles.buttonText}>
+        <TouchableOpacity style={authStyles.button} onPress={handleFormSubmit}>
+          <Text style={authStyles.buttonText}>
             {userTypeLocal === 'mentee'
               ? 'Sign Up as Mentee'
               : userTypeLocal === 'mentor'
@@ -121,70 +131,14 @@ const CreateAccountPage: React.FC<ScreenProps<"CreateAccountPage">> = ({ navigat
         </TouchableOpacity>
 
         <TouchableOpacity onPress={() => navigation.navigate('SignInPage')}>
-          <Text style={styles.toggleText}>
+          <Text style={authStyles.toggleText}>
             <Text style={{ color: 'gray' }}>Already have an account? </Text>
-            <Text style={styles.toggleText}>Sign In</Text>
+            <Text style={authStyles.toggleText}>Sign In</Text>
           </Text>
         </TouchableOpacity>
       </View>
     </KeyboardAvoidingView>
   );
 };
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: '#f0f0f0',
-  },
-  formContainer: {
-    width: '80%',
-    padding: 20,
-    borderRadius: 12,
-    backgroundColor: 'white',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.25,
-    shadowRadius: 4,
-    elevation: 5,
-  },
-  title: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    marginBottom: 20,
-    textAlign: 'center',
-  },
-  input: {
-    borderWidth: 1,
-    borderColor: '#ccc',
-    borderRadius: 8,
-    padding: 10,
-    marginBottom: 15,
-  },
-  dropdown: {
-    marginVertical: 15,
-    borderWidth: 1,
-    borderColor: '#ccc',
-    borderRadius: 8,
-    padding: 10,
-  },
-  button: {
-    backgroundColor: '#1a73e8',
-    padding: 12,
-    borderRadius: 8,
-    marginTop: 10,
-  },
-  buttonText: {
-    color: 'white',
-    textAlign: 'center',
-    fontWeight: 'bold',
-  },
-  toggleText: {
-    color: '#1a73e8',
-    textAlign: 'center',
-    marginTop: 15,
-  },
-});
 
 export default CreateAccountPage;

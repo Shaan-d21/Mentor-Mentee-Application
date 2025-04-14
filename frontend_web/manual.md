@@ -10,7 +10,7 @@
 - Authentication was handled automatically via cookies and session middleware
 - Frontend didn't need to manually manage tokens or authentication headers
 - Session state was maintained on the server side
-- API endpoints didn't require explicit authorization headers
+- API endpoints didn't require explicit token headers
 - The `/docs` endpoint was secured with a lock icon, using FastAPI's built-in security
 - All security was handled by the FastAPI framework internally
 
@@ -18,11 +18,11 @@
 
 - The new FastAPI backend uses JWT (JSON Web Token) authentication
 - The token is returned upon successful login and must be stored by the frontend
-- All authenticated API requests must include the token in the Authorization header
+- All authenticated API requests must include the token in the Token header
 - The backend uses the token to identify the user and their permissions
 - Tokens have an expiration time (set to 20000 minutes in this implementation)
 - The `/docs` endpoint doesn't show the lock icon, as it's secured differently
-- The token must be passed as a header: `Authorization: Bearer <token>`
+- The token must be passed as a header: `Token: <token>`
 
 ### Why Were These Changes Made?
 
@@ -45,7 +45,7 @@ We updated the frontend to work with the new token-based authentication system:
    api.interceptors.request.use((config) => {
      const token = localStorage.getItem("accessToken");
      if (token) {
-       config.headers.Authorization = token;
+       config.headers.Token = token;
      }
      return config;
    });
@@ -101,7 +101,7 @@ We updated the frontend to work with the new token-based authentication system:
 
 **For Backend Developers:**
 
-- All authenticated endpoints require the `Authorization: Bearer <token>` header
+- All authenticated endpoints require the `Token` header with the token
 - Use the `get_current_user` dependency to verify and extract user information from the token
 - Return appropriate 401 errors for invalid or expired tokens
 
@@ -113,7 +113,7 @@ Based on the specific requirements of the FastAPI backend:
 
    - We use JWT (JSON Web Token) authentication
    - Tokens are stored in localStorage WITHOUT the 'Bearer' prefix: `localStorage.setItem("accessToken", token)`
-   - The backend expects raw tokens without the 'Bearer' prefix in the Authorization header
+   - The backend expects raw tokens in the Token header
 
 2. **API Service with Interceptors**:
 
@@ -122,7 +122,7 @@ Based on the specific requirements of the FastAPI backend:
      const token = localStorage.getItem("accessToken");
      if (token) {
        // IMPORTANT: The backend expects the raw token - DO NOT add 'Bearer ' prefix
-       config.headers.Authorization = token;
+       config.headers.Token = token;
      }
      return config;
    });
@@ -136,12 +136,12 @@ Based on the specific requirements of the FastAPI backend:
    const token = localStorage.getItem("accessToken");
    const response = await axios.post(`${apiBaseUrl}/endpoint`, payload, {
      headers: {
-       Authorization: token, // DO NOT add 'Bearer ' prefix
+       Token: token, // DO NOT add 'Bearer ' prefix
      },
    });
    ```
 
-4. **Important**: The backend implementation expects tokens to be sent directly in the Authorization header WITHOUT the 'Bearer' prefix. This is different from the common practice of using 'Bearer ' prefix, so be careful when modifying code.
+4. **Important**: The backend implementation expects tokens to be sent directly in the Token header WITHOUT the 'Bearer' prefix. This is different from the common practice of using 'Bearer ' prefix, so be careful when modifying code.
 
 5. **Skills Management**:
 
@@ -157,7 +157,7 @@ Based on the specific requirements of the FastAPI backend:
    - Skills updating is handled with error handling and logging
 
 6. **Backend Requirements**:
-   - The FastAPI backend expects tokens to be sent directly in the Authorization header WITHOUT the Bearer prefix
+   - The FastAPI backend expects tokens to be sent directly in the Token header WITHOUT the Bearer prefix
    - Modifying this behavior requires backend changes, which we've avoided
 
 ## Authentication
@@ -212,17 +212,22 @@ Based on the specific requirements of the FastAPI backend:
 
 - **Endpoint**: `/users/all_users`
 - **Method**: GET
-- **Authentication**: No token required
-- **Input**: None
+- **Authentication**: Requires Token header
+- **Input**: No query parameters
 - **Output**:
   ```json
   [
     {
       "id": 1,
       "name": "John Doe",
-      "mail": "user@example.com",
-      "role": "mentor",
-      "is_profile_complete": false
+      "mail": "john@example.com",
+      "role": "mentor"
+    },
+    {
+      "id": 2,
+      "name": "Jane Smith",
+      "mail": "jane@example.com",
+      "role": "mentee"
     }
   ]
   ```
@@ -241,7 +246,7 @@ Based on the specific requirements of the FastAPI backend:
 
 - **Endpoint**: `/users/mentor/profile`
 - **Method**: GET
-- **Authentication**: Requires token in the header
+- **Authentication**: Requires Token header
 - **Input**: No query parameters (uses token for authentication)
 - **Output**:
   ```json
@@ -265,7 +270,7 @@ Based on the specific requirements of the FastAPI backend:
 
 - **Endpoint**: `/users/mentor/profile_creation`
 - **Method**: PUT
-- **Authentication**: Requires token in the header
+- **Authentication**: Requires Token header
 - **Input**:
   ```json
   {
@@ -289,12 +294,12 @@ Based on the specific requirements of the FastAPI backend:
 
 - **Endpoint**: `/mentee/mentee/profile`
 - **Method**: GET
-- **Authentication**: Requires token in the header
+- **Authentication**: Requires Token header
 - **Input**: No query parameters (uses token for authentication)
 - **Output**:
   ```json
   {
-    "name": "Jane Doe",
+    "name": "Jane Smith",
     "mail": "mentee@example.com",
     "role": "mentee",
     "contact": "1234567890",
@@ -310,12 +315,13 @@ Based on the specific requirements of the FastAPI backend:
 
 - **Endpoint**: `/mentee/mentee/profile_creation`
 - **Method**: PUT
-- **Authentication**: Requires token in the header
+- **Authentication**: Requires Token header
 - **Input**:
   ```json
   {
-    "name": "Jane Doe",
-    "contact": "1234567890"
+    "name": "Jane Smith",
+    "contact": "1234567890",
+    "designation": "Student"
   }
   ```
 - **Output**:
@@ -329,67 +335,127 @@ Based on the specific requirements of the FastAPI backend:
 
 ### Get Approved Mentees
 
-- **Endpoint**: `/mentor/get-approved-mentee`
+- **Endpoint**: `/users/approved_mentees`
 - **Method**: GET
-- **Authentication**: Requires token in the header
-- **Input**: No query parameters (uses token for authentication)
+- **Authentication**: Requires Token header
+- **Input**: No query parameters
 - **Output**:
   ```json
-  {
-    "status_code": 200,
-    "message": "Success",
-    "object": [
-      {
-        "id": 1,
-        "name": "Jane Doe",
-        "mail": "mentee@example.com",
-        "contact": "1234567890",
-        "is_profile_complete": true
-      }
-    ]
-  }
+  [
+    {
+      "id": 2,
+      "name": "Jane Smith",
+      "mail": "jane@example.com",
+      "role": "mentee"
+    }
+  ]
   ```
 
-### Get Mentorship Requests
+### Get Approved Mentors
 
-- **Endpoint**: `/mentor/get-requests`
+- **Endpoint**: `/users/approved_mentors`
 - **Method**: GET
-- **Authentication**: Requires token in the header
-- **Input**: No query parameters (uses token for authentication)
+- **Authentication**: Requires Token header
+- **Input**: No query parameters
+- **Output**:
+  ```json
+  [
+    {
+      "id": 1,
+      "name": "John Doe",
+      "mail": "john@example.com",
+      "role": "mentor"
+    }
+  ]
+  ```
+
+### Get Mentor Requests
+
+- **Endpoint**: `/users/mentor_requests`
+- **Method**: GET
+- **Authentication**: Requires Token header
+- **Input**: No query parameters
+- **Output**:
+  ```json
+  [
+    {
+      "id": 3,
+      "name": "Bob Johnson",
+      "mail": "bob@example.com",
+      "role": "mentor",
+      "status": "pending"
+    }
+  ]
+  ```
+
+### Get Mentee Requests
+
+- **Endpoint**: `/users/mentee_requests`
+- **Method**: GET
+- **Authentication**: Requires Token header
+- **Input**: No query parameters
+- **Output**:
+  ```json
+  [
+    {
+      "id": 4,
+      "name": "Alice Brown",
+      "mail": "alice@example.com",
+      "role": "mentee",
+      "status": "pending"
+    }
+  ]
+  ```
+
+### Approve Mentor
+
+- **Endpoint**: `/users/approve_mentor/{mentor_id}`
+- **Method**: PUT
+- **Authentication**: Requires Token header
+- **Input**: No request body
 - **Output**:
   ```json
   {
-    "status_code": 200,
-    "message": "Success",
-    "object": [
-      {
-        "id": 1,
-        "name": "Jane Doe",
-        "mail": "mentee@example.com",
-        "contact": "1234567890",
-        "is_profile_complete": true
-      }
-    ]
+    "message": "Mentor approved successfully"
   }
   ```
 
 ### Approve Mentee
 
-- **Endpoint**: `/mentor-approval/approve-mentee`
+- **Endpoint**: `/users/approve_mentee/{mentee_id}`
 - **Method**: PUT
-- **Authentication**: Requires token in the header
-- **Input**:
-  ```json
-  {
-    "status": "approved",
-    "mentee_id": 1
-  }
-  ```
+- **Authentication**: Requires Token header
+- **Input**: No request body
 - **Output**:
   ```json
   {
-    "status_code": 200,
-    "Message": "Accept approved"
+    "message": "Mentee approved successfully"
+  }
+  ```
+
+### Reject Mentor
+
+- **Endpoint**: `/users/reject_mentor/{mentor_id}`
+- **Method**: PUT
+- **Authentication**: Requires Token header
+- **Input**: No request body
+- **Output**:
+  ```json
+  {
+    "message": "Mentor rejected successfully"
+  }
+  ```
+
+### Reject Mentee
+
+- **Endpoint**: `/users/reject_mentee/{mentee_id}`
+- **Method**: PUT
+- **Authentication**: Requires Token header
+- **Input**: No request body
+- **Output**:
+  ```json
+  {
+    "message": "Mentee rejected successfully"
   }
   ```
 
@@ -399,18 +465,18 @@ Based on the specific requirements of the FastAPI backend:
 
 - **Endpoint**: `/users/mentor/skills`
 - **Method**: POST
-- **Authentication**: Requires token in the header
+- **Authentication**: Requires Token header
 - **Input**:
   ```json
   {
     "skills": [
       {
-        "skill_name": "JavaScript",
+        "skill_name": "Python",
         "proficiency": 3
       },
       {
-        "skill_name": "Python",
-        "proficiency": 4
+        "skill_name": "JavaScript",
+        "proficiency": 2
       }
     ]
   }
@@ -427,16 +493,16 @@ Based on the specific requirements of the FastAPI backend:
 
 - **Endpoint**: `/mentee/mentee/skills`
 - **Method**: POST
-- **Authentication**: Requires token in the header
+- **Authentication**: Requires Token header
 - **Input**:
   ```json
   {
     "skills": [
       {
-        "skill_name": "JavaScript"
+        "skill_name": "Python"
       },
       {
-        "skill_name": "React"
+        "skill_name": "JavaScript"
       }
     ]
   }
@@ -453,7 +519,7 @@ Based on the specific requirements of the FastAPI backend:
 
 - **Endpoint**: `/users/mentor/get-skills`
 - **Method**: GET
-- **Authentication**: Requires token in the header
+- **Authentication**: Requires Token header
 - **Input**: No query parameters (uses token for authentication)
 - **Output**:
   ```json
@@ -476,7 +542,7 @@ Based on the specific requirements of the FastAPI backend:
 
 - **Endpoint**: `/mentee/mentee/get-skills`
 - **Method**: GET
-- **Authentication**: Requires token in the header
+- **Authentication**: Requires Token header
 - **Input**: No query parameters (uses token for authentication)
 - **Output**:
   ```json
@@ -499,7 +565,7 @@ Based on the specific requirements of the FastAPI backend:
 
 - **Endpoint**: `/mentee/find-mentors`
 - **Method**: GET
-- **Authentication**: Requires token in the header
+- **Authentication**: Requires Token header
 - **Input**: No query parameters (uses token for authentication - matches based on mentee skills)
 - **Output**:
   ```json
@@ -528,7 +594,7 @@ Based on the specific requirements of the FastAPI backend:
 
 - **Endpoint**: `/mentee/send-request`
 - **Method**: POST
-- **Authentication**: Requires token in the header
+- **Authentication**: Requires Token header
 - **Input**:
   ```json
   {
@@ -549,7 +615,7 @@ Based on the specific requirements of the FastAPI backend:
 
 - **Endpoint**: `/mentee/course-progress`
 - **Method**: GET
-- **Authentication**: Requires token in the header
+- **Authentication**: Requires Token header
 - **Input**: No query parameters (uses token for authentication)
 - **Output**:
   ```json
@@ -570,7 +636,7 @@ Based on the specific requirements of the FastAPI backend:
 
 - **Endpoint**: `/mentee/update-progress`
 - **Method**: POST
-- **Authentication**: Requires token in the header
+- **Authentication**: Requires Token header
 - **Input**:
   ```json
   {
@@ -592,7 +658,7 @@ Based on the specific requirements of the FastAPI backend:
 
 - **Endpoint**: `/mentor/dashboard-stats`
 - **Method**: GET
-- **Authentication**: Requires token in the header
+- **Authentication**: Requires Token header
 - **Input**: No query parameters (uses token for authentication)
 - **Output**:
   ```json
@@ -609,7 +675,7 @@ Based on the specific requirements of the FastAPI backend:
 
 - **Endpoint**: `/mentee/dashboard-stats`
 - **Method**: GET
-- **Authentication**: Requires token in the header
+- **Authentication**: Requires Token header
 - **Input**: No query parameters (uses token for authentication)
 - **Output**:
   ```json
@@ -699,11 +765,11 @@ If you encounter CORS errors when making requests from the frontend to the backe
 
 ### Authentication Troubleshooting
 
-If you encounter issues with authentication tokens, such as "Authorization header missing" errors:
+If you encounter issues with authentication tokens, such as "Token header missing" errors:
 
 ### Common Token Errors
 
-1. **"Authorization header missing" or "Token is None"**:
+1. **"Token header missing" or "Token is None"**:
 
    - The token is not being sent in the request headers
    - The token is not properly stored in localStorage
@@ -732,7 +798,7 @@ If you encounter issues with authentication tokens, such as "Authorization heade
    const token = localStorage.getItem("accessToken");
    const response = await api.get("/some/endpoint", {
      headers: {
-       Authorization: token,
+       Token: token,
      },
    });
    ```
@@ -743,7 +809,7 @@ If you encounter issues with authentication tokens, such as "Authorization heade
    - Log out and log in again to get a fresh token
 
 4. **Check network requests**:
-   - Use browser developer tools to verify the Authorization header is being sent
+   - Use browser developer tools to verify the Token header is being sent
    - Check if preflight OPTIONS request is succeeding
    - Verify the correct endpoint URLs are being used
 
@@ -751,11 +817,11 @@ If you encounter issues with authentication tokens, such as "Authorization heade
 
 1. **Look for these logs on the server**:
 
-   - "Token is None - Authorization header missing"
+   - "Token is None - Token header missing"
    - "Missing mail or user_id in token payload"
    - "JWT Error: [error details]"
 
-2. **Important**: The backend expects the raw token in the Authorization header, without the "Bearer " prefix.
+2. **Important**: The backend expects the raw token in the Token header, without the "Bearer " prefix.
 
 ## Frontend-Backend Field Mapping
 
@@ -881,7 +947,7 @@ The most common error is: "Access to XMLHttpRequest at 'http://localhost:8000/en
    - Use developer tools to "Disable Cache" while DevTools is open
 
 3. **Check token settings:**
-   - Ensure your token is being sent correctly in the Authorization header
+   - Ensure your token is being sent correctly in the Token header
    - Check browser console to verify the token is present in localStorage
    - Verify the token hasn't expired
 

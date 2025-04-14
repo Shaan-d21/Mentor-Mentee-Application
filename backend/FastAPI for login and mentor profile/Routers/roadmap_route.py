@@ -1,5 +1,3 @@
-# routes/roadmap_routes.py
-
 from fastapi import APIRouter, HTTPException, Depends, status
 from sqlalchemy.orm import Session
 from typing import Dict, Any, Annotated
@@ -33,19 +31,16 @@ async def generate_roadmap(
     db: db_dependency,
     user: user_dependency
 ):
-    # ✅ Token still required in this general server route
     if user is None or user.get('role') != 'mentor':
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Unauthorized Access"
         )
 
-    # ✅ Domain check
     domain = db.query(models.Domain).filter(models.Domain.id == request.domain_id).first()
     if not domain:
         raise HTTPException(status_code=404, detail="Domain not found")
 
-    # ✅ Mentee check
     mentee = db.query(models.User).filter(
         models.User.id == request.mentee_id,
         models.User.role == UserRole.mentee
@@ -54,25 +49,25 @@ async def generate_roadmap(
         raise HTTPException(status_code=404, detail="Mentee not found")
 
     try:
-        # ✅ Call AI server — no token required
         ai_response = await fetch_roadmap(request.domain_id, request.mentee_id)
 
-        # ✅ Save roadmap to DB
-        topics_list = ai_response.get("topics", [])
-        roadmap_content = ai_response.get("roadmap_name", "")
-        domain_name = ai_response.get("domain", domain.name)
+        # topics_list = ai_response.get("topics", [])
+        # roadmap_content = ai_response.get("roadmap_name", "")
+        # domain_name = ai_response.get("domain", domain.name)
+        # roadmap_id = ai_response.get("roadmap_id", None)
 
-        db_roadmap = models.Roadmap(
-            domain_id=domain.id,
-            name=roadmap_content
-        )
-        db.add(db_roadmap)
-        db.commit()
-        db.refresh(db_roadmap)
+        # # db_roadmap = models.Roadmap(
+        # #     domain_id=domain.id,
+        # #     name=roadmap_content
+        # # )
+        # # db.add(db_roadmap)
+        # # db.commit()
+        # # db.refresh(db_roadmap)
 
-        # ✅ Append roadmap_id before returning
-        ai_response["roadmap_id"] = db_roadmap.id
-        ai_response["domain"] = domain_name
+        # # Append roadmap_id before returning
+        # ai_response["roadmap_id"] = roadmap_id
+        # ai_response["domain"] = domain_name
+        
         return ai_response
 
     except Exception as e:
