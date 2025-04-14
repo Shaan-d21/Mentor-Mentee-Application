@@ -54,10 +54,10 @@ interface LocalMentorProfile {
 }
 
 const domainOptions = [
+  { label: 'Artificial Intelligence & Machine Learning', value: 'Artificial Intelligence & Machine Learning' },
   { label: 'Database & Backend', value: 'Database & Backend' },
   { label: 'Cloud Computing', value: 'Cloud Computing' },
   { label: 'DevOps & Deployment', value: 'DevOps & Deployment' },
-  { label: 'Artificial Intelligence & Machine Learning', value: 'Artificial Intelligence & Machine Learning' },
   { label: 'Data Science & Analytics', value: 'Data Science & Analytics' },
   { label: 'Software Development', value: 'Software Development' },
   { label: 'Project & Team Management', value: 'Project & Team Management' },
@@ -417,16 +417,35 @@ onProfilePress={() => navigation.navigate('MentorProfileScreen')} openDrawer={()
         </View>
         <DropdownComponent
           data={[
-            { label: 'JavaScript', value: 'JavaScript' },
             { label: 'Python', value: 'Python' },
             { label: 'Java', value: 'Java' },
+            { label: 'JavaScript', value: 'JavaScript' },
             { label: 'C++', value: 'C++' },
-            { label: 'React', value: 'React' },
-            { label: 'Node.js', value: 'Node.js' },
             { label: 'SQL', value: 'SQL' },
+            { label: 'Node JS', value: 'Node JS' },
+            { label: 'SpringBoot', value: 'SpringBoot' },
+            { label: 'AWS', value: 'AWS' },
+            { label: 'GCP', value: 'GCP' },
+            { label: 'Docker', value: 'Docker' },
             { label: 'Machine Learning', value: 'Machine Learning' },
-            { label: 'Data Science', value: 'Data Science' },
-            { label: 'Cybersecurity', value: 'Cybersecurity' },
+            { label: 'Deep Learning', value: 'Deep Learning' },
+            { label: 'NLP', value: 'NLP' },
+            { label: 'TensorFlow', value: 'TensorFlow' },
+            { label: 'LangChain', value: 'LangChain' },
+            { label: 'GenAI', value: 'GenAI' },
+            { label: 'Data Analysis', value: 'Data Analysis' },
+            { label: 'Big Data', value: 'Big Data' },
+            { label: 'Data Structure', value: 'Data Structure' },
+            { label: 'Problem Solving', value: 'Problem Solving' },
+            { label: 'Project Management', value: 'Project Management' },
+            { label: 'Leadership', value: 'Leadership' },
+            { label: 'Time Management', value: 'Time Management' },
+            { label: 'Communication', value: 'Communication' },
+            { label: 'Public Speaking', value: 'Public Speaking' },
+            { label: 'Critical Thinking', value: 'Critical Thinking' },
+            { label: 'Teamwork', value: 'Teamwork' },
+            { label: 'HTML', value: 'HTML' },
+            { label: 'CSS', value: 'CSS' },
           ]}
           selectedValue={selectedSkill || ''}
           onSelect={handleSkillSelection}
