@@ -772,11 +772,13 @@ const submitDomain = async () => { // Make submitDomain async
                 </View>
               </View>
               <View style={styles.bottomContent}>
-                <View style={styles.scoreContainer}>
+             
                   <TouchableOpacity onPress={() => showReason(mentor)}>
+                  <View style={styles.scoreContainer}>
                     <Text style={styles.scoreText}>{mentor.score}</Text>
+                    </View>
                   </TouchableOpacity>
-                </View>
+                
                 {
                   requestMentorId === mentor.id ? (
                     <Text style={{ color: "blue", marginTop: 5 }}>Pending</Text>
