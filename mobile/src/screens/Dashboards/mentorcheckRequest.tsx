@@ -588,9 +588,10 @@ const CheckRequestScreen: React.FC = () => {
                 paddingVertical: 10,
                 borderRadius: 5,
               }}
-              onPress={() => 
-              setModalVisible(false)
-              }>
+              onPress={() =>{
+              setModalVisible(false),
+              setComment('')
+}}>
               <Text
                 style={{color: '#fff', textAlign: 'center', fontWeight: '600'}}>
                 Cancel

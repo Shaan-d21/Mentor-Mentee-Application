@@ -207,7 +207,7 @@ const MentorDashboardScreen = () => {
         </View>
         <View style={styles.cardItem}>
           <FontAwesomeIcon icon={faUserTag} size={16} color="#777" style={styles.icon} />
-          <Text style={styles.cardText}>{item.role}</Text>
+          <Text style={styles.cardText}>{item.designation??"Intern"}</Text>
         </View>
         <View style={styles.cardItem}>
           <FontAwesomeIcon icon={faCodeBranch} size={16} color="#777" style={styles.icon} />
@@ -267,12 +267,20 @@ const MentorDashboardScreen = () => {
           )}
         </View>
       </ScrollView> */}
-
-<FlatList
+if (approved.length === 0) {
+  
+    <Text style={styles.noMenteesText}>
+      No approved mentees available.
+    </Text>
+  
+}else{
+  <FlatList
   data={approved}
   keyExtractor={item => item.id.toString()}
   renderItem={renderMenteeCard}
 />
+}
+
 
     </View>
   );
@@ -334,7 +342,7 @@ const styles = StyleSheet.create({
   rowHeaderContainer: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    alignItems: 'center',
+    alignItems:'flex-end',
     marginHorizontal: 3,
     marginTop: 3,
     padding: 10,
