@@ -121,10 +121,10 @@ const SignInPage: React.FC<ScreenProps<"SignInPage">> = ({navigation}) => {
           value={passwordLocal}
           onChangeText={setPasswordLocal}
         />
-        <TouchableOpacity
+        {/* <TouchableOpacity
           onPress={() => setIsForgotPassword(!isForgotPassword)}>
           <Text style={authStyles.toggleText}>Forgot your password?</Text>
-        </TouchableOpacity>
+        </TouchableOpacity> */}
         
         <TouchableOpacity style={authStyles.button} onPress={handleFormSubmit}>
           <Text style={authStyles.buttonText}>
