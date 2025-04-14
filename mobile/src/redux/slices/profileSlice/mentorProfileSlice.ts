@@ -48,13 +48,13 @@ const sliceProfile = createSlice({
             ) as MentorProfiletype;
           }
           if ('contact' in action.payload)
-            if (action.payload['contact'] === null) {
+          {  if (action.payload['contact'] === null) {
               
               state.Mentorprofile_status = false;
             }
           else {
             state.Mentorprofile_status = true;
-          }
+          }}
           state.status = currentStatus.success;
         } catch (error) {
           console.error('mentee/profile error: ', error);

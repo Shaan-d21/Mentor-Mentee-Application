@@ -107,7 +107,8 @@ const MentorProfile: FC<ScreenProps<'MentorProfileScreen'>> = ({ navigation }) =
     if (currentStatus === 'loading') {
       console.log('Loading mentor profile data...');
     } else if (currentStatus === 'success' && mentorData) {
-      const newExp = mentorData.exp !== null ? mentorData.exp.toString() : '0';
+      const newExp = mentorData.exp !== null  && mentorData.exp !== undefined ? mentorData.exp.toString() : '0';
+
       setProfile({
         name: mentorData.name || '',
         mail: mentorData.mail || '',
