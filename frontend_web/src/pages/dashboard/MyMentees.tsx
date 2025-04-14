@@ -48,17 +48,13 @@ const MyMentees: React.FC = () => {
         }
 
         const authToken = accessToken.startsWith('Bearer ') ? accessToken.split('Bearer ')[1] : accessToken;
-        const apiBaseUrl = import.meta.env.VITE_API_URL || 'http://localhost:8000';
 
         try {
-          const response = await axios.get(
-            `${apiBaseUrl}/mentor/get-approved-mentee`,
-            {
-              headers: {
-                'Token': authToken
-              }
+          const response = await axios.get('http://181.214.44.15:8080/mentor/get-approved-mentee', {
+            headers: {
+              'Token': authToken
             }
-          );
+          });
 
           if (response.data && response.data.object) {
             const menteesData = response.data.object;

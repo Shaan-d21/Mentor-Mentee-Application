@@ -32,7 +32,7 @@ const Header: React.FC<HeaderProps> = ({ userRole }) => {
       try {
         const userInfo = JSON.parse(userInfoString);
         const response = await axios.get(
-          `http://localhost:8000/api/v1/user?email=${userInfo.email}`,
+          `http://181.214.44.15:8080/user?email=${userInfo.email}`,
           {
             headers: { Token: `Bearer ${accessToken}` },
           }

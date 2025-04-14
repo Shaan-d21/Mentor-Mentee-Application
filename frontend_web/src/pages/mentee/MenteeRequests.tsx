@@ -25,17 +25,13 @@ const MenteeRequests: React.FC = () => {
         }
 
         const authToken = accessToken.startsWith('Bearer ') ? accessToken : `Bearer ${accessToken}`;
-        const apiBaseUrl = import.meta.env.VITE_API_URL || 'http://localhost:8000';
 
-        const response = await axios.get(
-          `${apiBaseUrl}/mentee/Requests`,
-          {
-            headers: { 
-              Token: authToken,
-              'Content-Type': 'application/json'
-            }
+        const response = await axios.get('http://181.214.44.15:8080/mentee/Requests', {
+          headers: { 
+            Token: authToken,
+            'Content-Type': 'application/json'
           }
-        );
+        });
 
         if (response.status === 200) {
           setRequests(response.data);

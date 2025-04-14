@@ -62,13 +62,12 @@ const FindMentors: React.FC = () => {
       }
       
       const authToken = accessToken.startsWith('Bearer ') ? accessToken : `Bearer ${accessToken}`;
-      const apiBaseUrl = import.meta.env.VITE_API_URL || 'http://localhost:8000';
       
-      console.log('Fetching requests from:', `${apiBaseUrl}/mentee/Requests`);
+      console.log('Fetching requests from:', 'http://181.214.44.15:8080/mentee/Requests');
       
       // Use the correct endpoint for fetching all requests
       const response = await axios.get(
-        `${apiBaseUrl}/mentee/Requests`,
+        'http://181.214.44.15:8080/mentee/Requests',
         {
           headers: { 
             Token: authToken,
@@ -182,8 +181,6 @@ const FindMentors: React.FC = () => {
       // Ensure token is properly formatted
       const authToken = accessToken.startsWith('Bearer ') ? accessToken : `Bearer ${accessToken}`;
       
-      const apiBaseUrl = import.meta.env.VITE_API_URL || 'http://localhost:8000';
-      
       // Trim any whitespace from the domain
       const trimmedDomain = compatibilityDomain.trim();
       
@@ -193,21 +190,19 @@ const FindMentors: React.FC = () => {
       console.log('Is domain in DOMAINS list:', DOMAINS.includes(trimmedDomain));
       
       // Log the full URL with parameters for debugging
-      const fullUrl = `${apiBaseUrl}/predict/?d=${encodeURIComponent(trimmedDomain)}`;
+      const fullUrl = `http://181.214.44.15:8080/predict/?d=${encodeURIComponent(trimmedDomain)}`;
       console.log('Full URL:', fullUrl);
       
-      console.log('Sending request to:', `${apiBaseUrl}/predict/`);
+      console.log('Sending request to:', fullUrl);
       console.log('With domain:', trimmedDomain);
-      console.log('With headers:', { Token: authToken, 'Content-Type': 'application/json' });
+      console.log('With headers:', { Token: authToken });
       
-      // Make a simple request with the domain parameter
+      // Make a GET request with the domain parameter in the URL
       const response = await axios.get(
-        `${apiBaseUrl}/predict/`,
+        fullUrl,
         {
-          params: { d: trimmedDomain },
           headers: { 
-            'Token': authToken,
-            'Content-Type': 'application/json'
+            'Token': authToken
           }
         }
       );
@@ -335,13 +330,12 @@ const FindMentors: React.FC = () => {
       }
       
       const authToken = accessToken.startsWith('Bearer ') ? accessToken : `Bearer ${accessToken}`;
-      const apiBaseUrl = import.meta.env.VITE_API_URL || 'http://localhost:8000';
       
       console.log('Sending mentorship request for domain:', compatibilityDomain);
       
       // Add withCredentials to handle CORS issues
       await axios.post(
-        `${apiBaseUrl}/mentee/mentorship`,
+        'http://181.214.44.15:8080/mentee/mentorship',
         {
           mentor_id: mentorId,
           domain: compatibilityDomain

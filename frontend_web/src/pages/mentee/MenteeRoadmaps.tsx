@@ -41,7 +41,7 @@ const MenteeRoadmaps: React.FC = () => {
         
         const authToken = accessToken.startsWith('Bearer ') ? accessToken : `Bearer ${accessToken}`;
         
-        const response = await axios.get('http://127.0.0.1:8000/mentee/mentor-roadmap-details', {
+        const response = await axios.get('http://181.214.44.15:8080/mentee/mentor-roadmap-details', {
           headers: {
             'Token': authToken,
             'Content-Type': 'application/json',
@@ -109,7 +109,7 @@ const MenteeRoadmaps: React.FC = () => {
       
       const authToken = accessToken.startsWith('Bearer ') ? accessToken : `Bearer ${accessToken}`;
       
-      const response = await axios.post('http://127.0.0.1:8000/mentee/roadmap-topics', {
+      const response = await axios.post('http://181.214.44.15:8080/mentee/roadmap-topics', {
         mentor_id: mentor.mentor_id,
         domain_id: mentor.domain_id
       }, {

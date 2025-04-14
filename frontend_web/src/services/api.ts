@@ -1,18 +1,82 @@
 import axios from 'axios';
 
-// Use environment variables or default to direct backend URL
-const apiBaseUrl = import.meta.env.VITE_API_URL || 'http://localhost:8000';
+const API_BASE_URL = 'http://181.214.44.15:8080';
 
-// Create axios instance with improved config for CORS
-const api = axios.create({
-  baseURL: apiBaseUrl,
+export const api = axios.create({
+  baseURL: API_BASE_URL,
   headers: {
     'Content-Type': 'application/json',
-    'Accept': 'application/json',
   },
-  withCredentials: false, // Keep this false to avoid triggering complex CORS requests
-  timeout: 10000, // Add reasonable timeout
 });
+
+// Add request interceptor to include auth token
+// api.interceptors.request.use((config) => {
+//   const token = localStorage.getItem('token');
+//   if (token) {
+//     config.headers.Authorization = `Bearer ${token}`;
+//   }
+//   return config;
+// });
+
+// export const getMentors = async () => {
+//   const response = await api.get('/mentor/mentor/profile');
+//   return response.data;
+// };
+
+// export const getMentorById = async (id: string) => {
+//   const response = await api.get(`/mentor/mentor/profile/${id}`);
+//   return response.data;
+// };
+
+// export const getMenteeRequests = async () => {
+//   const response = await api.get('/mentee/Requests');
+//   return response.data;
+// };
+
+// export const approveMenteeRequest = async (requestId: string) => {
+//   const response = await api.post(`/mentor/approve-mentee/${requestId}`);
+//   return response.data;
+// };
+
+// export const rejectMenteeRequest = async (requestId: string) => {
+//   const response = await api.post(`/mentor/reject-mentee/${requestId}`);
+//   return response.data;
+// };
+
+// export const getMentorMentees = async () => {
+//   const response = await api.get('/mentor/get-approved-mentee');
+//   return response.data;
+// };
+
+// export const getMenteeMentors = async () => {
+//   const response = await api.get('/mentee/get-approved-mentor');
+//   return response.data;
+// };
+
+// export const getRoadmaps = async () => {
+//   const response = await api.get('/roadmap/roadmap');
+//   return response.data;
+// };
+
+// export const getRoadmapById = async (id: string) => {
+//   const response = await api.get(`/roadmap/roadmap/${id}`);
+//   return response.data;
+// };
+
+// export const createRoadmap = async (data: any) => {
+//   const response = await api.post('/roadmap/roadmap', data);
+//   return response.data;
+// };
+
+// export const updateRoadmap = async (id: string, data: any) => {
+//   const response = await api.put(`/roadmap/roadmap/${id}`, data);
+//   return response.data;
+// };
+
+// export const deleteRoadmap = async (id: string) => {
+//   const response = await api.delete(`/roadmap/roadmap/${id}`);
+//   return response.data;
+// };
 
 // Request interceptor to handle token
 api.interceptors.request.use((config) => {
@@ -109,7 +173,7 @@ const apiService = {
       formData.append('pwd', userData.pwd);
       formData.append('role', userData.role);
       
-      return await axios.post(`${apiBaseUrl}/users/register/User`, formData, {
+      return await axios.post(`${API_BASE_URL}/users/register/User`, formData, {
         headers: {
           'Content-Type': 'application/x-www-form-urlencoded',
         },
@@ -118,7 +182,7 @@ const apiService = {
       console.log("Form-data approach failed, trying with JSON...");
       
       // Fallback to JSON if form-data fails
-      return await axios.post(`${apiBaseUrl}/users/register/User`, userData);
+      return await axios.post(`${API_BASE_URL}/users/register/User`, userData);
     }
   }
 };

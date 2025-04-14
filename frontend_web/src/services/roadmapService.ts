@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-const API_URL = 'http://localhost:8000';
+const API_URL = 'http://181.214.44.15:8080';
 
 export interface RoadmapRequest {
     domain_id: number;

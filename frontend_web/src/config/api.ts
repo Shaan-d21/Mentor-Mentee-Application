@@ -1,6 +1,6 @@
 import axios from "axios";
 
-const baseURL = "http://localhost:8000"; // FastAPI backend URL
+const baseURL = "http://181.214.44.15:8080"; // FastAPI backend URL
 
 const axiosConfig = {
   headers: {

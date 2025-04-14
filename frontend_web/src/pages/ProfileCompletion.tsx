@@ -360,7 +360,13 @@ const ProfileCompletion = () => {
       console.log('Token header format:', authToken);
       
       // Get API URL from environment variables
-      const apiUrl = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000';
+      const apiUrl = import.meta.env.VITE_API_URL;
+      
+      if (!apiUrl) {
+        console.error('API URL is not configured in environment variables');
+        setError('Server configuration error. Please contact support.');
+        return;
+      }
       
       // Create role-specific profile
       const userRole = localStorage.getItem('role');
@@ -372,10 +378,11 @@ const ProfileCompletion = () => {
           designation: profile.designation,
           exp: Number(profile.experience),
           contact: profile.contact_number,
-          domain_name: profile.domain // Add domain to the profile data
+          domain_name: profile.domain
         };
         
         console.log('Creating mentor profile:', profileData);
+        console.log('Using API URL:', apiUrl);
         
         const profileResponse = await axios.put(
           `${apiUrl}/users/mentor/profile_creation`,
