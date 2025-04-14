@@ -362,7 +362,9 @@ const CustomDrawerContent = (props: CustomDrawerContentProps) => {
               </View>
               <View style={styles.menuItem}>
                 <Button
-                  onPress={() => navigation.navigate("MenteeRequests")}
+                  onPress={() =>{
+                    closeDrawer(); // Close the drawer first
+                    navigation.navigate("MenteeRequests")}}
                   title="My Requests"
                 />
               </View>
