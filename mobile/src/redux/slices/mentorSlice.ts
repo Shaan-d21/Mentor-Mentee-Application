@@ -19,7 +19,7 @@ interface Mentee {
   domain: string;
   role: string;
   comment?: string;
-  designation?: string;
+  designation: string;
 }
 
 interface MenteeRequestsState {
@@ -102,7 +102,7 @@ const menteeSlice = createSlice({
           domain: entry.domain_name,
           designation: entry.designation,
         }));
-        console.log('Approved Mentees:', state.approved[1].designation);
+        // console.log('Approved Mentees:', state.approved[0]);
       })
       .addCase(fetchApprovedMentees.pending, state => {
         state.status = currentStatus.loading;
