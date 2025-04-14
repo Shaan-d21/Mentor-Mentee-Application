@@ -70,17 +70,24 @@ export const MentorRoadmapGeneration: FC<ScreenProps<'MentorRoadmapGeneration'>>
 
   return (
     <View style={styles.container}>
-
-      <AppBar onProfilePress={() => { navigation.navigate("MentorProfileScreen")}} openDrawer={() => { }} />
+      <AppBar onProfilePress={() => { navigation.navigate("MentorProfileScreen") }} openDrawer={() => { }} />
 
       <ScrollView contentContainerStyle={styles.scrollContent}>
         {status === 'loading' && (
           <ActivityIndicator size="large" color="#007bff" style={{ marginTop: 20 }} />
         )}
 
+        {status !== 'loading' && mentees.length === 0 && (
+          <View style={styles.noMenteesContainer}>
+            <Text style={styles.noMenteesText}>No mentees found.</Text>
+            <Text style={styles.noMenteesSubText}>Please add mentees to generate a roadmap.</Text>
+          </View>
+        )}
 
-        {status !== 'loading' && !roadmap && (
+
+        {status !== 'loading' && mentees.length > 0 && !roadmap && (
           <>
+
             <View style={styles.dropdownContainer}>
               <Text style={styles.label}>Select Mentee</Text>
               <DropdownComponent
@@ -114,14 +121,14 @@ export const MentorRoadmapGeneration: FC<ScreenProps<'MentorRoadmapGeneration'>>
         )}
       </ScrollView>
 
-      {!roadmap && status !== 'loading' && (
+      {!roadmap && status !== 'loading' && mentees.length > 0 && (
         <View style={styles.bottomBar}>
           <TouchableOpacity style={styles.button} onPress={handleGenerateRoadmap}>
             <Text style={styles.buttonText}>Generate Roadmap</Text>
           </TouchableOpacity>
         </View>
       )}
-      {roadmap && status !== 'loading' && (
+      {roadmap && status !== 'loading' && mentees.length > 0 && (
         <View style={styles.bottomBar}>
           {/* <TouchableOpacity style={styles.button} onPress={handleAssignRoadmap}>
             <Text style={styles.buttonText}>Go Back</Text>
@@ -196,5 +203,23 @@ const styles = StyleSheet.create({
     color: '#fff',
     fontWeight: '700',
     fontSize: 16,
+  },
+  noMenteesContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 20,
+  },
+  noMenteesText: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: '#333',
+    textAlign: 'center',
+    marginBottom: 10,
+  },
+  noMenteesSubText: {
+    fontSize: 16,
+    color: '#666',
+    textAlign: 'center',
   },
 });
