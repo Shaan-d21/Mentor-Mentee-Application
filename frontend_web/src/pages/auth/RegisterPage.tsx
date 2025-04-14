@@ -1,41 +1,68 @@
-import { useState } from "react";
+import React, { useState } from "react";
 import AuthLayout from "./AuthLayout";
-import api from "~/config/api";
 import { useNavigate } from "react-router-dom";
+import axios from "axios";
 import toast from "react-hot-toast";
 import { EyeIcon, EyeSlashIcon } from "@heroicons/react/24/outline";
 
-export default () => {
+const RegisterPage: React.FC = () => {
   const [userType, setUserType] = useState<string>("mentee");
   const [email, setEmail] = useState<string>("");
   const [password, setPassword] = useState<string>("");
   const [name, setName] = useState<string>("");
   const [nameError, setNameError] = useState<string>("");
+  const [emailError, setEmailError] = useState<string>("");
   const [passwordError, setPasswordError] = useState<string>("");
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
   const [showPassword, setShowPassword] = useState<boolean>(false);
   const navigate = useNavigate();
 
-  const validatePassword = (password: string): string => {
-    if (password.length < 8) {
-      return "Password must be at least 8 characters long";
-    }
-    if (!/[A-Z]/.test(password)) {
-      return "Password must contain at least one uppercase letter";
-    }
-    if (!/[a-z]/.test(password)) {
-      return "Password must contain at least one lowercase letter";
-    }
-    if (!/[0-9]/.test(password)) {
-      return "Password must contain at least one number";
-    }
-    if (!/[!@#$%^&*(),.?":{}|<>]/.test(password)) {
-      return "Password must contain at least one special character";
-    }
-    if (/\s/.test(password)) {
-      return "Password cannot contain spaces";
-    }
+  const validateEmail = (email: string): string => {
+    if (!email) return "Email is required";
+    
+    email = email.trim();
+    
+    if (email.length < 5) return "Email is too short";
+    if (email.length > 254) return "Email is too long";
+    
+    const emailRegex = /^(?=[a-zA-Z0-9@._%+-]{6,254}$)[a-zA-Z0-9._%+-]{1,64}@(?:[a-zA-Z0-9-]{1,63}\.){1,8}[a-zA-Z]{2,63}$/;
+    if (!emailRegex.test(email)) return "Invalid email format";
+    
+    if (email.includes('..')) return "Email cannot contain consecutive dots";
+    if (email.includes('@.')) return "Invalid character after @";
+    if (email.includes('.@')) return "Invalid character before @";
+    if (email.split('@').length > 2) return "Email cannot contain multiple @ symbols";
+    if (email.startsWith('.')) return "Email cannot start with a dot";
+    if (email.endsWith('.')) return "Email cannot end with a dot";
+    if (/@.*_/.test(email)) return "Domain cannot contain underscore";
+    
     return "";
+  };
+
+  const validatePassword = (password: string): string => {
+    if (!password) return "Password is required";
+    if (password.length < 8) return "Password must be at least 8 characters long";
+    if (!/[A-Z]/.test(password)) return "Password must contain at least one uppercase letter";
+    if (!/[a-z]/.test(password)) return "Password must contain at least one lowercase letter";
+    if (!/[0-9]/.test(password)) return "Password must contain at least one number";
+    if (!/[!@#$%^&*(),.?":{}|<>]/.test(password)) return "Password must contain at least one special character";
+    if (/\s/.test(password)) return "Password cannot contain spaces";
+    return "";
+  };
+
+  const validateName = (name: string): string => {
+    if (!name) return "Name is required";
+    if (name.trim().length < 2) return "Name must be at least 2 characters long";
+    if (name.includes("  ")) return "Name cannot contain consecutive spaces";
+    if (/[0-9!@#$%^&*(),.?":{}|<>]/.test(name)) return "Name cannot contain numbers or special characters";
+    if (name.trim() !== name) return "Name cannot start or end with spaces";
+    return "";
+  };
+
+  const handleEmailChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const newEmail = e.target.value;
+    setEmail(newEmail);
+    setEmailError(validateEmail(newEmail));
   };
 
   const handlePasswordChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -45,36 +72,48 @@ export default () => {
   };
 
   const handleNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const inputValue = e.target.value;
-    if (inputValue.includes("  ")) {
-      setNameError("Please use only one space between name parts");
-      return;
-    }
-    setNameError("");
-    setName(inputValue);
+    const newName = e.target.value;
+    setName(newName);
+    setNameError(validateName(newName));
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (isSubmitting) return;
 
-    // Validate password before submitting
+    // Validate all fields before submission
+    const emailValidationError = validateEmail(email);
     const passwordValidationError = validatePassword(password);
-    if (passwordValidationError) {
-      setPasswordError(passwordValidationError);
+    const nameValidationError = validateName(name);
+
+    setEmailError(emailValidationError);
+    setPasswordError(passwordValidationError);
+    setNameError(nameValidationError);
+
+    if (emailValidationError || passwordValidationError || nameValidationError) {
+      toast.error("Please fix all errors before submitting");
       return;
     }
 
     setIsSubmitting(true);
     try {
+      // Prepare user data
       const userData = {
         name: name.trim(),
-        email,
-        password,
-        userType,
+        mail: email.trim().toLowerCase(),
+        pwd: password,
+        role: userType
       };
-
-      const registerResponse = await api.post("/auth/register", userData);
+      
+      console.log("Registering user through API");
+      
+      // Use the API URL directly instead of proxy
+      const apiUrl = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000';
+      const registerResponse = await axios.post(`${apiUrl}/users/register/User`, userData, {
+        headers: {
+          'Content-Type': 'application/json'
+        }
+      });
 
       if (registerResponse && registerResponse.status === 200) {
         toast.success("Account created successfully!");
@@ -83,11 +122,35 @@ export default () => {
         }, 1000);
       }
     } catch (error: any) {
-      const errorMessage =
-        error?.response?.data?.detail ||
-        error?.message ||
-        "Registration failed. Please try again.";
-      toast.error(errorMessage);
+      console.error("Registration error:", error);
+      
+      // Handle specific error cases
+      if (error.response) {
+        // If the backend returns a specific error message
+        if (error.response.data && error.response.data.detail) {
+          toast.error(error.response.data.detail);
+        } 
+        // If the email is already registered (common case)
+        else if (error.response.status === 400) {
+          toast.error("This email is already registered. Please use a different email or login.");
+        }
+        // For other 4xx errors
+        else if (error.response.status >= 400 && error.response.status < 500) {
+          toast.error("Invalid registration data. Please check your input.");
+        }
+        // For 5xx errors
+        else {
+          toast.error("Server error. Please try again later.");
+        }
+      } 
+      // Handle network errors
+      else if (error.message && error.message.includes('Network Error')) {
+        toast.error("Cannot connect to the server. Please check your internet connection.");
+      }
+      // For any other errors
+      else {
+        toast.error("Registration failed. Please try again.");
+      }
     } finally {
       setIsSubmitting(false);
     }
@@ -108,63 +171,72 @@ export default () => {
           <option value="mentee">Mentee</option>
           <option value="mentor">Mentor</option>
         </select>
-        <input
-          type="text"
-          placeholder="Full Name"
-          className={`w-full p-3 mb-4 border ${
-            nameError ? "border-red-500" : "border-gray-300"
-          } rounded-lg bg-white focus:ring-2 focus:ring-blue-500`}
-          value={name}
-          onChange={handleNameChange}
-          disabled={isSubmitting}
-          required
-          minLength={2}
-        />
-        {nameError && <p className="text-red-500 text-sm mb-2">{nameError}</p>}
-        <input
-          type="email"
-          placeholder="Email"
-          className="w-full p-3 mb-4 border border-gray-300 rounded-lg bg-white focus:ring-2 focus:ring-blue-500"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          disabled={isSubmitting}
-          required
-        />
-        <div className="relative">
+        <div className="space-y-1">
           <input
-            type={showPassword ? "text" : "password"}
-            placeholder="Password"
-            className={`w-full p-3 mb-4 border ${
-              passwordError ? "border-red-500" : "border-gray-300"
+            type="text"
+            placeholder="Full Name"
+            className={`w-full p-3 border ${
+              nameError ? "border-red-500" : "border-gray-300"
             } rounded-lg bg-white focus:ring-2 focus:ring-blue-500`}
-            value={password}
-            onChange={handlePasswordChange}
+            value={name}
+            onChange={handleNameChange}
             disabled={isSubmitting}
             required
-            minLength={8}
+            minLength={2}
           />
-          <button
-            type="button"
-            className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-600 hover:text-gray-800"
-            onClick={() => setShowPassword(!showPassword)}
-            aria-label={showPassword ? "Hide password" : "Show password"}
-          >
-            {showPassword ? (
-              <EyeSlashIcon className="h-5 w-5" />
-            ) : (
-              <EyeIcon className="h-5 w-5" />
-            )}
-          </button>
+          {nameError && <p className="text-red-500 text-sm">{nameError}</p>}
         </div>
-        {passwordError && (
-          <p className="text-red-500 text-sm mb-2">{passwordError}</p>
-        )}
+        <div className="space-y-1 mt-4">
+          <input
+            type="email"
+            placeholder="Email"
+            className={`w-full p-3 border ${
+              emailError ? "border-red-500" : "border-gray-300"
+            } rounded-lg bg-white focus:ring-2 focus:ring-blue-500`}
+            value={email}
+            onChange={handleEmailChange}
+            disabled={isSubmitting}
+            required
+          />
+          {emailError && <p className="text-red-500 text-sm">{emailError}</p>}
+        </div>
+        <div className="space-y-1 mt-4">
+          <div className="relative">
+            <input
+              type={showPassword ? "text" : "password"}
+              placeholder="Password"
+              className={`w-full p-3 border ${
+                passwordError ? "border-red-500" : "border-gray-300"
+              } rounded-lg bg-white focus:ring-2 focus:ring-blue-500`}
+              value={password}
+              onChange={handlePasswordChange}
+              disabled={isSubmitting}
+              required
+              minLength={8}
+            />
+            <button
+              type="button"
+              className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-600 hover:text-gray-800"
+              onClick={() => setShowPassword(!showPassword)}
+              aria-label={showPassword ? "Hide password" : "Show password"}
+            >
+              {showPassword ? (
+                <EyeSlashIcon className="h-5 w-5" />
+              ) : (
+                <EyeIcon className="h-5 w-5" />
+              )}
+            </button>
+          </div>
+          {passwordError && <p className="text-red-500 text-sm">{passwordError}</p>}
+        </div>
         <button
           type="submit"
-          className={`w-full p-3 mt-4 bg-blue-600 text-white rounded-lg hover:bg-blue-700 focus:outline-none ${
-            isSubmitting ? "opacity-50 cursor-not-allowed" : ""
+          className={`w-full p-3 mt-6 text-white rounded-lg transition-colors duration-200 ${
+            isSubmitting || emailError || passwordError || nameError
+              ? "bg-blue-400 cursor-not-allowed"
+              : "bg-blue-600 hover:bg-blue-700"
           }`}
-          disabled={isSubmitting}
+          disabled={isSubmitting || !!emailError || !!passwordError || !!nameError}
         >
           {isSubmitting ? "Processing..." : `Register as ${userType}`}
         </button>
@@ -178,3 +250,5 @@ export default () => {
     </AuthLayout>
   );
 };
+
+export default RegisterPage;
