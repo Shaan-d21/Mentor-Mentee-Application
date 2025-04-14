@@ -182,9 +182,7 @@ const Navbar = () => {
                 onClick={handleDashboardClick}
                 className="text-2xl font-bold text-white hover:text-gray-100 transition-colors duration-200 ml-0 sm:-ml-4"
               >
-                {userInfo?.role?.toLowerCase() === "mentor" 
-                  ? "Mentor Dashboard" 
-                  : "Mentee Dashboard"}
+                Mentor-Mentee
               </button>
             ) : (
               <Link to="/" className="text-2xl font-bold text-white">

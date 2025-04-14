@@ -57,7 +57,7 @@ const Sidebar: React.FC<SidebarProps> = ({ userRole }) => {
         {isCollapsed ? (
           <Menu size={24} className="text-white cursor-pointer" onClick={toggleSidebar} />
         ) : (
-          <h1 className="text-lg font-bold text-white">Mentorship Platform</h1>
+          <h1 className="text-lg font-bold text-white">{isMentor ? "Mentor Dashboard" : "Mentee Dashboard"}</h1>
         )}
       </div>
 
