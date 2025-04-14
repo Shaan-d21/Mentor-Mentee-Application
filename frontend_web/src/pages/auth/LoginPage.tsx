@@ -16,6 +16,19 @@ const LoginPage: React.FC = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    // Validate inputs before submission
+    if (!email || !password) {
+      if (!email && !password) {
+        toast.error('Please enter both email and password');
+      } else if (!email) {
+        toast.error('Please enter your email');
+      } else {
+        toast.error('Please enter your password');
+      }
+      return;
+    }
+
     setLoading(true);
     try {
       const formData = new URLSearchParams();
@@ -50,8 +63,30 @@ const LoginPage: React.FC = () => {
         console.log('Profile is incomplete, navigating to profile completion');
         navigate('/profile-completion');
       }
-    } catch (err) {
-      toast.error('Invalid credentials');
+    } catch (err: any) {
+      console.error('Login error:', err);
+      if (err.response) {
+        // For any authentication error (wrong email or password), show the same message
+        if (err.response.status === 401 || err.response.status === 404) {
+          toast.error('Invalid Credentials');
+        } else if (err.response.status === 422) {
+          toast.error('Invalid input format. Please check your email and password.');
+        } else if (err.response.status === 429) {
+          toast.error('Too many login attempts. Please try again later.');
+        } else if (err.response.status === 500) {
+          toast.error('Server error. Please try again later.');
+        } else {
+          toast.error('Login failed. Please try again later.');
+        }
+      } else if (err.request) {
+        if (err.code === 'ECONNABORTED') {
+          toast.error('Connection timed out. Please check your internet connection and try again.');
+        } else {
+          toast.error('Cannot connect to the server. Please check your internet connection.');
+        }
+      } else {
+        toast.error('An unexpected error occurred. Please try again.');
+      }
     } finally {
       setLoading(false);
     }

@@ -568,9 +568,7 @@ const FindMentors: React.FC = () => {
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap">
                           <div className="flex items-center group relative">
-                            <div className={`absolute ${
-                              index === compatibleMentors.filter(mentor => mentor.domain === compatibilityDomain).length - 1 ? 'bottom-full mb-2' : 'top-0'
-                            } right-full mr-2 w-[500px] p-4 bg-white border border-gray-200 rounded-lg shadow-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-10`}>
+                            <div className="absolute right-full mr-2 w-[500px] p-4 bg-white border border-gray-200 rounded-lg shadow-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-10">
                               <div className="max-h-60 overflow-y-auto">
                                 <p className="text-sm text-gray-700 whitespace-pre-wrap">{mentor.reason}</p>
                               </div>
@@ -682,9 +680,7 @@ const FindMentors: React.FC = () => {
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap">
                           <div className="flex items-center group relative">
-                            <div className={`absolute ${
-                              index === compatibleMentors.filter(mentor => mentor.domain !== compatibilityDomain).length - 1 ? 'bottom-full mb-2' : 'top-0'
-                            } right-full mr-2 w-[500px] p-4 bg-white border border-gray-200 rounded-lg shadow-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-10`}>
+                            <div className="absolute right-full mr-2 w-[500px] p-4 bg-white border border-gray-200 rounded-lg shadow-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-10">
                               <div className="max-h-60 overflow-y-auto">
                                 <p className="text-sm text-gray-700 whitespace-pre-wrap">{mentor.reason}</p>
                               </div>
