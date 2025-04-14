@@ -101,13 +101,13 @@ def get_roadmap_topics(
     
     roadmap_list = [{'topic_name': topic.name, 'status': topic.status} for topic in topics]
     
-    roadmap_list = []
+    roadmap_list = {}
     for topic in topics:
-        status = topic.status
+        topic_status = topic.status
         name = topic.name
-        if status not in roadmap_list:
-            roadmap_list[status] = []
-        roadmap_list[status].append(name)
+        if topic_status not in roadmap_list:
+            roadmap_list[topic_status] = []
+        roadmap_list[topic_status].append(name)
         
     return {
         "status_code": status.HTTP_200_OK,
