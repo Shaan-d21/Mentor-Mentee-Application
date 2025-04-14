@@ -267,19 +267,19 @@ const MentorDashboardScreen = () => {
           )}
         </View>
       </ScrollView> */}
-if (approved.length === 0) {
+{approved.length === 0? (
   
-    <Text style={styles.noMenteesText}>
-      No approved mentees available.
-    </Text>
-  
-}else{
-  <FlatList
-  data={approved}
-  keyExtractor={item => item.id.toString()}
-  renderItem={renderMenteeCard}
+  <Text style={styles.noMenteesText}>
+    No approved mentees available.
+  </Text>
+
+):(
+<FlatList
+data={approved}
+keyExtractor={item => item.id.toString()}
+renderItem={renderMenteeCard}
 />
-}
+)}
 
 
     </View>
