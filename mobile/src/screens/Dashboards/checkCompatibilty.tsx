@@ -714,6 +714,7 @@ const submitDomain = async () => { // Make submitDomain async
       {/* Dropdown button for selecting the domain. */}
       <View style={styles.dropdownContainer}>
         <Dropdown
+          disable={loading}
           style={styles.dropdown}
           placeholderStyle={styles.placeholderStyle}
           selectedTextStyle={styles.selectedTextStyle}
