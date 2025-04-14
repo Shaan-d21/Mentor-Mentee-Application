@@ -41,7 +41,7 @@ const RoadmapGenerator: React.FC = () => {
                 return;
             }
 
-            const response = await axios.get('http://127.0.0.1:8000/mentor/get-approved-mentee', {
+            const response = await axios.get('http://181.214.44.15:8080/mentor/get-approved-mentee', {
                 headers: {
                     'Token': token,
                     'Content-Type': 'application/json',
@@ -113,7 +113,7 @@ const RoadmapGenerator: React.FC = () => {
                 return;
             }
 
-            const response = await axios.post('http://127.0.0.1:8000/roadmaps/generate', {
+            const response = await axios.post('http://181.214.44.15:8080/roadmaps/generate', {
                 mentee_id: selectedMenteeData.id,
                 domain_id: selectedMenteeData.domain_id
             }, {
@@ -178,7 +178,7 @@ const RoadmapGenerator: React.FC = () => {
             }
 
             const response = await axios.post(
-                'http://127.0.0.1:8000/mentor/assign-roadmap',
+                'http://181.214.44.15:8080/mentor/assign-roadmap',
                 {
                     mentee_id: selectedMenteeData.id,
                     domain_id: selectedMenteeData.domain_id,

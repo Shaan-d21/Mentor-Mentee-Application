@@ -26,6 +26,9 @@
     "recharts": "^2.15.1"
   },
   "devDependencies": {
+    "@babel/core": "^7.26.10",
+    "@babel/preset-react": "^7.26.3",
+    "@babel/traverse": "^7.27.0",
     "@eslint/js": "^9.23.0",
     "@tailwindcss/vite": "^4.0.15",
     "@types/react": "^19.0.12",

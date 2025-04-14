@@ -108,8 +108,7 @@ const RegisterPage: React.FC = () => {
       console.log("Registering user through API");
       
       // Use the API URL directly instead of proxy
-      const apiUrl = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000';
-      const registerResponse = await axios.post(`${apiUrl}/users/register/User`, userData, {
+      const registerResponse = await axios.post('http://181.214.44.15:8080/users/register/User', userData, {
         headers: {
           'Content-Type': 'application/json'
         }

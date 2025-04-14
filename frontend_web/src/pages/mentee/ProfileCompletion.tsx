@@ -33,9 +33,8 @@ const ProfileCompletion: React.FC = () => {
         setError('No access token found');
         return;
       }
-
       const authToken = token.startsWith('Bearer ') ? token : `Bearer ${token}`;
-      const apiBaseUrl = import.meta.env.VITE_API_URL || 'http://localhost:8000';
+      const apiBaseUrl = (import.meta as any).env.VITE_API_URL || 'http://localhost:8000';
 
       const response = await axios.post(
         `${apiBaseUrl}/mentee/profile`,

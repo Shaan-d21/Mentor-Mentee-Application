@@ -22,7 +22,7 @@ const LoginPage: React.FC = () => {
       formData.append('username', email.trim().toLowerCase());
       formData.append('password', password);
 
-      const response = await axios.post('http://localhost:8000/authentication/login', formData, {
+      const response = await axios.post('http://181.214.44.15:8080/authentication/login', formData, {
         headers: {
           'Content-Type': 'application/x-www-form-urlencoded'
         }
