@@ -204,18 +204,10 @@ useEffect(() => {
       {
   
   profile_status? <AppBar onProfilePress={() => navigation.navigate('MenteeProfileScreen')}
-title= {isEditing ? 'Mentee Profile Edit' : 'Mentee Profile'} 
+title= {isEditing ? 'Edit Mentee Profile' : 'Mentee Profile'} 
   openDrawer={() => {}} />
     : <>
-    {/* <TouchableOpacity
-      style={profileStyles.backButton}
-      onPress={() => {
-        dispatch(getmenteeprofile());
-      }}
-    >
-      <FontAwesomeIcon icon={faChevronLeft} size={16} color="#fff" style={profileStyles.buttonIcon} />
-      <Text style={profileStyles.buttonText}>Refresh</Text>
-    </TouchableOpacity> */}
+  
     </>
   }
       <View style={profileStyles.profileContainer}>
@@ -330,12 +322,14 @@ title= {isEditing ? 'Mentee Profile Edit' : 'Mentee Profile'}
         </View>
       )}
 
-      <View style={profileStyles.dropdownContainer}>
+{!isEditing ? (
+        <View style={profileStyles.dropdownContainer}>
         <View style={profileStyles.sectionHeaderRow}>
           <FontAwesomeIcon icon={faCode} size={18} color="#3498db" />
           <Text style={profileStyles.domainsTitle}>Add New Skill</Text>
         </View>
         <DropdownComponent
+        direction='up'
           data={[
             { label: 'Python', value: 'Python' },
             { label: 'Java', value: 'Java' },
@@ -372,7 +366,11 @@ title= {isEditing ? 'Mentee Profile Edit' : 'Mentee Profile'}
           placeholder="Select Skills"
         />
       </View>
-
+      ):(
+        <View style={profileStyles.sectionHeaderRow}>
+        </View>
+      )
+}
       <TouchableOpacity
         style={profileStyles.button}
         onPress={() => {
