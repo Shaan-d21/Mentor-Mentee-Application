@@ -4,7 +4,7 @@ from starlette import status
 from sqlalchemy.orm import Session
 from sqlalchemy.sql import select, and_
 from database import SessionLocal
-from models import User, MentorMentee, Domain, Roadmap
+from models import User, MentorMentee, Domain, Roadmap, Topic
 from .auth import get_current_user
 from pydantic import BaseModel
 
@@ -59,6 +59,7 @@ def get_approved_mentors_details(user: user_dependency, db: db_dependency):
             "mentor_name": row.mentor_name,
             "domain_id": row.domain_id,
             "domain_name": row.domain_name,
+            "roadmap_id": row.roadmap_id
         })
 
     return {
@@ -67,38 +68,49 @@ def get_approved_mentors_details(user: user_dependency, db: db_dependency):
         "object": result
     }
 
-# Endpoint 2: Get Roadmap Name by Mentor ID and Domain ID
-@router.post('/roadmap-topics', status_code=status.HTTP_200_OK)
-def get_roadmap_name(
-    body: RoadmapRequest,
+
+# Endpoint 2: Get Roadmap Topic List by Mentor ID and Domain ID
+@router.get('/roadmap-topics/{roadmap_id}', status_code=status.HTTP_200_OK)
+def get_roadmap_topics(
+    roadmap_id: int,
     user: user_dependency,
     db: db_dependency
 ):
     if user is None or user.get('role') != 'mentee':
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Unauthorized Access")
 
-    mentor_id = body.mentor_id
-    domain_id = body.domain_id
+    query = (
+        select( 
+            MentorMentee.roadmap_id
+        )
+        .where(and_(
+            MentorMentee.mentee_id == user.get('user_id'),
+            MentorMentee.roadmap_id == roadmap_id
+        ))
+    )
 
-    if not mentor_id or not domain_id:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="mentor_id and domain_id are required")
+    mentee_roadmap_id = db.execute(query).first()
 
-    record = db.query(MentorMentee).filter_by(
-        mentor_id=mentor_id,
-        domain_id=domain_id,
-        mentee_id=user.get('user_id')
-    ).first()
+    if mentee_roadmap_id is None:
+        raise HTTPException(status_code = status.HTTP_404_NOT_FOUND, detail='Roadmap not found or is not assigned')
+    
+    topics = db.query(Topic).filter(Topic.roadmap_id == roadmap_id).all()
 
-    if not record:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="No matching mentor-domain mapping found")
-
-    roadmap = db.query(Roadmap).filter_by(id=record.roadmap_id).first()
-
-    if not roadmap:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Roadmap not found")
-
+    if not topics:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="No topics found for the given roadmap id")
+    
+    roadmap_list = [{'topic_name': topic.name, 'status': topic.status} for topic in topics]
+    
+    roadmap_list = {}
+    for topic in topics:
+        topic_status = topic.status
+        name = topic.name
+        if topic_status not in roadmap_list:
+            roadmap_list[topic_status] = []
+        roadmap_list[topic_status].append(name)
+        
     return {
         "status_code": status.HTTP_200_OK,
-        "message": "Success",
-        "roadmap_name": roadmap.name
+        "message": "success",
+        "object": roadmap_list
     }
