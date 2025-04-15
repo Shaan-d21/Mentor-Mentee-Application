@@ -18,23 +18,31 @@ const RegisterPage: React.FC = () => {
   const navigate = useNavigate();
 
   const validateEmail = (email: string): string => {
+    // Basic format check
     if (!email) return "Email is required";
     
+    // Remove any whitespace
     email = email.trim();
     
+    // Check for minimum length
     if (email.length < 5) return "Email is too short";
-    if (email.length > 254) return "Email is too long";
     
-    const emailRegex = /^(?=[a-zA-Z0-9@._%+-]{6,254}$)[a-zA-Z0-9._%+-]{1,64}@(?:[a-zA-Z0-9-]{1,63}\.){1,8}[a-zA-Z]{2,63}$/;
+    // Comprehensive email regex
+    const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
     if (!emailRegex.test(email)) return "Invalid email format";
     
-    if (email.includes('..')) return "Email cannot contain consecutive dots";
-    if (email.includes('@.')) return "Invalid character after @";
-    if (email.includes('.@')) return "Invalid character before @";
-    if (email.split('@').length > 2) return "Email cannot contain multiple @ symbols";
-    if (email.startsWith('.')) return "Email cannot start with a dot";
-    if (email.endsWith('.')) return "Email cannot end with a dot";
-    if (/@.*_/.test(email)) return "Domain cannot contain underscore";
+    // Check for repeated TLDs
+    const domain = email.split('@')[1];
+    const domainParts = domain.toLowerCase().split('.');
+    if (domainParts.length >= 2 && domainParts[domainParts.length - 1] === domainParts[domainParts.length - 2]) {
+      return "Invalid email domain";
+    }
+
+    // Check TLD length (must be 2 or 3 characters)
+    const tld = domainParts[domainParts.length - 1];
+    if (tld.length !== 2 && tld.length !== 3) {
+      return "Domain extension must be 2 or 3 characters long";
+    }
     
     return "";
   };
@@ -97,22 +105,26 @@ const RegisterPage: React.FC = () => {
 
     setIsSubmitting(true);
     try {
-      // Prepare user data
+      // Prepare user data exactly as expected by the backend
       const userData = {
         name: name.trim(),
         mail: email.trim().toLowerCase(),
         pwd: password,
-        role: userType
+        role: userType.toLowerCase()
       };
       
-      console.log("Registering user through API");
+      console.log("Registering user through API with data:", userData);
       
-      // Use the API URL directly instead of proxy
-      const apiUrl = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000';
-      const registerResponse = await axios.post(`${apiUrl}/users/register/User`, userData, {
+      // Use the direct backend URL with CORS headers
+      const registerResponse = await axios.post('http://181.214.44.15:8080/users/register/User', userData, {
         headers: {
-          'Content-Type': 'application/json'
-        }
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+          'Access-Control-Allow-Origin': '*',
+          'Access-Control-Allow-Methods': 'POST, GET, OPTIONS',
+          'Access-Control-Allow-Headers': 'Content-Type'
+        },
+        withCredentials: true
       });
 
       if (registerResponse && registerResponse.status === 200) {
@@ -124,32 +136,36 @@ const RegisterPage: React.FC = () => {
     } catch (error: any) {
       console.error("Registration error:", error);
       
-      // Handle specific error cases
       if (error.response) {
-        // If the backend returns a specific error message
-        if (error.response.data && error.response.data.detail) {
-          toast.error(error.response.data.detail);
-        } 
-        // If the email is already registered (common case)
-        else if (error.response.status === 400) {
+        if (error.response.status === 422) {
+          // Handle validation errors
+          const validationErrors = error.response.data?.detail;
+          if (Array.isArray(validationErrors)) {
+            const errorMessages = validationErrors.map(err => err.msg).join(', ');
+            toast.error(`Validation error: ${errorMessages}`);
+          } else if (typeof validationErrors === 'string') {
+            toast.error(`Validation error: ${validationErrors}`);
+          } else {
+            toast.error("Invalid registration data. Please check your input.");
+          }
+        } else if (error.response.status === 400 || error.response.status === 500) {
+          // Check for email already exists error in the response
+          const errorMessage = error.response.data?.error || error.response.data?.detail;
+          if (errorMessage?.includes('duplicate key value violates unique constraint "user_mail_key"') || 
+              errorMessage?.includes('already exists')) {
+            toast.error("This email is already registered. Please use a different email or login.");
+          } else {
+            toast.error("Invalid registration data. Please check your input.");
+          }
+        } else if (error.response.status === 409) {
           toast.error("This email is already registered. Please use a different email or login.");
+        } else {
+          toast.error("Registration failed. Please try again later.");
         }
-        // For other 4xx errors
-        else if (error.response.status >= 400 && error.response.status < 500) {
-          toast.error("Invalid registration data. Please check your input.");
-        }
-        // For 5xx errors
-        else {
-          toast.error("Server error. Please try again later.");
-        }
-      } 
-      // Handle network errors
-      else if (error.message && error.message.includes('Network Error')) {
+      } else if (error.request) {
         toast.error("Cannot connect to the server. Please check your internet connection.");
-      }
-      // For any other errors
-      else {
-        toast.error("Registration failed. Please try again.");
+      } else {
+        toast.error("An unexpected error occurred. Please try again.");
       }
     } finally {
       setIsSubmitting(false);

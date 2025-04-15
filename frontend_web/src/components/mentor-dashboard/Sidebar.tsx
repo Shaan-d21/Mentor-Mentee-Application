@@ -57,7 +57,7 @@ const Sidebar: React.FC<SidebarProps> = ({ userRole }) => {
         {isCollapsed ? (
           <Menu size={24} className="text-white cursor-pointer" onClick={toggleSidebar} />
         ) : (
-          <h1 className="text-lg font-bold text-white">Mentorship Platform</h1>
+          <h1 className="text-lg font-bold text-white">{isMentor ? "Mentor Dashboard" : "Mentee Dashboard"}</h1>
         )}
       </div>
 
@@ -89,18 +89,18 @@ const Sidebar: React.FC<SidebarProps> = ({ userRole }) => {
             </Link>
           );
         })}
-        
-        {/* Toggle button after the navigation items */}
-        <div className="flex justify-center mt-4 mb-2">
-          <button
-            onClick={toggleSidebar}
-            className="bg-slate-700 text-white w-8 h-8 rounded-full flex items-center justify-center shadow-md border border-slate-600 hover:bg-slate-600 focus:outline-none"
-            aria-label={isCollapsed ? "Expand sidebar" : "Collapse sidebar"}
-          >
-            {isCollapsed ? <ChevronRight size={16} /> : <ChevronLeft size={16} />}
-          </button>
-        </div>
       </nav>
+
+      {/* Toggle button at the bottom */}
+      <div className="absolute bottom-0 left-0 right-0 p-4 border-t border-slate-700 flex justify-center">
+        <button
+          onClick={toggleSidebar}
+          className="bg-slate-700 text-white w-8 h-8 rounded-full flex items-center justify-center shadow-md border border-slate-600 hover:bg-slate-600 focus:outline-none"
+          aria-label={isCollapsed ? "Expand sidebar" : "Collapse sidebar"}
+        >
+          {isCollapsed ? <ChevronRight size={16} /> : <ChevronLeft size={16} />}
+        </button>
+      </div>
     </div>
   );
 };

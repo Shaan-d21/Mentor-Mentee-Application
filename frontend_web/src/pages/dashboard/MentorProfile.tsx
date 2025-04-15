@@ -3,6 +3,7 @@ import { Edit2, Save, Loader2, User } from 'lucide-react';
 import axios from 'axios';
 import toast from 'react-hot-toast';
 import { useNavigate } from 'react-router-dom';
+import { validateName, validateContact, validateDesignation, validateExperience } from '../../utils/validations';
 
 interface Skill {
   name: string;
@@ -27,6 +28,7 @@ interface ValidationErrors {
   designation?: string;
   domain?: string;
   skills?: string;
+  experience?: string;
 }
 
 const MentorProfile: React.FC = () => {
@@ -71,16 +73,12 @@ const MentorProfile: React.FC = () => {
       }
 
       const authToken = accessToken.startsWith('Bearer') ? accessToken.split('Bearer ')[1] : accessToken;
-      const apiBaseUrl = import.meta.env.VITE_API_URL || 'http://localhost:8000';
 
-      const response = await axios.get(
-        `${apiBaseUrl}/users/mentor/profile`,
-        {
-          headers: {
-            'Token': authToken
-          }
+      const response = await axios.get('http://181.214.44.15:8080/users/mentor/profile', {
+        headers: {
+          'Token': authToken
         }
-      );
+      });
 
       if (response.data) {
         const transformedData = {
@@ -120,22 +118,24 @@ const MentorProfile: React.FC = () => {
   }, []);
 
   // Validation functions
-  const validateName = (name: string): string | undefined => {
-    if (!name) return 'Name is required';
-    if (!/^[a-zA-Z\s]*$/.test(name)) return 'Name should only contain letters';
-    return undefined;
+  const validateNameField = (name: string): string | undefined => {
+    const result = validateName(name);
+    return result.isValid ? undefined : result.error;
   };
 
-  const validateContact = (contact: string): string | undefined => {
-    if (!contact) return 'Contact number is required';
-    if (!/^\d+$/.test(contact)) return 'Contact number should only contain digits';
-    if (contact.length !== 10) return 'Contact number must be exactly 10 digits';
-    return undefined;
+  const validateContactField = (contact: string): string | undefined => {
+    const result = validateContact(contact);
+    return result.isValid ? undefined : result.error;
   };
 
-  const validateDesignation = (designation: string): string | undefined => {
-    if (!designation) return 'Designation is required';
-    return undefined;
+  const validateDesignationField = (designation: string): string | undefined => {
+    const result = validateDesignation(designation);
+    return result.isValid ? undefined : result.error;
+  };
+
+  const validateExperienceField = (experience: number): string | undefined => {
+    const result = validateExperience(experience);
+    return result.isValid ? undefined : result.error;
   };
 
   const validateDomain = (domain: string): string | undefined => {
@@ -153,21 +153,23 @@ const MentorProfile: React.FC = () => {
   const validateProfile = (): boolean => {
     if (!tempProfile) return false;
     
-    const nameError = validateName(tempProfile.name);
-    const contactError = validateContact(tempProfile.contact);
-    const designationError = validateDesignation(tempProfile.designation);
+    const nameError = validateNameField(tempProfile.name);
+    const contactError = validateContactField(tempProfile.contact);
+    const designationError = validateDesignationField(tempProfile.designation);
     const domainError = validateDomain(tempProfile.domain);
     const skillsError = validateSkills(tempProfile.skills);
+    const experienceError = validateExperienceField(tempProfile.experience);
     
     setValidationErrors({
       name: nameError,
       contact: contactError,
       designation: designationError,
       domain: domainError,
-      skills: skillsError
+      skills: skillsError,
+      experience: experienceError
     });
 
-    return !nameError && !contactError && !designationError && !domainError && !skillsError;
+    return !nameError && !contactError && !designationError && !domainError && !skillsError && !experienceError;
   };
 
   // Handle field changes
@@ -181,28 +183,28 @@ const MentorProfile: React.FC = () => {
 
     // Validate the field immediately
     if (field === 'name') {
-      const nameError = validateName(value as string);
+      const nameError = validateNameField(value as string);
       setValidationErrors(prev => ({
         ...prev,
         name: nameError
       }));
     } else if (field === 'contact') {
-      const contactError = validateContact(value as string);
+      const contactError = validateContactField(value as string);
       setValidationErrors(prev => ({
         ...prev,
         contact: contactError
       }));
     } else if (field === 'designation') {
-      const designationError = validateDesignation(value as string);
+      const designationError = validateDesignationField(value as string);
       setValidationErrors(prev => ({
         ...prev,
         designation: designationError
       }));
-    } else if (field === 'domain') {
-      const domainError = validateDomain(value as string);
+    } else if (field === 'experience') {
+      const experienceError = validateExperienceField(value as number);
       setValidationErrors(prev => ({
         ...prev,
-        domain: domainError
+        experience: experienceError
       }));
     }
   };
@@ -257,11 +259,10 @@ const MentorProfile: React.FC = () => {
       }
 
       const authToken = accessToken.startsWith('Bearer') ? accessToken.split('Bearer ')[1] : accessToken;
-      const apiBaseUrl = import.meta.env.VITE_API_URL || 'http://localhost:8000';
-      
+
       // Update profile
       const profileResponse = await axios.put(
-        `${apiBaseUrl}/users/mentor/profile_creation`,
+        'http://181.214.44.15:8080/users/mentor/profile_creation',
         {
           name: tempProfile.name,
           contact: tempProfile.contact,
@@ -281,7 +282,7 @@ const MentorProfile: React.FC = () => {
         // Update skills
         const skillsToKeep = tempProfile.skills.filter(skill => skill.name);
         const skillsResponse = await axios.post(
-          `${apiBaseUrl}/users/mentor/skills`,
+          'http://181.214.44.15:8080/users/mentor/skills',
           {
             skills: skillsToKeep.map(skill => ({
               skill_name: skill.name,
@@ -296,7 +297,7 @@ const MentorProfile: React.FC = () => {
         if (skillsResponse.status === 200) {
           // Fetch updated profile
           const updatedProfileResponse = await axios.get(
-            `${apiBaseUrl}/users/mentor/profile`,
+            'http://181.214.44.15:8080/users/mentor/profile',
             {
               headers: { Token: accessToken }
             }
@@ -478,16 +479,17 @@ const MentorProfile: React.FC = () => {
             <div className="bg-gray-50 p-4 rounded-lg">
               <h3 className="text-lg font-semibold text-gray-800 mb-3">Basic Information</h3>
               <div className="space-y-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Name</label>
+                <div className="mb-4">
+                  <label className="block text-gray-700 text-sm font-bold mb-2">
+                    Full Name <span className="text-red-500">*</span>
+                  </label>
                   <input
                     type="text"
-                    className={`w-full px-4 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-                      validationErrors.name ? 'border-red-500' : 'border-gray-300'
-                    }`}
                     value={tempProfile?.name || ''}
                     onChange={(e) => handleChange('name', e.target.value)}
-                    placeholder="Your name"
+                    className={`shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline ${
+                      validationErrors.name ? 'border-red-500' : ''
+                    }`}
                   />
                   {validationErrors.name && (
                     <p className="mt-1 text-sm text-red-500">{validationErrors.name}</p>
@@ -497,49 +499,56 @@ const MentorProfile: React.FC = () => {
                   <span className="w-24 text-gray-600">Email:</span>
                   <span className="text-gray-800">{profile?.email}</span>
                 </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Designation</label>
+                <div className="mb-4">
+                  <label className="block text-gray-700 text-sm font-bold mb-2">
+                    Designation <span className="text-red-500">*</span>
+                  </label>
                   <input
                     type="text"
-                    className={`w-full px-4 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-                      validationErrors.designation ? 'border-red-500' : 'border-gray-300'
-                    }`}
                     value={tempProfile?.designation || ''}
                     onChange={(e) => handleChange('designation', e.target.value)}
-                    placeholder="Your designation"
+                    className={`shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline ${
+                      validationErrors.designation ? 'border-red-500' : ''
+                    }`}
                   />
                   {validationErrors.designation && (
                     <p className="text-sm text-red-500 mt-1">{validationErrors.designation}</p>
                   )}
                 </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Contact Number</label>
+                <div className="mb-4">
+                  <label className="block text-gray-700 text-sm font-bold mb-2">
+                    Contact Number <span className="text-red-500">*</span>
+                  </label>
                   <input
                     type="text"
-                    className={`w-full px-4 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-                      validationErrors.contact ? 'border-red-500' : 'border-gray-300'
-                    }`}
                     value={tempProfile?.contact || ''}
                     onChange={(e) => {
                       const value = e.target.value.replace(/\D/g, '').slice(0, 10);
                       handleChange('contact', value);
                     }}
-                    placeholder="10-digit contact number"
-                    maxLength={10}
+                    className={`shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline ${
+                      validationErrors.contact ? 'border-red-500' : ''
+                    }`}
                   />
                   {validationErrors.contact && (
                     <p className="mt-1 text-sm text-red-500">{validationErrors.contact}</p>
                   )}
                 </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Experience (years)</label>
+                <div className="mb-4">
+                  <label className="block text-gray-700 text-sm font-bold mb-2">
+                    Years of Experience <span className="text-red-500">*</span>
+                  </label>
                   <input
                     type="number"
-                    className="w-full px-4 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
                     value={tempProfile?.experience || 0}
                     onChange={(e) => handleChange('experience', parseInt(e.target.value))}
-                    placeholder="Years of experience"
+                    className={`shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline ${
+                      validationErrors.experience ? 'border-red-500' : ''
+                    }`}
                   />
+                  {validationErrors.experience && (
+                    <p className="mt-1 text-sm text-red-500">{validationErrors.experience}</p>
+                  )}
                 </div>
               </div>
             </div>
@@ -573,24 +582,48 @@ const MentorProfile: React.FC = () => {
                 {tempProfile?.skills.map((skill, index) => (
                   <div key={index} className="space-y-2">
                     <div className="flex items-center gap-2">
-                      <select
-                        className={`w-full px-4 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-                          validationErrors.skills ? 'border-red-500' : 'border-gray-300'
-                        }`}
-                        value={skill.name}
-                        onChange={(e) => handleSkillChange(index, 'name', e.target.value)}
-                      >
-                        <option value="">Select a skill</option>
-                        {predefinedSkills.map((skillName) => (
-                          <option 
-                            key={skillName} 
-                            value={skillName}
-                            disabled={isSkillSelected(skillName, index)}
+                      {skill.name && profile?.skills.some(s => s.name === skill.name) ? (
+                        <div className="w-full px-4 py-2 border border-gray-300 rounded bg-gray-50 text-gray-700">
+                          {skill.name}
+                        </div>
+                      ) : (
+                        <>
+                          <select
+                            className={`w-full px-4 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-500 ${
+                              validationErrors.skills ? 'border-red-500' : 'border-gray-300'
+                            }`}
+                            value={skill.name}
+                            onChange={(e) => handleSkillChange(index, 'name', e.target.value)}
                           >
-                            {skillName}
-                          </option>
-                        ))}
-                      </select>
+                            <option value="">Select a skill</option>
+                            {predefinedSkills.map((skillName) => (
+                              <option 
+                                key={skillName} 
+                                value={skillName}
+                                disabled={isSkillSelected(skillName, index)}
+                              >
+                                {skillName}
+                              </option>
+                            ))}
+                          </select>
+                          <button
+                            onClick={() => {
+                              if (!tempProfile) return;
+                              const newSkills = [...tempProfile.skills];
+                              newSkills.splice(index, 1);
+                              setTempProfile({
+                                ...tempProfile,
+                                skills: newSkills
+                              });
+                            }}
+                            className="p-2 text-red-500 hover:text-red-700"
+                          >
+                            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                              <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" />
+                            </svg>
+                          </button>
+                        </>
+                      )}
                     </div>
                     <div className="flex items-center space-x-2">
                       <span className="text-sm text-gray-600">Proficiency:</span>

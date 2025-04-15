@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
-import toast from 'react-hot-toast';
+import { showToast } from '../../utils/toast';
 import AuthLayout from "./AuthLayout";
 import { EyeIcon, EyeSlashIcon } from "@heroicons/react/24/outline";
 
@@ -17,12 +17,20 @@ const LoginPage: React.FC = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
+
+    // Validate input
+    if (!email || !password) {
+      showToast('Please fill in all fields');
+      setLoading(false);
+      return;
+    }
+
     try {
       const formData = new URLSearchParams();
       formData.append('username', email.trim().toLowerCase());
       formData.append('password', password);
 
-      const response = await axios.post('http://localhost:8000/authentication/login', formData, {
+      const response = await axios.post('http://181.214.44.15:8080/authentication/login', formData, {
         headers: {
           'Content-Type': 'application/x-www-form-urlencoded'
         }
@@ -41,7 +49,7 @@ const LoginPage: React.FC = () => {
 
       console.log('Stored profile status:', localStorage.getItem('profile_status'));
       
-      toast.success('Login successful!');
+      showToast('Login successful', 'success');
       
       if (profile_status) {
         console.log('Profile is complete, navigating to dashboard');
@@ -50,8 +58,9 @@ const LoginPage: React.FC = () => {
         console.log('Profile is incomplete, navigating to profile completion');
         navigate('/profile-completion');
       }
-    } catch (err) {
-      toast.error('Invalid credentials');
+    } catch (error) {
+      console.error('Login error:', error);
+      showToast('An error occurred. Please try again');
     } finally {
       setLoading(false);
     }

@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { Routes, Route, useNavigate, useLocation } from 'react-router-dom';
 import Sidebar from '../../components/mentor-dashboard/Sidebar';
 import Navbar from '../../components/Navbar';
-import MenteeRequests from '../mentor/MentorRequests';
+import MentorRequests from './MentorRequests';
 import MyMentees from './MyMentees';
 import MentorProfile from './MentorProfile';
 import toast from 'react-hot-toast';
@@ -24,16 +24,12 @@ const DashboardHome: React.FC = () => {
         }
 
         const authToken = accessToken.startsWith('Bearer') ? accessToken.split('Bearer ')[1] : accessToken;
-        const apiBaseUrl = import.meta.env.VITE_API_URL || 'http://localhost:8000';
 
-        const response = await axios.get(
-          `${apiBaseUrl}/users/mentor/profile`,
-          {
-            headers: {
-              'Token': authToken
-            }
+        const response = await axios.get('http://181.214.44.15:8080/mentor/get-approved-mentee', {
+          headers: {
+            'Token': authToken
           }
-        );
+        });
 
         if (response.data && response.data.name) {
           setMentorName(response.data.name);
@@ -67,7 +63,7 @@ const DashboardHome: React.FC = () => {
 
       <div className="space-y-8">
         <MyMentees />
-        <MenteeRequests />
+        <MentorRequests />
       </div>
     </div>
   );
@@ -101,7 +97,7 @@ const MentorDashboard: React.FC = () => {
           <Routes>
             <Route path="/" element={<DashboardHome />} />
             <Route path="/profile" element={<MentorProfile />} />
-            <Route path="/requests" element={<MenteeRequests />} />
+            <Route path="/requests" element={<MentorRequests />} />
             <Route path="/my-mentees" element={<MyMentees />} />
             <Route path="/generate-roadmap" element={<RoadmapGenerator />} />
           </Routes>

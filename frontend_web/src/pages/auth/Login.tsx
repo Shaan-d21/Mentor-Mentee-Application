@@ -79,7 +79,7 @@ const Login: React.FC = () => {
     setLoading(true);
 
     try {
-      const response = await axios.post('http://localhost:8000/api/v1/auth/login', {
+      const response = await axios.post('http://181.214.44.15:8080/authentication/login', {
         ...formData,
         email: formData.email.trim().toLowerCase()
       });

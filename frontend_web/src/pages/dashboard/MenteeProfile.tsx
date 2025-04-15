@@ -1,9 +1,10 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { Edit2, X, Loader2, Save } from 'lucide-react';
+import { Edit2, Loader2, Save } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import toast from 'react-hot-toast';
 import { FaUser } from 'react-icons/fa';
 import axios from 'axios';
+import { validateName, validateContact, validateDesignation } from '../../utils/validations';
 
 // TypeScript interfaces
 interface ProfileData {
@@ -67,19 +68,25 @@ const MenteeProfileContent: React.FC = () => {
   const [editMode, setEditMode] = useState(false);
   const [selectedSkill, setSelectedSkill] = useState<string>('');
   const [availableSkills, setAvailableSkills] = useState<string[]>(PREDEFINED_SKILLS);
-  const email = localStorage.getItem('email') || '';
 
   // Profile states
   const [profile, setProfile] = useState<ProfileData>({
     name: '',
-    mail: email,
+    mail: '',
     contact: '',
     designation: '',
     "Skill set": [],
-    role: 'mentee'
+    role: ''
   });
 
-  const [tempProfile, setTempProfile] = useState<ProfileData>(profile);
+  const [tempProfile, setTempProfile] = useState<ProfileData>({
+    name: '',
+    mail: '',
+    contact: '',
+    designation: '',
+    "Skill set": [],
+    role: ''
+  });
 
   // Update available skills when tempProfile changes
   useEffect(() => {
@@ -95,83 +102,124 @@ const MenteeProfileContent: React.FC = () => {
       const skillExists = tempProfile["Skill set"].some(skill => skill.name === selectedSkill);
       
       if (!skillExists) {
-      setTempProfile(prev => ({
-        ...prev,
+        setTempProfile(prev => ({
+          ...prev,
           "Skill set": [...prev["Skill set"], { name: selectedSkill, isNew: true }]
-      }));
-      setSelectedSkill('');
+        }));
+        setSelectedSkill('');
+        setValidationErrors(prev => ({ ...prev, skills: undefined }));
+      } else {
+        setValidationErrors(prev => ({ ...prev, skills: 'This skill is already added' }));
       }
     }
   };
 
-  // Remove skill
-  const removeSkill = (skillNameToRemove: string) => {
-    console.log(`Attempting to remove skill: ${skillNameToRemove}`);
-    setTempProfile(prev => {
-      // Create a new skills array without the skill to remove
-      const updatedSkills = prev["Skill set"].filter(skill => skill.name !== skillNameToRemove);
-      console.log(`Skills count before: ${prev["Skill set"].length}, after: ${updatedSkills.length}`);
-      
-      return {
-      ...prev,
-        "Skill set": updatedSkills
-      };
-    });
-    
-    // Update available skills
-    setAvailableSkills(prev => {
-      if (!prev.includes(skillNameToRemove)) {
-        return [...prev, skillNameToRemove];
-      }
-      return prev;
-    });
-  };
-
   // Validation functions
-  const validateName = (name: string): string | undefined => {
-    if (!name) return 'Name is required';
-    if (/[0-9]/.test(name)) return 'Name should not contain numbers';
-    if (!/^[a-zA-Z\s]*$/.test(name)) return 'Name should only contain letters';
-    return undefined;
+  const handleChange = (field: keyof ProfileData, value: string) => {
+    setTempProfile(prev => ({
+      ...prev,
+      [field]: value
+    }));
+
+    // Validate the field immediately
+    let validationResult: { isValid: boolean; error?: string } = { isValid: true };
+    switch (field) {
+      case 'name':
+        validationResult = validateName(value);
+        setValidationErrors(prev => ({ ...prev, name: validationResult.error }));
+        break;
+      case 'contact':
+        validationResult = validateContact(value);
+        setValidationErrors(prev => ({ ...prev, contact: validationResult.error }));
+        break;
+      case 'designation':
+        validationResult = validateDesignation(value);
+        setValidationErrors(prev => ({ ...prev, designation: validationResult.error }));
+        break;
+    }
   };
 
-  const validateContact = (contact: string): string | undefined => {
-    if (!contact) return 'Contact number is required';
-    if (!/^\d+$/.test(contact)) return 'Contact number should only contain digits';
-    if (contact.length !== 10) return 'Contact number must be exactly 10 digits';
-    return undefined;
+  const handleBlur = (field: keyof ProfileData) => {
+    const value = tempProfile[field];
+    let validationResult: { isValid: boolean; error?: string } = { isValid: true };
+    
+    // Only validate string fields
+    if (typeof value === 'string') {
+      switch (field) {
+        case 'name':
+          validationResult = validateName(value);
+          setValidationErrors(prev => ({ ...prev, name: validationResult.error }));
+          break;
+        case 'contact':
+          validationResult = validateContact(value);
+          setValidationErrors(prev => ({ ...prev, contact: validationResult.error }));
+          break;
+        case 'designation':
+          validationResult = validateDesignation(value);
+          setValidationErrors(prev => ({ ...prev, designation: validationResult.error }));
+          break;
+      }
+    }
   };
 
   const validateProfile = (): boolean => {
-    const nameError = validateName(tempProfile.name);
-    const contactError = validateContact(tempProfile.contact);
+    const nameValidation = validateName(tempProfile.name);
+    const contactValidation = validateContact(tempProfile.contact);
+    const designationValidation = validateDesignation(tempProfile.designation);
     
     setValidationErrors({
-      name: nameError,
-      contact: contactError
+      name: nameValidation.error,
+      contact: contactValidation.error,
+      designation: designationValidation.error,
+      skills: tempProfile["Skill set"].length === 0 ? "At least one skill is required" : undefined
     });
-
-    return !nameError && !contactError;
+    
+    return nameValidation.isValid && 
+           contactValidation.isValid && 
+           designationValidation.isValid && 
+           tempProfile["Skill set"].length > 0;
   };
 
   // Fetch profile data
   const fetchProfile = useCallback(async () => {
     try {
       setLoading(true);
+      setError(null); // Clear previous errors
+      
+      // Check for token first
       const token = localStorage.getItem('accessToken');
+      console.log('Token available for profile fetch:', token ? `${token.substring(0, 10)}...` : 'No token found');
+      
       if (!token) {
-        throw new Error('No access token found');
+        console.error('No authentication token found in localStorage');
+        setError('Authentication token missing. Please login again.');
+        navigate('/auth/login');
+        return;
+      }
+      
+      // Format token properly - ensure it has Bearer prefix
+      const authToken = token.startsWith('Bearer ') ? token : `Bearer ${token}`;
+      console.log('Using token with proper format:', authToken.substring(0, 15) + '...');
+      
+      const email = localStorage.getItem('email');
+      const name = localStorage.getItem('name');
+      
+      if (!email) {
+        setError('User email not found. Please log in again.');
+        navigate('/auth/login');
+        return;
       }
 
-      const authToken = token.startsWith('Bearer ') ? token : `Bearer ${token}`;
+      console.log("Fetching profile for user:", email);
+      
       const apiBaseUrl = import.meta.env.VITE_API_URL || 'http://localhost:8000';
-
+      
       // Try the mentee profile endpoint with proper token format
       try {
         console.log(`Calling API: GET ${apiBaseUrl}/mentee/mentee/profile`);
         console.log('Headers:', { 'Token': authToken.substring(0, 20) + '...' });
         
-        const profileResponse = await axios.get(`${apiBaseUrl}/mentee/mentee/profile`, {
+        const profileResponse = await axios.get('http://181.214.44.15:8080/mentee/mentee/profile', {
           headers: {
             'Token': authToken
           }
@@ -192,9 +240,9 @@ const MenteeProfileContent: React.FC = () => {
           
           const profileData: ProfileData = {
             name: profileResponse.data.name || '',
-            mail: profileResponse.data.mail || email,
+            mail: profileResponse.data.mail || email || '',
             contact: profileResponse.data.contact || '',
-            designation: profileResponse.data.designation || 'Not specified',
+            designation: profileResponse.data.designation || '',
             "Skill set": skills,
             role: profileResponse.data.role || 'mentee'
           };
@@ -206,46 +254,63 @@ const MenteeProfileContent: React.FC = () => {
           localStorage.setItem('name', profileData.name);
           localStorage.setItem('userContact', profileData.contact);
           localStorage.setItem('menteeSkills', JSON.stringify(profileData["Skill set"].map(s => s.name)));
-          localStorage.setItem('designation', profileData.designation);
           
           setLoading(false);
           return;
         }
-      } catch (profileError: any) {
-        console.error('Error fetching mentee profile:', profileError);
-        if (profileError.response?.status === 404) {
-          // Profile doesn't exist yet, create a default one
-          const defaultProfile: ProfileData = {
-            name: '',
-            mail: email,
-            contact: '',
-            designation: 'Not specified',
-            "Skill set": [],
-            role: 'mentee'
-          };
-          setProfile(defaultProfile);
-          setTempProfile(defaultProfile);
-          setLoading(false);
-          return;
-        }
-        throw profileError;
+      } catch (profileError) {
+        console.error("Error fetching detailed profile:", profileError);
+        // Continue to fallback approach
       }
+      
+      // Final fallback: Use data only from localStorage
+      console.log("Using fallback profile data from localStorage");
+      
+      // Get skills from localStorage or use empty array
+      const skillsString = localStorage.getItem('menteeSkills');
+      let skills = [];
+      try {
+        if (skillsString) {
+          skills = JSON.parse(skillsString);
+        }
+      } catch (e) {
+        console.error("Error parsing skills from localStorage:", e);
+      }
+      
+      const fallbackProfile: ProfileData = {
+        name: name || 'User',
+        mail: email || '',
+        contact: localStorage.getItem('userContact') || '',
+        designation: '',
+        "Skill set": skills.length > 0 ? skills.map((skill: string) => ({ name: skill })) : [],
+        role: 'mentee'
+      };
+      
+      setProfile(fallbackProfile);
+      setTempProfile(fallbackProfile);
+      
     } catch (error: any) {
-      console.error('Error in fetchProfile:', error);
-      setError(error.message || 'Failed to fetch profile');
+      console.error('Error fetching profile:', error);
+      
+      if (error.response?.status === 401) {
+        toast.error('Session expired. Please log in again.');
+        localStorage.removeItem('accessToken');
+        localStorage.removeItem('userInfo');
+        navigate('/auth/login');
+      } else if (error.message && error.message.includes('Network Error')) {
+        setError('Unable to connect to the server. Please check your connection.');
+      } else {
+        // Don't show detailed error to user
+        setError('Unable to load profile. Please try again later.');
+      }
+    } finally {
       setLoading(false);
     }
-  }, [email]);
+  }, [navigate]);
 
   useEffect(() => {
-    const storedEmail = localStorage.getItem('email');
-    if (storedEmail) {
-      fetchProfile();
-    } else {
-      setError('Email not found. Please log in again.');
-      navigate('/auth/login');
-    }
-  }, [fetchProfile, navigate]);
+    fetchProfile();
+  }, [fetchProfile]);
 
   // Avatar animation
   // useEffect(() => {
@@ -255,39 +320,17 @@ const MenteeProfileContent: React.FC = () => {
   //   return () => clearInterval(interval);
   // }, []);
 
-  // Handle field changes
-  const handleChange = (field: keyof ProfileData, value: string) => {
-    setTempProfile(prev => ({
-      ...prev,
-      [field]: value
-    }));
-
-    // Validate the field immediately
-    if (field === 'name') {
-      const nameError = validateName(value);
-      setValidationErrors(prev => ({
-        ...prev,
-        name: nameError
-      }));
-    } else if (field === 'contact') {
-      const contactError = validateContact(value);
-      setValidationErrors(prev => ({
-        ...prev,
-        contact: contactError
-      }));
-    }
-  };
-
   // Save profile changes
   const saveChanges = async () => {
-    // First validate the profile
-    if (!validateProfile()) {
-      toast.error('Please fix the validation errors before saving');
-      return;
-    }
-
     setSaving(true);
     try {
+      // Validate all fields before saving
+      if (!validateProfile()) {
+        toast.error('Please fill in all required fields correctly');
+        setSaving(false);
+        return;
+      }
+
       const token = localStorage.getItem('accessToken');
       if (!token) {
         setError('Authentication token not found. Please log in again.');
@@ -295,118 +338,74 @@ const MenteeProfileContent: React.FC = () => {
         return;
       }
 
-      // Format token properly - ensure it has Bearer prefix
       const authToken = token.startsWith('Bearer ') ? token : `Bearer ${token}`;
       
-      const apiBaseUrl = import.meta.env.VITE_API_URL || 'http://localhost:8000';
-      
-      // Prepare the correct profile data format for the API
       const profileData = {
         name: tempProfile.name,
         contact: tempProfile.contact,
-        designation: tempProfile.designation || 'Not specified'
+        designation: tempProfile.designation,
       };
       
-      console.log('Updating mentee profile with data:', profileData);
-      console.log('Using token:', authToken.substring(0, 15) + '...');
-      console.log('API URL:', `${apiBaseUrl}/mentee/mentee/profile_creation`);
-      console.log('Headers:', {
-        'Content-Type': 'application/json',
-        'Token': authToken
-      });
-      
-      try {
-        // First update the profile with PUT request
-        const profileResponse = await axios.put(
-          `${apiBaseUrl}/mentee/mentee/profile_creation`,
-          profileData,
-          {
-            headers: {
-              'Content-Type': 'application/json',
-              'Token': authToken
-            }
+      // First update the profile
+      // const profileResponse = await axios.put(
+      await axios.put(
+        'http://181.214.44.15:8080/mentee/mentee/profile_creation',
+        profileData,
+        {
+          headers: {
+            'Content-Type': 'application/json',
+            'Token': authToken
           }
-        );
-        
-        console.log('Profile update response:', profileResponse.data);
-        
-        // Then update skills with a separate POST request
-        const skillsPayload = {
-          skills: tempProfile["Skill set"].map(skill => ({
-            skill_name: skill.name
-          }))
-        };
-
-        console.log('Updating mentee skills with data:', skillsPayload);
-        
-        // First, get existing skills to avoid duplicates
-        const existingSkillsResponse = await axios.get(
-          `${apiBaseUrl}/mentee/mentee/profile`,
-          {
-            headers: {
-              'Content-Type': 'application/json',
-              'Token': authToken
-            }
-          }
-        );
-        
-        // Extract existing skill names
-        const existingSkillNames = existingSkillsResponse.data["Skill set"]?.map((skill: any) => skill.name) || [];
-        
-        // Filter out skills that already exist
-        const newSkills = tempProfile["Skill set"].filter(skill => !existingSkillNames.includes(skill.name));
-        
-        if (newSkills.length > 0) {
-          const newSkillsPayload = {
-            skills: newSkills.map(skill => ({
-              skill_name: skill.name
-            }))
-          };
-          
-          console.log('Adding only new skills:', newSkillsPayload);
-          
-          const skillsResponse = await axios.post(
-            `${apiBaseUrl}/mentee/mentee/skills`,
-            newSkillsPayload,
-            {
-              headers: {
-                'Content-Type': 'application/json',
-                'Token': authToken
-              }
-            }
-          );
-          
-          console.log('Skills update response:', skillsResponse.data);
-        } else {
-          console.log('No new skills to add');
         }
-        
-        // Update localStorage for local data
-        localStorage.setItem('name', tempProfile.name);
-        localStorage.setItem('userContact', tempProfile.contact);
-        localStorage.setItem('menteeSkills', JSON.stringify(tempProfile["Skill set"].map(s => s.name)));
-        localStorage.setItem('designation', tempProfile.designation);
-        
-        // Update the displayed profile
-        setProfile(tempProfile);
-        setEditMode(false);
-        toast.success('Profile updated successfully!');
-        
-        // Refresh the profile data to ensure we have the latest data from the server
-        fetchProfile();
-      } catch (apiError: any) {
-        console.error('API request failed:', apiError);
-        console.error('Status:', apiError.response?.status);
-        console.error('Response data:', apiError.response?.data);
-        
-        if (apiError.response?.status === 401) {
-          toast.error('Authentication failed. Please log in again.');
-          localStorage.removeItem('accessToken');
-          navigate('/auth/login');
-        } else {
-          throw apiError; // Re-throw to be caught by outer catch
+      );
+      
+      // Then update only new skills
+      if (tempProfile["Skill set"].length > 0) {
+        try {
+          // Filter only new skills (those with isNew flag)
+          const newSkills = tempProfile["Skill set"].filter(skill => skill.isNew);
+          
+          if (newSkills.length > 0) {
+            const skillsPayload = {
+              skills: newSkills.map(skill => ({
+                skill_name: skill.name
+              }))
+            };
+
+            await axios.post(
+              'http://181.214.44.15:8080/mentee/mentee/skills',
+              skillsPayload,
+              {
+                headers: {
+                  'Content-Type': 'application/json',
+                  'Token': authToken
+                }
+              }
+            );
+          }
+        } catch (skillsError: any) {
+          if (skillsError.response?.status === 409) {
+            // Handle duplicate skill error gracefully
+            toast.error('Some skills were already added. Please try adding different skills.');
+            setSaving(false);
+            return;
+          }
+          throw skillsError; // Re-throw other errors
         }
       }
+      
+      // Update localStorage
+      localStorage.setItem('name', tempProfile.name);
+      localStorage.setItem('userContact', tempProfile.contact);
+      localStorage.setItem('menteeSkills', JSON.stringify(tempProfile["Skill set"].map(s => s.name)));
+      
+      // Update the displayed profile
+      setProfile(tempProfile);
+      setEditMode(false);
+      toast.success('Profile updated successfully!');
+      
+      // Refresh the profile data
+      fetchProfile();
     } catch (error: any) {
       console.error('Error updating profile:', error);
       
@@ -414,11 +413,9 @@ const MenteeProfileContent: React.FC = () => {
         toast.error('Your session has expired. Please log in again.');
         navigate('/auth/login');
       } else if (error.message && error.message.includes('Network Error')) {
-        setError('Unable to connect to the server. Please check your connection.');
         toast.error('Network error. Please check your connection.');
       } else {
         const errorMessage = error.response?.data?.detail || error.response?.data?.message || 'Failed to update profile';
-        setError(errorMessage);
         toast.error(errorMessage);
       }
     } finally {
@@ -540,7 +537,9 @@ const MenteeProfileContent: React.FC = () => {
               <h3 className="text-lg font-semibold text-gray-800 mb-3">Basic Information</h3>
               <div className="space-y-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Name</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Name <span className="text-red-500">*</span>
+                  </label>
                   <input
                     type="text"
                     className={`w-full px-4 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-500 ${
@@ -548,51 +547,26 @@ const MenteeProfileContent: React.FC = () => {
                     }`}
                     value={tempProfile.name}
                     onChange={(e) => handleChange('name', e.target.value)}
-                    placeholder="Your name"
+                    onBlur={() => handleBlur('name')}
+                    placeholder="Your full name"
                   />
                   {validationErrors.name && (
                     <p className="mt-1 text-sm text-red-500">{validationErrors.name}</p>
                   )}
                 </div>
-                <div className="flex items-center">
-                  <span className="w-24 text-gray-600">Email:</span>
-                  <span className="text-gray-800">{profile.mail}</span>
-                </div>
-                <div className="mb-4">
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Designation
-                  </label>
-                  {editMode ? (
-                    <input
-                      type="text"
-                      value={tempProfile.designation}
-                      onChange={(e) => handleChange('designation', e.target.value)}
-                      className="w-full px-4 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-500 border-gray-300"
-                      placeholder="Your occupation or student status"
-                    />
-                  ) : (
-                    <p className="text-gray-900">{profile.designation || 'Not specified'}</p>
-                  )}
-                </div>
-              </div>
-            </div>
-
-            {/* Contact Information */}
-            <div className="bg-gray-50 p-4 rounded-lg">
-              <h3 className="text-lg font-semibold text-gray-800 mb-3">Contact Information</h3>
-              <div className="space-y-4">
+                
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Contact Number</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Contact Number <span className="text-red-500">*</span>
+                  </label>
                   <input
                     type="text"
                     className={`w-full px-4 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-500 ${
                       validationErrors.contact ? 'border-red-500' : 'border-gray-300'
                     }`}
                     value={tempProfile.contact}
-                    onChange={(e) => {
-                      const value = e.target.value.replace(/\D/g, '').slice(0, 10);
-                      handleChange('contact', value);
-                    }}
+                    onChange={(e) => handleChange('contact', e.target.value)}
+                    onBlur={() => handleBlur('contact')}
                     placeholder="10-digit contact number"
                     maxLength={10}
                   />
@@ -600,66 +574,66 @@ const MenteeProfileContent: React.FC = () => {
                     <p className="mt-1 text-sm text-red-500">{validationErrors.contact}</p>
                   )}
                 </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Designation <span className="text-red-500">*</span>
+                  </label>
+                  <input
+                    type="text"
+                    className={`w-full px-4 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-500 ${
+                      validationErrors.designation ? 'border-red-500' : 'border-gray-300'
+                    }`}
+                    value={tempProfile.designation}
+                    onChange={(e) => handleChange('designation', e.target.value)}
+                    onBlur={() => handleBlur('designation')}
+                    placeholder="Your designation"
+                  />
+                  {validationErrors.designation && (
+                    <p className="mt-1 text-sm text-red-500">{validationErrors.designation}</p>
+                  )}
+                </div>
               </div>
             </div>
 
             {/* Skills Section */}
             <div className="mt-6">
-              <h3 className="text-lg font-semibold mb-4">Skills</h3>
+              <h3 className="text-lg font-semibold mb-4">
+                Skills <span className="text-red-500">*</span>
+              </h3>
               <div className="flex flex-wrap gap-2">
-                {tempProfile["Skill set"] && tempProfile["Skill set"].length > 0 ? (
-                  tempProfile["Skill set"].map((skill, index) => (
-                    <span
-                      key={`${skill.name}-${index}`}
-                      className="bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-sm flex items-center gap-2"
-                    >
-                      <span className="flex items-center">
-                        {skill.name}
-                        {/* Empty span as requested by user */}
-                        {!skill.isNew && (
-                          <span className="ml-1 text-xs text-blue-600 italic"></span>
-                        )}
-                      </span>
-                      {/* Only show delete button for newly added skills */}
-                      {editMode && skill.isNew && (
-                        <button
-                          onClick={() => removeSkill(skill.name)}
-                          className="text-blue-800 hover:text-blue-900"
-                        >
-                          <X size={16} />
-                        </button>
-                      )}
-                    </span>
-                  ))
-                ) : (
-                  <p className="text-gray-600">No skills specified</p>
-                )}
+                {tempProfile["Skill set"].map((skill, index) => (
+                  <span
+                    key={`${skill.name}-${index}`}
+                    className="bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-sm"
+                  >
+                    {skill.name}
+                  </span>
+                ))}
               </div>
-              {editMode && (
-                <div className="mt-4 flex gap-2">
-                  <select
-                    value={selectedSkill}
-                    onChange={(e) => setSelectedSkill(e.target.value)}
-                    className="border rounded px-3 py-2"
-                  >
-                    <option value="">Select a skill</option>
-                    {availableSkills.map((skill) => (
-                      <option key={skill} value={skill}>
-                        {skill}
-                      </option>
-                    ))}
-                  </select>
-                  <button
-                    onClick={addSkill}
-                    className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
-                  >
-                    Add Skill
-                  </button>
-                </div>
-              )}
               {validationErrors.skills && (
                 <p className="text-red-500 text-sm mt-1">{validationErrors.skills}</p>
               )}
+              <div className="mt-4 flex gap-2">
+                <select
+                  value={selectedSkill}
+                  onChange={(e) => setSelectedSkill(e.target.value)}
+                  className="border rounded px-3 py-2"
+                >
+                  <option value="">Select a skill</option>
+                  {availableSkills.map((skill) => (
+                    <option key={skill} value={skill}>
+                      {skill}
+                    </option>
+                  ))}
+                </select>
+                <button
+                  onClick={addSkill}
+                  className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
+                >
+                  Add Skill
+                </button>
+              </div>
             </div>
           </div>
         )}

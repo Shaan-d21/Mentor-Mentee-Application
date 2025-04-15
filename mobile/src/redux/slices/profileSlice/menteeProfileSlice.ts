@@ -92,8 +92,13 @@ export const getmenteeprofile = createAsyncThunk("profile/get", async () => {
 });
 export const updateProfileData = createAsyncThunk("profile/update", async ({ name, contact, designation }: { name: string, contact: string, designation: string }) => {
 
-
-  const response = await apiUpdateMenteeProfile(name, contact, designation);
+  const fromatedName = name
+  .trim()
+  .toLowerCase()
+  .split(' ')
+  .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+  .join(' ');
+  const response = await apiUpdateMenteeProfile(fromatedName, contact, designation);
   if (response === 1) {
     const updatedProfile = await apigetMenteeProfile();
     return updatedProfile;
@@ -104,7 +109,7 @@ export const updateProfileData = createAsyncThunk("profile/update", async ({ nam
 
 export const updateprofileskill = createAsyncThunk(
   "profile/addSkill",
-  async (skill: string) => {
+  async (skill: string[]) => {
     // Call your API to add the new skill
     const response = await apiaddMenteeProfileSkill(skill);
     if (response === 1) {

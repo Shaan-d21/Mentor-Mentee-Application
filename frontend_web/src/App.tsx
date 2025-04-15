@@ -26,7 +26,21 @@ function App() {
               <ReactRouter />
             </div>
           </div>
-          <Toaster position="top-center" reverseOrder={false} />
+          <Toaster 
+            position="top-center" 
+            reverseOrder={false}
+            toastOptions={{
+              duration: 5000,
+              style: {
+                background: '#fff',
+                color: '#333',
+                border: '1px solid #e5e7eb',
+                padding: '16px',
+                borderRadius: '8px',
+                boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)',
+              },
+            }}
+          />
         </>
       )}
     </QueryClientProvider>
