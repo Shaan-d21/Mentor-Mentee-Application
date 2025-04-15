@@ -32,14 +32,14 @@ class Request(BaseModel):
 @router.put('/mark_done')
 async def mark_done(user: user_dependency, db: db_dependency, req: Request):
     if user is None or user.get('role') != 'mentee':
-        raise HTTPException(tatus_code = 401, details = 'User Unauthorised')
+        raise HTTPException(status_code = 401, detail = 'User Unauthorised')
     topic_model = db.query(Topic).filter(Topic.id == req.topic_id).first()
     if topic_model is None:
-        raise HTTPException(tatus_code = 404, details = 'Topic not Found')
-    if topic_model.status == 'completed':
-        raise HTTPException(tatus_code = 400, details = 'Topics is already completed')
-    if topic_model.status == 'marked':
-        raise HTTPException(tatus_code = 400, details = 'Topics is already Marked')
+        raise HTTPException(status_code = 404, detail = 'Topic not Found')
+    if topic_model.status.value == 'completed':
+        raise HTTPException(status_code = 400, detail = 'Topics is already completed')
+    if topic_model.status.value == 'marked':
+        raise HTTPException(status_code = 400, detail = 'Topics is already Marked')
     topic_model.status = 'marked'
     db.add(topic_model)
     db.commit()
@@ -49,14 +49,34 @@ async def mark_done(user: user_dependency, db: db_dependency, req: Request):
 @router.put('/mark_complete')
 async def mark_complete(user: user_dependency, db: db_dependency, req: Request):
     if user is None or user.get('role') != 'mentor':
-        raise HTTPException(tatus_code = 401, details = 'User Unauthorised')
+        raise HTTPException(status_code = 401, detail= 'User Unauthorised')
     topic_model = db.query(Topic).filter(Topic.id == req.topic_id).first()
     if topic_model is None:
-        raise HTTPException(tatus_code = 404, details = 'Topic not Found')
-    if topic_model.status != 'marked':
-        raise HTTPException(tatus_code = 400, details = 'Topics is not marked as complete by mentee')
+        raise HTTPException(status_code = 404, detail = 'Topic not Found')
+    # print(topic_model.status.value )
+    if topic_model.status.value != 'marked':
+        raise HTTPException(status_code = 400, detail = 'Topics is not marked as complete by mentee')
     topic_model.status = 'completed'
     db.add(topic_model)
     db.commit()
     return { 'status_code': 200, 'Message': 'Topic Completed'}
+
+
+@router.put('/reassign_topic')
+async def reassign_topic(user: user_dependency, db: db_dependency, req: Request):
+    if user is None or user.get('role') != 'mentor':
+        raise HTTPException(status_code = 401, detail = 'User Unauthorised')
+    topic_model = db.query(Topic).filter(Topic.id == req.topic_id).first()
+    if topic_model is None:
+        raise HTTPException(status_code = 404, detail = 'Topic not Found')
+    if topic_model.status.value == 'completed':
+        raise HTTPException(status_code = 400, detail = 'Topics is already completed')
+    if topic_model.status.value != 'marked':
+        raise HTTPException(status_code = 400, detail = 'Topics is not marked as complete by mentee')
+    
+    topic_model.status = 'assigned'
+    db.add(topic_model)
+    db.commit()
+    return { 'status_code': 200, 'Message': 'Topic Reassigned'}
+
 
