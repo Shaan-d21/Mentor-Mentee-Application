@@ -1,5 +1,8 @@
 import {createAsyncThunk, createSlice, PayloadAction} from '@reduxjs/toolkit';
-import {MenteeProfile, MenteeProfileImpl} from '../../../types/MenteeProfileTypes';
+import {
+  MenteeProfile,
+  MenteeProfileImpl,
+} from '../../../types/MenteeProfileTypes';
 import {
   apiaddMentorProfileSkill,
   apigetMentorProfile,
@@ -9,7 +12,6 @@ import {
   MentorProfiletype,
   MentorProfileImpl,
 } from '../../../types/MentorProfileTypes';
-
 
 enum currentStatus {
   idle = 'idle',
@@ -29,7 +31,6 @@ const initialState: MenteeProfilestate = {
   Mentorprofile_status: false,
 };
 
-
 const sliceProfile = createSlice({
   name: 'userProfile',
   initialState,
@@ -47,14 +48,13 @@ const sliceProfile = createSlice({
               JSON.stringify(action.payload),
             ) as MentorProfiletype;
           }
-          if ('contact' in action.payload)
-          {  if (action.payload['contact'] === null) {
-              
+          if ('contact' in action.payload) {
+            if (action.payload['contact'] === null) {
               state.Mentorprofile_status = false;
+            } else {
+              state.Mentorprofile_status = true;
             }
-          else {
-            state.Mentorprofile_status = true;
-          }}
+          }
           state.status = currentStatus.success;
         } catch (error) {
           console.error('mentee/profile error: ', error);
@@ -72,8 +72,8 @@ const sliceProfile = createSlice({
           state.response = MentorProfileImpl.fromJSON(
             JSON.stringify(action.payload),
           ) as MentorProfiletype;
-          console.log("json response is ",JSON.stringify(state.response))
-          
+          console.log('json response is ', JSON.stringify(state.response));
+
           state.status = currentStatus.success;
         } catch (error) {
           console.error('mentee/profile error: ', error);
@@ -98,7 +98,6 @@ const sliceProfile = createSlice({
       .addCase(updateMentorprofileskill.rejected, (state, action) => {
         state.status = currentStatus.failed;
       });
-     
   },
 });
 
@@ -128,7 +127,7 @@ export const updateMentorProfileData = createAsyncThunk(
     designation,
     contact,
     exp,
-    domain
+    domain,
   }: {
     name: string;
     designation: string;
@@ -136,8 +135,14 @@ export const updateMentorProfileData = createAsyncThunk(
     exp: string;
     domain: string;
   }) => {
+    const fromatedName = name
+    .trim()
+    .toLowerCase()
+    .split(' ')
+    .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+    .join(' ');
     const response = await apiUpdateMentorProfile(
-      name,
+      fromatedName,
       exp,
       designation,
       contact,
@@ -154,11 +159,17 @@ export const updateMentorProfileData = createAsyncThunk(
 
 export const updateMentorprofileskill = createAsyncThunk(
   'profile/addSkill',
-  async ({skill, level}: {skill: string; level: string}) => {
+  async ({
+    skills,
+  }: {
+    skills: {
+      [key: string]: number;
+    };
+  }) => {
     // Call your API to add the new skill
-    const response = await apiaddMentorProfileSkill(skill, level);
+    const response = await apiaddMentorProfileSkill(skills);
     if (response === 1) {
-      const updatedProfile = await apigetMentorProfile( );
+      const updatedProfile = await apigetMentorProfile();
       return updatedProfile;
     }
     throw new Error('Failed to update skill');

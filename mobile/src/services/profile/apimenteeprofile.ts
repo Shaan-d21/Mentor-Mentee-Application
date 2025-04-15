@@ -71,7 +71,7 @@ export const apiUpdateMenteeProfile = async (name: string, contact: string, desi
     return 0;
   }
 }
-export const apiaddMenteeProfileSkill = async (skillName: string) => {
+export const apiaddMenteeProfileSkill = async (skillName: string[]) => {
   const api = axios.create({
     baseURL: process.env.API_URL,
     headers: {
@@ -85,11 +85,9 @@ export const apiaddMenteeProfileSkill = async (skillName: string) => {
 
   try {
     const data = {
-      skills: [
-        {
-          skill_name: skillName,
-        },
-      ],
+      skills: skillName.map((skillName) => ({
+        skill_name: skillName,
+      })),
     };
     const response = await api.post("mentee/mentee/skills", data);
     if (response.status !== 200) {

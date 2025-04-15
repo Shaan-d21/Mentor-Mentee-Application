@@ -1,3 +1,5 @@
+//// filepath: c:\Users\Kavan\Desktop\Mentor-Mentee-Application\mobile\src\screens\profile\profileStyle.ts
+// ...existing code...
 import { StyleSheet } from 'react-native';
 
 export const profileStyles = StyleSheet.create({
@@ -160,7 +162,6 @@ export const profileStyles = StyleSheet.create({
   },
 });
 
-// Mentor-specific styles
 export const mentorSpecificStyles = StyleSheet.create({
   skillLevel: {
     backgroundColor: '#3498db',
@@ -182,7 +183,42 @@ export const mentorSpecificStyles = StyleSheet.create({
     flex: 1,
     marginLeft: 0,
   },
-  // Modal styles
+
+  // Radio button container
+  radioContainer: {
+    marginTop: 16,
+    backgroundColor: '#fff',
+    padding: 12,
+    borderRadius: 8,
+  },
+  radioRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 12,
+  },
+  skillLabel: {
+    fontSize: 16,
+    fontWeight: '600',
+    marginRight: 12,
+    color: '#333',
+  },
+  radioButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginHorizontal: 8,
+  },
+  radioCircle: {
+    width: 18,
+    height: 18,
+    borderRadius: 9,
+    borderWidth: 2,
+    borderColor: '#3498db',
+    marginRight: 4,
+  },
+  radioCircleSelected: {
+    backgroundColor: '#3498db',
+  },
+
   modalBackground: {
     flex: 1,
     justifyContent: 'center',
@@ -193,7 +229,8 @@ export const mentorSpecificStyles = StyleSheet.create({
     backgroundColor: 'white',
     padding: 20,
     borderRadius: 10,
-    width: 300,
+    width: '100%',               // <-- wider modal
+    maxHeight: '100%',           // <-- taller modal
     alignItems: 'center',
   },
   modalTitle: {
