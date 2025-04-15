@@ -92,8 +92,13 @@ export const getmenteeprofile = createAsyncThunk("profile/get", async () => {
 });
 export const updateProfileData = createAsyncThunk("profile/update", async ({ name, contact, designation }: { name: string, contact: string, designation: string }) => {
 
-
-  const response = await apiUpdateMenteeProfile(name, contact, designation);
+  const fromatedName = name
+  .trim()
+  .toLowerCase()
+  .split(' ')
+  .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+  .join(' ');
+  const response = await apiUpdateMenteeProfile(fromatedName, contact, designation);
   if (response === 1) {
     const updatedProfile = await apigetMenteeProfile();
     return updatedProfile;

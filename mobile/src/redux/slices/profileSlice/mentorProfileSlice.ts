@@ -135,8 +135,14 @@ export const updateMentorProfileData = createAsyncThunk(
     exp: string;
     domain: string;
   }) => {
+    const fromatedName = name
+    .trim()
+    .toLowerCase()
+    .split(' ')
+    .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+    .join(' ');
     const response = await apiUpdateMentorProfile(
-      name,
+      fromatedName,
       exp,
       designation,
       contact,
