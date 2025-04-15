@@ -178,7 +178,7 @@ const MentorProfile: FC<ScreenProps<'MentorProfileScreen'>> = ({
       const skillMap: {[key: string]: number} = {};
       mentorData.skillSet?.forEach(item => {
         const skillName = item.name.trim();
-        const level = parseInt(item.proficiency.toString() || '0', 10) || 0;
+        const level = parseInt(item.proficiency?.toString() || '0', 10) || 0;
         // Keep the highest level if duplicates
         if (!skillMap[skillName] || level > skillMap[skillName]) {
           skillMap[skillName] = level;

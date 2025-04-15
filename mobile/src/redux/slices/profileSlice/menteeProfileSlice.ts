@@ -104,7 +104,7 @@ export const updateProfileData = createAsyncThunk("profile/update", async ({ nam
 
 export const updateprofileskill = createAsyncThunk(
   "profile/addSkill",
-  async (skill: string) => {
+  async (skill: string[]) => {
     // Call your API to add the new skill
     const response = await apiaddMenteeProfileSkill(skill);
     if (response === 1) {

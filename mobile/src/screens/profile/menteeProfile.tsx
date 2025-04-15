@@ -1,93 +1,143 @@
-import React, { FC, useEffect, useState } from 'react';
-import { View, Text, TextInput, StyleSheet, ScrollView, TouchableOpacity, Image, Alert, ActivityIndicator } from 'react-native';
-
-import DropdownComponent from '../../components/Dropdown';
-import { AppDispatch, RootState } from '../../redux/store';
-import { useDispatch, useSelector } from 'react-redux';
-import { MenteeProfile } from '../../types/MenteeProfileTypes';
-import { getmenteeprofile, updateProfileData, updateprofileskill, } from '../../redux/slices/profileSlice/menteeProfileSlice';
-import { ScreenProps } from '../../navigation/types';
-import { setName } from '../../redux/slices/auth/sliceLogin';
-import { MMKV } from 'react-native-mmkv';
-import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome';
+import React, { FC, useEffect, useState } from "react";
 import {
-  faEnvelope, faBriefcase, faGraduationCap, faClock, faUser, faPhone, faCode, faChevronLeft, faEdit, faSave, faUserCircle
-} from '@fortawesome/free-solid-svg-icons';
-import { profileStyles } from './profileStyle';
+  View,
+  Text,
+  TextInput,
+  StyleSheet,
+  ScrollView,
+  TouchableOpacity,
+  Alert,
+  ActivityIndicator,
+  Modal,
+} from "react-native";
+import { useDispatch, useSelector } from "react-redux";
+import { AppDispatch, RootState } from "../../redux/store";
+import { MenteeProfile } from "../../types/MenteeProfileTypes";
+import {
+  getmenteeprofile,
+  updateProfileData,
+  updateprofileskill,
+} from "../../redux/slices/profileSlice/menteeProfileSlice";
+import { ScreenProps } from "../../navigation/types";
+import { setName, changeProfileStatus } from "../../redux/slices/auth/sliceLogin";
+import { MMKV } from "react-native-mmkv";
+import { FontAwesomeIcon } from "@fortawesome/react-native-fontawesome";
+import {
+  faEnvelope,
+  faBriefcase,
+  faUser,
+  faPhone,
+  faCode,
+  faEdit,
+  faSave,
+  faUserCircle,
+} from "@fortawesome/free-solid-svg-icons";
+import AppBar from "../../components/appbar_component";
+import { profileStyles } from "./profileStyle";
 
-import {changeProfileStatus} from '../../redux/slices/auth/sliceLogin';
-import AppBar from '../../components/appbar_component';
+const allSkillsList = [
+  "Python",
+  "Java",
+  "JavaScript",
+  "C++",
+  "SQL",
+  "Node JS",
+  "SpringBoot",
+  "AWS",
+  "GCP",
+  "Docker",
+  "Machine Learning",
+  "Deep Learning",
+  "NLP",
+  "TensorFlow",
+  "LangChain",
+  "GenAI",
+  "Data Analysis",
+  "Big Data",
+  "Data Structure",
+  "Problem Solving",
+  "Project Management",
+  "Leadership",
+  "Time Management",
+  "Communication",
+  "Public Speaking",
+  "Critical Thinking",
+  "Teamwork",
+  "HTML",
+  "CSS",
+];
 
-const MenteeProfileScreen: FC<ScreenProps<"MenteeProfileScreen">> = ({ navigation }) => {
-  const [fullName, setFullName] = useState('');
-  const [email, setEmail] = useState('');
-  const [mobile, setMobile] = useState('');
-  const [designation, setDesignation] = useState('');
+const MenteeProfileScreen: FC<ScreenProps<"MenteeProfileScreen">> = ({
+  navigation,
+}) => {
+  const [fullName, setFullName] = useState("");
+  const [email, setEmail] = useState("");
+  const [mobile, setMobile] = useState("");
+  const [designation, setDesignation] = useState("");
 
   // Error states
-  const [nameError, setNameError] = useState('');
-  const [emailError, setEmailError] = useState('');
-  const [mobileError, setMobileError] = useState('');
-  const [designationError, setDesignationError] = useState('');
+  const [nameError, setNameError] = useState("");
+  const [emailError, setEmailError] = useState("");
+  const [mobileError, setMobileError] = useState("");
+  const [designationError, setDesignationError] = useState("");
 
   const [isEditing, setIsEditing] = useState(false);
-  const [selectedSkill, setSelectedSkill] = useState<string | null>(null);
-  const profile_status = useSelector((state:RootState)=> state.login.profile_status);
 
-  
+  // States for skills
+  const [modalVisible, setModalVisible] = useState(false);
+  const [selectedSkills, setSelectedSkills] = useState<string[]>([]);
 
-  console.log('Profile status:', profile_status);
-useEffect(() => {
+  const profile_status = useSelector((state: RootState) => state.login.profile_status);
 
-  console.log('Profile status:', profile_status);
-},[])
-
-  const currentStatus = useSelector(
-    (state: RootState) => state.menteeProfile.status,
-  );
+  const currentStatus = useSelector((state: RootState) => state.menteeProfile.status);
   const menteeProfileStatus = useSelector(
-    (state: RootState) => state.menteeProfile.Menteeprofile_status,
+    (state: RootState) => state.menteeProfile.Menteeprofile_status
   );
   const userType: MenteeProfile | undefined = useSelector(
-    (state: RootState) => state.menteeProfile.response,
+    (state: RootState) => state.menteeProfile.response
   );
   const dispatch = useDispatch<AppDispatch>();
   const storage = new MMKV();
-
 
   useEffect(() => {
     dispatch(getmenteeprofile());
   }, [dispatch]);
 
-useEffect(() => {
-  console.log('MenteeProfileStatus:', menteeProfileStatus);
-  dispatch(changeProfileStatus(!!menteeProfileStatus));
-}, [menteeProfileStatus]);
-
-    // useEffect(() => {
-    //   if (Mentorprofile_status) {
-    //     dispatch(changeProfileStatus(Mentorprofile_status));
-        
-    //   }
-    //   // dispatch(changeProfileStatus(true));
-    // },[Mentorprofile_status])
+  useEffect(() => {
+    dispatch(changeProfileStatus(!!menteeProfileStatus));
+  }, [menteeProfileStatus, dispatch]);
 
   useEffect(() => {
-    if (currentStatus === 'loading') {
-      console.log('Loading user profile data...');
+    if (currentStatus === "loading") {
+      console.log("Loading user profile data...");
     }
-    if (currentStatus === 'success') {
-      console.log('User profile data:', userType);
+    if (currentStatus === "success") {
       if (userType) {
         setFullName(userType.name);
         setEmail(userType.mail);
         setMobile(userType.contact);
         setDesignation(userType.designation);
       }
-    } else if (currentStatus === 'failed') {
-      console.log('Failed to fetch user profile data');
+    } else if (currentStatus === "failed") {
+      console.log("Failed to fetch user profile data");
     }
   }, [currentStatus, userType]);
+
+  useEffect(() => {
+    if (currentStatus === "failed") {
+      Alert.alert("Error", "Failed to load Profile.", [
+        {
+          text: "Retry",
+          onPress: () => dispatch(getmenteeprofile()),
+        },
+        {
+          text: "Cancel",
+          onPress: () => navigation.pop(),
+          style: "cancel",
+        },
+      ]);
+    }
+  }, [currentStatus, dispatch, navigation]);
 
   // Email validation
   const validateEmail = (): boolean => {
@@ -111,105 +161,108 @@ useEffect(() => {
     let isValid = true;
 
     // Validate name
-    if (!fullName||!fullName.trim()) {
-      setNameError('Name cannot be empty.');
+    if (!fullName || !fullName.trim()) {
+      setNameError("Name cannot be empty.");
       isValid = false;
     } else {
-      setNameError('');
+      setNameError("");
     }
 
     // Validate email
-    if (!email||!email.trim()) {
-      setEmailError('Email cannot be empty.');
+    if (!email || !email.trim()) {
+      setEmailError("Email cannot be empty.");
       isValid = false;
     } else if (!validateEmail()) {
-      setEmailError('Please enter a valid email address.');
+      setEmailError("Please enter a valid email address.");
       isValid = false;
     } else {
-      setEmailError('');
+      setEmailError("");
     }
 
     // Validate phone
-    if (!mobile||!mobile.trim()) {
-      setMobileError('Mobile number cannot be empty.');
+    if (!mobile || !mobile.trim()) {
+      setMobileError("Mobile number cannot be empty.");
       isValid = false;
     } else if (!validateMobile(mobile)) {
-      setMobileError('Please enter a valid 10-digit mobile number.');
+      setMobileError("Please enter a valid 10-digit mobile number.");
       isValid = false;
     } else {
-      setMobileError('');
+      setMobileError("");
     }
 
     // Validate designation
-    if (!designation||!designation.trim()) {
-      setDesignationError('Designation cannot be empty.');
+    if (!designation || !designation.trim()) {
+      setDesignationError("Designation cannot be empty.");
       isValid = false;
     } else {
-      setDesignationError('');
+      setDesignationError("");
     }
 
-    // If valid, close edit mode and update profile
     if (isValid) {
       setIsEditing(false);
-      dispatch(updateProfileData({
-        name: fullName,
-        contact: mobile,
-        designation: designation
-      }));
+      dispatch(
+        updateProfileData({
+          name: fullName,
+          contact: mobile,
+          designation: designation,
+        })
+      );
       dispatch(setName(fullName));
     }
   };
 
-  function handleSkillSelection(value: string): void {
-    setSelectedSkill(value);
-    dispatch(updateprofileskill(value));
-  }
+  // Open the skill selection modal
+  const openSkillModal = () => {
+    setSelectedSkills([]);
+    setModalVisible(true);
+  };
 
-  useEffect(() => {
-    if (currentStatus === 'failed') {
+  // Close the skill selection modal
+  const cancelSkillModal = () => {
+    setSelectedSkills([]);
+    setModalVisible(false);
+  };
 
-      Alert.alert('Error', 'Failed to load Profile.', [
-        {
-          text: 'Retry',
-          onPress: () => dispatch(getmenteeprofile()),
-        },
-        {
-          text: 'Cancel',
-          onPress: () => navigation.pop(),
-          style: 'cancel',
-        }
-      ],);
-
-      // Alert.alert('Error', 'Failed to load Profile.', [
-      //   {
-      //     text: 'Retry',
-      //     onPress: () => dispatch(getmenteeprofile()),
-      //   },
-      //   {
-      //     text: 'Cancel',
-      //     onPress: () => navigation.pop(),
-      //     style: 'cancel',
-      //   }
-      // ],
-      // );
+  // Save selected skills
+  const saveSkills = () => {
+    if (selectedSkills.length > 0) {
+      dispatch(updateprofileskill(selectedSkills));
     }
-  }, [currentStatus]);
+    setModalVisible(false);
+  };
 
-  return currentStatus === 'loading' ? (
-    <View style={[profileStyles.container, { justifyContent: 'center', alignItems: 'center' }]}>
+  // Toggle a skill in the selectedSkills list
+  const toggleSkill = (skill: string) => {
+    setSelectedSkills((prev) => {
+      if (prev.includes(skill)) {
+        return prev.filter((s) => s !== skill);
+      } else {
+        return [...prev, skill];
+      }
+    });
+  };
+
+  // Filter out skills that are already in user's skillSet
+  const getAvailableSkills = () => {
+    if (!userType || !userType.skillSet) return allSkillsList;
+    const userSkills = userType.skillSet;
+    return allSkillsList.filter((skill) => !userSkills.includes(skill));
+  };
+
+  return currentStatus === "loading" ? (
+    <View style={[profileStyles.container, { justifyContent: "center", alignItems: "center" }]}>
       <ActivityIndicator size="large" color="#0000ff" />
     </View>
   ) : (
     <ScrollView contentContainerStyle={profileStyles.container}>
-      {
-  
-  profile_status? <AppBar onProfilePress={() => navigation.navigate('MenteeProfileScreen')}
-title= {isEditing ? 'Edit Mentee Profile' : 'Mentee Profile'} 
-  openDrawer={() => {}} />
-    : <>
-  
-    </>
-  }
+      {profile_status ? (
+        <AppBar
+          onProfilePress={() => navigation.navigate("MenteeProfileScreen")}
+          title={isEditing ? "Edit Mentee Profile" : "Mentee Profile"}
+          openDrawer={() => {}}
+        />
+      ) : null}
+
       <View style={profileStyles.profileContainer}>
         <View style={profileStyles.profileImageContainer}>
           <FontAwesomeIcon icon={faUserCircle} size={150} color="#3498db" style={profileStyles.profileImage} />
@@ -223,18 +276,15 @@ title= {isEditing ? 'Edit Mentee Profile' : 'Mentee Profile'}
                 <Text style={profileStyles.infoText}>{fullName}</Text>
               </View>
 
-
               <View style={profileStyles.infoRow}>
                 <FontAwesomeIcon icon={faEnvelope} size={18} color="#3498db" style={profileStyles.infoIcon} />
                 <Text style={profileStyles.infoText}>{email}</Text>
               </View>
 
-
               <View style={profileStyles.infoRow}>
                 <FontAwesomeIcon icon={faPhone} size={18} color="#3498db" style={profileStyles.infoIcon} />
                 <Text style={profileStyles.infoText}>{mobile}</Text>
               </View>
-
 
               <View style={profileStyles.infoRow}>
                 <FontAwesomeIcon icon={faBriefcase} size={18} color="#3498db" style={profileStyles.infoIcon} />
@@ -246,61 +296,42 @@ title= {isEditing ? 'Edit Mentee Profile' : 'Mentee Profile'}
               <View style={profileStyles.inputContainer}>
                 <FontAwesomeIcon icon={faUser} size={18} color="#3498db" style={profileStyles.inputIcon} />
                 <TextInput
-                  style={[
-                    profileStyles.inputField,
-                    nameError ? profileStyles.inputError : undefined,
-                  ]}
+                  style={[profileStyles.inputField, nameError ? profileStyles.inputError : undefined]}
                   value={fullName}
                   onChangeText={setFullName}
                   placeholder="Full Name"
                 />
               </View>
-              {nameError ? (
-                <Text style={profileStyles.errorText}>{nameError}</Text>
-              ) : null}
+              {nameError ? <Text style={profileStyles.errorText}>{nameError}</Text> : null}
 
               <View style={profileStyles.inputContainer}>
                 <FontAwesomeIcon icon={faEnvelope} size={18} color="#3498db" style={profileStyles.inputIcon} />
-                <Text style={[profileStyles.inputField, profileStyles.disabledInput]}>
-                  {email}
-                </Text>
+                <Text style={[profileStyles.inputField, profileStyles.disabledInput]}>{email}</Text>
               </View>
-              {emailError ? (
-                <Text style={profileStyles.errorText}>{emailError}</Text>
-              ) : null}
+              {emailError ? <Text style={profileStyles.errorText}>{emailError}</Text> : null}
 
               <View style={profileStyles.inputContainer}>
                 <FontAwesomeIcon icon={faPhone} size={18} color="#3498db" style={profileStyles.inputIcon} />
                 <TextInput
-                  style={[
-                    profileStyles.inputField,
-                    mobileError ? profileStyles.inputError : undefined,
-                  ]}
+                  style={[profileStyles.inputField, mobileError ? profileStyles.inputError : undefined]}
                   value={mobile}
                   onChangeText={setMobile}
                   placeholder="Mobile Number"
                   keyboardType="phone-pad"
                 />
               </View>
-              {mobileError ? (
-                <Text style={profileStyles.errorText}>{mobileError}</Text>
-              ) : null}
+              {mobileError ? <Text style={profileStyles.errorText}>{mobileError}</Text> : null}
 
               <View style={profileStyles.inputContainer}>
                 <FontAwesomeIcon icon={faBriefcase} size={18} color="#3498db" style={profileStyles.inputIcon} />
                 <TextInput
-                  style={[
-                    profileStyles.inputField,
-                    designationError ? profileStyles.inputError : undefined,
-                  ]}
+                  style={[profileStyles.inputField, designationError ? profileStyles.inputError : undefined]}
                   value={designation}
                   onChangeText={setDesignation}
                   placeholder="Designation"
                 />
               </View>
-              {designationError ? (
-                <Text style={profileStyles.errorText}>{designationError}</Text>
-              ) : null}
+              {designationError ? <Text style={profileStyles.errorText}>{designationError}</Text> : null}
             </>
           )}
         </View>
@@ -322,87 +353,152 @@ title= {isEditing ? 'Edit Mentee Profile' : 'Mentee Profile'}
         </View>
       )}
 
-{!isEditing ? (
-        <View style={profileStyles.dropdownContainer}>
-        <View style={profileStyles.sectionHeaderRow}>
-          <FontAwesomeIcon icon={faCode} size={18} color="#3498db" />
-          <Text style={profileStyles.domainsTitle}>Add New Skill</Text>
-        </View>
-        <DropdownComponent
-        direction='up'
-          data={[
-            { label: 'Python', value: 'Python' },
-            { label: 'Java', value: 'Java' },
-            { label: 'JavaScript', value: 'JavaScript' },
-            { label: 'C++', value: 'C++' },
-            { label: 'SQL', value: 'SQL' },
-            { label: 'Node JS', value: 'Node JS' },
-            { label: 'SpringBoot', value: 'SpringBoot' },
-            { label: 'AWS', value: 'AWS' },
-            { label: 'GCP', value: 'GCP' },
-            { label: 'Docker', value: 'Docker' },
-            { label: 'Machine Learning', value: 'Machine Learning' },
-            { label: 'Deep Learning', value: 'Deep Learning' },
-            { label: 'NLP', value: 'NLP' },
-            { label: 'TensorFlow', value: 'TensorFlow' },
-            { label: 'LangChain', value: 'LangChain' },
-            { label: 'GenAI', value: 'GenAI' },
-            { label: 'Data Analysis', value: 'Data Analysis' },
-            { label: 'Big Data', value: 'Big Data' },
-            { label: 'Data Structure', value: 'Data Structure' },
-            { label: 'Problem Solving', value: 'Problem Solving' },
-            { label: 'Project Management', value: 'Project Management' },
-            { label: 'Leadership', value: 'Leadership' },
-            { label: 'Time Management', value: 'Time Management' },
-            { label: 'Communication', value: 'Communication' },
-            { label: 'Public Speaking', value: 'Public Speaking' },
-            { label: 'Critical Thinking', value: 'Critical Thinking' },
-            { label: 'Teamwork', value: 'Teamwork' },
-            { label: 'HTML', value: 'HTML' },
-            { label: 'CSS', value: 'CSS' },
-          ]}
-          selectedValue={selectedSkill || ''}
-          onSelect={handleSkillSelection}
-          placeholder="Select Skills"
-        />
-      </View>
-      ):(
-        <View style={profileStyles.sectionHeaderRow}>
-        </View>
-      )
-}
-      <TouchableOpacity
-        style={profileStyles.button}
-        onPress={() => {
-          if (isEditing) {
-            handleSubmit();
-          } else {
-            handleEditToggle();
-          }
-        }}>
-        <FontAwesomeIcon
-          icon={isEditing ? faSave : faEdit}
-          size={16}
-          color="#fff"
-          style={profileStyles.buttonIcon}
-        />
-        <Text style={profileStyles.buttonText}>
-          {isEditing ? 'Save Profile' : 'Update Profile'}
-        </Text>
-      </TouchableOpacity>
+      {/* Button to open modal for selecting new skills */}
+      {!isEditing && (
+        <TouchableOpacity style={profileStyles.button} onPress={openSkillModal}>
+          <FontAwesomeIcon icon={faCode} size={16} color="#fff" style={profileStyles.buttonIcon} />
+          <Text style={profileStyles.buttonText}>Add New Skill</Text>
+        </TouchableOpacity>
+      )}
 
-      {/* <TouchableOpacity
-        style={[profileStyles.button, profileStyles.backButton]}
-        onPress={() => {
-          navigation.navigate('MenteeDashboard');
-        }}
-      >
-        <FontAwesomeIcon icon={faChevronLeft} size={16} color="#fff" style={profileStyles.buttonIcon} />
-        <Text style={profileStyles.buttonText}>Go Back</Text>
-      </TouchableOpacity> */}
+      {!isEditing ? (
+        <TouchableOpacity style={profileStyles.button} onPress={handleEditToggle}>
+          <FontAwesomeIcon icon={faEdit} size={16} color="#fff" style={profileStyles.buttonIcon} />
+          <Text style={profileStyles.buttonText}>Update Profile</Text>
+        </TouchableOpacity>
+      ) : (
+        <TouchableOpacity style={profileStyles.button} onPress={handleSubmit}>
+          <FontAwesomeIcon icon={faSave} size={16} color="#fff" style={profileStyles.buttonIcon} />
+          <Text style={profileStyles.buttonText}>Save Profile</Text>
+        </TouchableOpacity>
+      )}
+
+      {/* Modal for skill selection */}
+      <Modal animationType="slide" transparent visible={modalVisible}>
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContainer}>
+            <Text style={styles.modalTitle}>Select Skills</Text>
+            <ScrollView style={styles.modalScroll}>
+              {getAvailableSkills().map((skill, idx) => {
+                const isSelected = selectedSkills.includes(skill);
+                return (
+                  <TouchableOpacity
+                    key={idx}
+                    style={styles.skillOption}
+                    onPress={() => toggleSkill(skill)}
+                  >
+                    <View style={styles.skillCheckbox}>
+                      <View
+                        style={[
+                          styles.checkbox,
+                          isSelected && styles.checkboxSelected,
+                        ]}
+                      />
+                    </View>
+                    <Text style={styles.skillOptionText}>{skill}</Text>
+                  </TouchableOpacity>
+                );
+              })}
+            </ScrollView>
+            <View style={styles.modalButtonRow}>
+              <TouchableOpacity style={styles.modalButtonCancel} onPress={cancelSkillModal}>
+                <Text style={styles.modalButtonText}>Cancel</Text>
+              </TouchableOpacity>
+              <TouchableOpacity style={styles.modalButtonSave} onPress={saveSkills}>
+                <Text style={styles.modalButtonText}>Save</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
     </ScrollView>
   );
 };
 
-
 export default MenteeProfileScreen;
+
+const styles = StyleSheet.create({
+  addSkillButton:{
+    backgroundColor: "#3498db",
+    padding: 10,
+    borderRadius: 8,
+    marginTop: 10,
+    flexDirection: "row",
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: "rgba(0,0,0,0.5)",
+    justifyContent: "center",
+    padding: 20,
+  },
+  modalContainer: {
+    backgroundColor: "#fff",
+    borderRadius: 8,
+    padding: 16,
+    maxHeight: "80%",
+  },
+  modalTitle: {
+    fontSize: 18,
+    fontWeight: "600",
+    marginBottom: 10,
+    textAlign: "center",
+    color: "#3498db",
+  },
+  modalScroll: {
+    marginVertical: 10,
+  },
+  skillOption: {
+    flexDirection: "row",
+    alignItems: "center",
+    paddingVertical: 8,
+  },
+  skillCheckbox: {
+    width: 24,
+    height: 24,
+    marginRight: 10,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  checkbox: {
+    width: 20,
+    height: 20,
+    borderWidth: 2,
+    borderColor: "#cccccc",
+    borderRadius: 3,
+  },
+  checkboxSelected: {
+    backgroundColor: "#3498db",
+    borderColor: "#3498db",
+  },
+  skillOptionText: {
+    fontSize: 16,
+    color: "#333",
+  },
+  modalButtonRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    marginTop: 14,
+  },
+  modalButtonCancel: {
+    backgroundColor: "#ccc",
+    padding: 10,
+    borderRadius: 8,
+    flex: 1,
+    marginRight: 5,
+    alignItems: "center",
+  },
+  modalButtonSave: {
+    backgroundColor: "#3498db",
+    padding: 10,
+    borderRadius: 8,
+    flex: 1,
+    marginLeft: 5,
+    alignItems: "center",
+  },
+  modalButtonText: {
+    color: "#fff",
+    fontSize: 16,
+  },
+});
