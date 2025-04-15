@@ -1,5 +1,3 @@
-//// filepath: c:\Users\Kavan\Desktop\Mentor-Mentee-Application\mobile\src\screens\profile\mentorprofile.tsx
-// ...existing code...
 import React, {FC, useEffect, useState} from 'react';
 import {
   View,
@@ -10,6 +8,7 @@ import {
   ActivityIndicator,
   Alert,
   Modal,
+  KeyboardAvoidingView,
 } from 'react-native';
 import DropdownComponent from '../../components/Dropdown';
 import {useDispatch, useSelector} from 'react-redux';
@@ -306,7 +305,7 @@ const MentorProfile: FC<ScreenProps<'MentorProfileScreen'>> = ({
       <ActivityIndicator size="large" color="#0000ff" />
     </View>
   ) : (
-    <>
+    <KeyboardAvoidingView>
       <ScrollView contentContainerStyle={profileStyles.container}>
         {profile_status ? (
           <AppBar
@@ -623,7 +622,7 @@ const MentorProfile: FC<ScreenProps<'MentorProfileScreen'>> = ({
             </ScrollView>
 
             <View style={{flexDirection: 'row', marginTop: 20}}>
-              <TouchableOpacity
+            {!modalLoading ?(  <TouchableOpacity
                 style={[
                   profileStyles.button,
                   {marginRight: 10, backgroundColor: '#7f8c8d'},
@@ -636,7 +635,7 @@ const MentorProfile: FC<ScreenProps<'MentorProfileScreen'>> = ({
                   style={profileStyles.buttonIcon}
                 />
                 <Text style={profileStyles.buttonText}>Cancel</Text>
-              </TouchableOpacity>
+              </TouchableOpacity>):(<></>)}
 
               <TouchableOpacity
                 style={[profileStyles.button, {marginLeft: 10}]}
@@ -664,7 +663,7 @@ const MentorProfile: FC<ScreenProps<'MentorProfileScreen'>> = ({
           </View>
         </View>
       </Modal>
-    </>
+    </KeyboardAvoidingView>
   );
 };
 

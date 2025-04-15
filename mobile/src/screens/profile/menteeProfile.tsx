@@ -9,6 +9,7 @@ import {
   Alert,
   ActivityIndicator,
   Modal,
+  KeyboardAvoidingView,
 } from "react-native";
 import { useDispatch, useSelector } from "react-redux";
 import { AppDispatch, RootState } from "../../redux/store";
@@ -96,6 +97,7 @@ const MenteeProfileScreen: FC<ScreenProps<"MenteeProfileScreen">> = ({
   const userType: MenteeProfile | undefined = useSelector(
     (state: RootState) => state.menteeProfile.response
   );
+  const [modalLoading, setModalLoading] = useState(false);
   const dispatch = useDispatch<AppDispatch>();
   const storage = new MMKV();
 
@@ -225,8 +227,11 @@ const MenteeProfileScreen: FC<ScreenProps<"MenteeProfileScreen">> = ({
 
   // Save selected skills
   const saveSkills = () => {
+    setModalLoading(true);
     if (selectedSkills.length > 0) {
-      dispatch(updateprofileskill(selectedSkills));
+      dispatch(updateprofileskill(selectedSkills)).then((res) => {
+        setModalLoading(false);
+      });
     }
     setModalVisible(false);
   };
@@ -254,6 +259,7 @@ const MenteeProfileScreen: FC<ScreenProps<"MenteeProfileScreen">> = ({
       <ActivityIndicator size="large" color="#0000ff" />
     </View>
   ) : (
+    <KeyboardAvoidingView>
     <ScrollView contentContainerStyle={profileStyles.container}>
       {profile_status ? (
         <AppBar
@@ -401,17 +407,23 @@ const MenteeProfileScreen: FC<ScreenProps<"MenteeProfileScreen">> = ({
               })}
             </ScrollView>
             <View style={styles.modalButtonRow}>
-              <TouchableOpacity style={styles.modalButtonCancel} onPress={cancelSkillModal}>
+             {
+              !modalLoading?( <TouchableOpacity style={styles.modalButtonCancel} onPress={cancelSkillModal}>
                 <Text style={styles.modalButtonText}>Cancel</Text>
-              </TouchableOpacity>
-              <TouchableOpacity style={styles.modalButtonSave} onPress={saveSkills}>
+              </TouchableOpacity>):(<></>)
+             }
+            {!modalLoading  ?(<TouchableOpacity style={styles.modalButtonSave} onPress={saveSkills}>
                 <Text style={styles.modalButtonText}>Save</Text>
-              </TouchableOpacity>
+              </TouchableOpacity>):( <ActivityIndicator
+                                color={'#fff'}
+                                />
+              )}
             </View>
           </View>
         </View>
       </Modal>
     </ScrollView>
+    </KeyboardAvoidingView>
   );
 };
 
