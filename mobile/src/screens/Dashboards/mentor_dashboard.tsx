@@ -199,54 +199,54 @@ const MentorDashboardScreen = () => {
 
 
   // ---------------------------------
-  // const renderMenteeCard = ({ item }: { item: any }) => (
-  //   <View style={styles.card}>
-  //     <View style={styles.cardHeader}>
-  //       <Text style={styles.cardTitle}>{item.name}</Text>
-  //     </View>
-  //     <View style={styles.cardBody}>
-  //       <View style={styles.cardItem}>
-  //         <FontAwesomeIcon icon={faEnvelope} size={16} color="#777" style={styles.icon} />
-  //         <Text style={styles.cardText}>{item.email}</Text>
-  //       </View>
-  //       <View style={styles.cardItem}>
-  //         <FontAwesomeIcon icon={faUserTag} size={16} color="#777" style={styles.icon} />
-  //         <Text style={styles.cardText}>{item.designation??"Intern"}</Text>
-  //       </View>
-  //       <View style={styles.cardItem}>
-  //         <FontAwesomeIcon icon={faCodeBranch} size={16} color="#777" style={styles.icon} />
-  //         <Text style={styles.cardText}>{item.domain}</Text>
-  //       </View>
-  //       {/* <View style={styles.cardItem}>
-  //         <FontAwesomeIcon icon={faCommentDots} size={16} color="#777" style={styles.icon} />
-  //         <Text style={styles.cardText}>{item.comment || 'No comment'}</Text>
-  //       </View> */}
-  //     </View>
-  //   </View>
-  // );
+  const renderMenteeCard = ({ item }: { item: any }) => (
+    <View style={styles.card}>
+      <View style={styles.cardHeader}>
+        <Text style={styles.cardTitle}>{item.name}</Text>
+      </View>
+      <View style={styles.cardBody}>
+        <View style={styles.cardItem}>
+          <FontAwesomeIcon icon={faEnvelope} size={16} color="#777" style={styles.icon} />
+          <Text style={styles.cardText}>{item.email}</Text>
+        </View>
+        <View style={styles.cardItem}>
+          <FontAwesomeIcon icon={faUserTag} size={16} color="#777" style={styles.icon} />
+          <Text style={styles.cardText}>{item.designation??"Intern"}</Text>
+        </View>
+        <View style={styles.cardItem}>
+          <FontAwesomeIcon icon={faCodeBranch} size={16} color="#777" style={styles.icon} />
+          <Text style={styles.cardText}>{item.domain}</Text>
+        </View>
+        {/* <View style={styles.cardItem}>
+          <FontAwesomeIcon icon={faCommentDots} size={16} color="#777" style={styles.icon} />
+          <Text style={styles.cardText}>{item.comment || 'No comment'}</Text>
+        </View> */}
+      </View>
+    </View>
+  );
   // ----------------------------------------
 
-const renderMenteeCard = ({ item }: { item: any }) => (
-  <View style={styles.card}>
-    <View style={styles.cardHeader}>
-      <Text style={styles.cardTitle}>{item.name}</Text>
-    </View>
-    <View style={styles.cardBody}>
-      <View style={styles.cardItem}>
-        <Text style={styles.cardTextTitle}>Email: </Text>
-        <Text style={styles.cardText}>{item.email}</Text>
-      </View>
-      <View style={styles.cardItem}>
-        <Text style={styles.cardTextTitle}>Designation: </Text>
-        <Text style={styles.cardText}>{item.designation ?? 'Intern'}</Text>
-      </View>
-      <View style={styles.cardItem}>
-        <Text style={styles.cardTextTitle}>Domain: </Text>
-        <Text style={styles.cardText}>{item.domain}</Text>
-      </View>
-    </View>
-  </View>
-);
+// const renderMenteeCard = ({ item }: { item: any }) => (
+//   <View style={styles.card}>
+//     <View style={styles.cardHeader}>
+//       <Text style={styles.cardTitle}>{item.name}</Text>
+//     </View>
+//     <View style={styles.cardBody}>
+//       <View style={styles.cardItem}>
+//         <Text style={styles.cardTextTitle}>Email: </Text>
+//         <Text style={styles.cardText}>{item.email}</Text>
+//       </View>
+//       <View style={styles.cardItem}>
+//         <Text style={styles.cardTextTitle}>Designation: </Text>
+//         <Text style={styles.cardText}>{item.designation ?? 'Intern'}</Text>
+//       </View>
+//       <View style={styles.cardItem}>
+//         <Text style={styles.cardTextTitle}>Domain: </Text>
+//         <Text style={styles.cardText}>{item.domain}</Text>
+//       </View>
+//     </View>
+//   </View>
+// );
 
   return (
   

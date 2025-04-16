@@ -8,6 +8,8 @@ import {
   Alert,
   View,
 } from 'react-native';
+import {FontAwesomeIcon} from '@fortawesome/react-native-fontawesome'; 
+import { faEye, faEyeSlash } from '@fortawesome/free-solid-svg-icons';
 import { Dropdown } from 'react-native-element-dropdown';
 import { useDispatch, useSelector } from 'react-redux';
 import { AppDispatch, RootState } from '../../redux/store';
@@ -21,6 +23,7 @@ const CreateAccountPage: React.FC<ScreenProps<"CreateAccountPage">> = ({ navigat
   const [emailLocal, setEmailLocal] = React.useState('');
   const [passwordLocal, setPasswordLocal] = React.useState('');
   const [nameLocal, setNameLocal] = React.useState('');
+  const [isPasswordVisible, setIsPasswordVisible] =React.useState(false);
 
   const currentStatus = useSelector((state: RootState) => state.register.status);
 
@@ -113,13 +116,32 @@ const CreateAccountPage: React.FC<ScreenProps<"CreateAccountPage">> = ({ navigat
           value={emailLocal}
           onChangeText={setEmailLocal}
         />
-        <TextInput
+        {/* <TextInput
           style={authStyles.input}
           placeholder="Password"
           secureTextEntry
           value={passwordLocal}
           onChangeText={setPasswordLocal}
-        />
+        /> */}
+         <View style={authStyles.passwordContainer}>
+                    <TextInput
+                      style={authStyles.passwordInput}
+                      placeholder="Password"
+                      secureTextEntry={!isPasswordVisible} // Toggle secureTextEntry
+                      value={passwordLocal}
+                      onChangeText={setPasswordLocal}
+                    />
+                    <TouchableOpacity
+                      style={authStyles.eyeIconContainer}
+                      onPress={() => setIsPasswordVisible(!isPasswordVisible)} // Toggle password visibility
+                    >
+                      <FontAwesomeIcon
+                        icon={isPasswordVisible ? faEyeSlash : faEye} // Show eye or eye-slash icon
+                        size={20}
+                        color="gray"
+                      />
+                    </TouchableOpacity>
+                  </View>
         <TouchableOpacity style={authStyles.button} onPress={handleFormSubmit}>
           <Text style={authStyles.buttonText}>
             {userTypeLocal === 'mentee'
