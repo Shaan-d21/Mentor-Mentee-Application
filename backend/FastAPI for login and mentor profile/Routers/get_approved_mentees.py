@@ -62,7 +62,8 @@ def get_approved_mentee(user: user_dependency, db: db_dependency):
             "created_at": user_obj.created_at,
             "updated_at": user_obj.updated_at,
             "domain_id": mentor_mentee_obj.domain_id,
-            "domain_name": domain_obj.name if domain_obj else None
+            "domain_name": domain_obj.name if domain_obj else None,
+            "roadmap_id": mentor_mentee_obj.roadmap_id
         }
 
         mentee_list.append(mentee_data)
