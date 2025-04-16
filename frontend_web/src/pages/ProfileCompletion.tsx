@@ -680,7 +680,7 @@ const ProfileCompletion = () => {
             onChange={handleChange}
             className="w-full p-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
             required 
-            placeholder={role === 'mentor' ? "Your job title (e.g. Senior Developer)" : "Your occupation or student status"}
+            placeholder={role === 'mentor' ? "Your job title (e.g. Senior Developer)" : "Your current role (e.g., Intern, Developer)"}
           />
         </div>
 
@@ -772,7 +772,7 @@ const ProfileCompletion = () => {
             <div className="absolute z-10 w-full mt-1 bg-white border rounded-md shadow-lg max-h-60 overflow-y-auto">
               {availableSkills.map((skill) => (
                 <div key={skill} className="mb-2">
-                  <div className="flex items-center">
+                  <div className="flex items-center px-3 py-2 hover:bg-gray-50">
                     <input
                       type="checkbox"
                       className="mr-2"
@@ -787,7 +787,7 @@ const ProfileCompletion = () => {
                   {role === 'mentor' && profile.skills.some(s => 
                     typeof s !== 'string' && s.name === skill && isMentorSkill(s)
                   ) && (
-                    <div className="mt-1 ml-6">
+                    <div className="mt-1 ml-6 px-3 py-1">
                       <select
                         className="text-sm border rounded p-1"
                         value={(profile.skills.find(s => 
