@@ -124,6 +124,9 @@ const MentorProfile: FC<ScreenProps<'MentorProfileScreen'>> = ({
   const [mobileError, setMobileError] = useState('');
   const [designationError, setDesignationError] = useState('');
   const [domainError, setDomainError] = useState('');
+  const [expandedSkills, setExpandedSkills] = useState<{ [key:
+string]: boolean }>({});
+
 
   const [profile, setProfile] = useState<LocalMentorProfile>({
     name: '',
@@ -551,7 +554,7 @@ const MentorProfile: FC<ScreenProps<'MentorProfileScreen'>> = ({
           <Text style={profileStyles.buttonText}>Add / Edit Skills</Text>
         </TouchableOpacity>
 )}
-    
+
         {/* Button for editing profile vs saving profile */}
         <TouchableOpacity
           style={profileStyles.button}
@@ -586,41 +589,62 @@ const MentorProfile: FC<ScreenProps<'MentorProfileScreen'>> = ({
               Add / Edit Skills
             </Text>
 
-            <ScrollView style={{maxHeight: 300, width: '100%'}}>
-              {allSkills.map(skillName => {
-                const currentLevel = skillProficiencies[skillName] || 0;
-                return (
-                  <View
-                    key={skillName}
-                    style={[
-                      mentorSpecificStyles.radioRow,
-                      {justifyContent: 'space-between'},
-                    ]}>
-                    <Text style={mentorSpecificStyles.skillLabel}>
-                      {skillName}
-                    </Text>
-                    <View style={{flexDirection: 'row'}}>
-                      {[1, 2, 3].map(level => (
-                        <TouchableOpacity
-                          key={level}
-                          style={mentorSpecificStyles.radioButton}
-                          onPress={() => handleSkillLevel(skillName, level)}>
-                          <View
-                            style={[
-                              mentorSpecificStyles.radioCircle,
-                              currentLevel === level &&
-                                mentorSpecificStyles.radioCircleSelected,
-                            ]}
-                          />
-                          <Text>Lv {level}</Text>
-                        </TouchableOpacity>
-                      ))}
-                    </View>
-                  </View>
-                );
-              })}
-            </ScrollView>
-
+            <ScrollView style={{ maxHeight: 400, width: '100%' }}>
+  {allSkills.map(skillName => {
+    const currentLevel = skillProficiencies[skillName] || 0;
+    const isExpanded = expandedSkills[skillName] || false;
+    return (
+      <View key={skillName} style={mentorSpecificStyles.expandableSkillItem}>
+        <TouchableOpacity
+          style={mentorSpecificStyles.expandableSkillHeader}
+          onPress={() => {
+            if (!isExpanded) {
+              setExpandedSkills(prev => ({ ...prev, [skillName]: true }));
+            }
+          }}
+          disabled={isExpanded}
+        >
+          <Text style={mentorSpecificStyles.skillLabel}>{skillName}</Text>
+          {currentLevel > 0 && (
+            <View style={mentorSpecificStyles.selectedLevelBadge}>
+              <Text style={mentorSpecificStyles.selectedLevelText}>
+                Level {currentLevel}
+              </Text>
+            </View>
+          )}
+        </TouchableOpacity>
+        {isExpanded && (
+          <View style={mentorSpecificStyles.levelButtonRow}>
+            {[1, 2, 3].map(level => (
+              <TouchableOpacity
+                key={level}
+                style={[
+                  mentorSpecificStyles.levelButton,
+                  currentLevel === level &&
+mentorSpecificStyles.levelButtonSelected,
+                ]}
+                onPress={() => {
+              setExpandedSkills(prev => ({ ...prev, [skillName]: false }));
+                  
+                  handleSkillLevel(skillName, level)}}
+              >
+                <Text
+                  style={[
+                    mentorSpecificStyles.levelButtonText,
+                    currentLevel === level &&
+mentorSpecificStyles.levelButtonTextSelected,
+                  ]}
+                >
+                  Level {level}
+                </Text>
+              </TouchableOpacity>
+            ))}
+          </View>
+        )}
+      </View>
+    );
+  })}
+</ScrollView>
             <View style={{flexDirection: 'row', marginTop: 20}}>
             {!modalLoading ?(  <TouchableOpacity
                 style={[
@@ -647,14 +671,14 @@ const MentorProfile: FC<ScreenProps<'MentorProfileScreen'>> = ({
 
 
                 ):(
-                <> 
+                <>
                   <FontAwesomeIcon
                   icon={faCheckCircle}
                   size={16}
                   color="#fff"
                   style={profileStyles.buttonIcon}
                 />
-                
+
                   <Text style={profileStyles.buttonText}>Save</Text>
  </>
 )}
@@ -668,3 +692,4 @@ const MentorProfile: FC<ScreenProps<'MentorProfileScreen'>> = ({
 };
 
 export default MentorProfile;
+
