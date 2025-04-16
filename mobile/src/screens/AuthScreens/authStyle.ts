@@ -25,13 +25,7 @@ export const authStyles = StyleSheet.create({
     marginBottom: 20,
     textAlign: 'center',
   },
-  input: {
-    borderWidth: 1,
-    borderColor: '#ccc',
-    borderRadius: 8,
-    padding: 10,
-    marginBottom: 15,
-  },
+ 
   dropdown: {
     marginVertical: 15,
     borderWidth: 1,
@@ -54,5 +48,36 @@ export const authStyles = StyleSheet.create({
     color: '#1a73e8',
     textAlign: 'center',
     marginTop: 15,
+  },
+  eyeIconContainer: {
+    padding: 10,
+  },
+  passwordContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    borderColor: '#ccc',
+    borderWidth: 1,
+    borderRadius: 8,
+    marginBottom: 15,
+    
+    width: '100%',
+  },
+  passwordInput: {
+    flex: 1,
+    height: 50,
+    paddingHorizontal: 15,
+    fontSize: 16,
+  
+  },
+  input: {
+    borderWidth: 1,
+    borderColor: '#ccc',
+    borderRadius: 8,
+    padding: 10,
+    marginBottom: 15,
+    height:50,
+    width:'100%',
+    paddingHorizontal: 15,
+    fontSize: 16,
   },
 });
