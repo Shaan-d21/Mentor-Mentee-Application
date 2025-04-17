@@ -4,12 +4,8 @@ import axios from 'axios';
 import toast from 'react-hot-toast';
 
 interface MentorData {
-  name: string;
-  email: string;
-  designation: string;
-  domain: string;
-  tech_stack: string[];
-  missing_skills: string[];
+  e_skills: string[];
+  m_skills: string[];
   summary: string;
 }
 
@@ -23,25 +19,39 @@ export default function CompatibilityReportPreview() {
   
   // Get color based on score
   const getScoreColor = (score: number): string => {
-    if (score >= 80) return "#22C55E";
-    if (score >= 60) return "#3b82f6";
-    if (score >= 40) return "#f59e0b";
-    if (score >= 20) return "#f97316";
-    return "#ef4444";
+    if (score >= 90) return "#22C55E"; // Green
+    if (score >= 70) return "#3b82f6"; // Blue
+    if (score >= 50) return "#f59e0b"; // Yellow
+    if (score >= 30) return "#f97316"; // Orange
+    return "#ef4444"; // Red
+  };
+
+  // Get score label
+  const getScoreLabel = (score: number): string => {
+    if (score >= 90) return "Excellent Match";
+    if (score >= 70) return "Strong Match";
+    if (score >= 50) return "Good Match";
+    if (score >= 30) return "Moderate Match";
+    return "Limited Match";
   };
 
   useEffect(() => {
     const fetchMentorData = async () => {
       try {
-        const response = await axios.get(`${import.meta.env.VITE_API_URL}/users/mentor/${mentorId}`, {
-          headers: {
-            'Authorization': `Bearer ${localStorage.getItem('accessToken')}`,
-            'Content-Type': 'application/json',
-            'Accept': 'application/json'
+        const response = await axios.post(
+          `${import.meta.env.VITE_AI_API_URL}/matching_report`,
+          {
+            mentor_id: parseInt(mentorId),
+            domain: location.state.domain,
+            score: location.state.score
           },
-          withCredentials: true,
-          maxRedirects: 0
-        });
+          {
+            headers: {
+              'Content-Type': 'application/json',
+              'Accept': 'application/json'
+            }
+          }
+        );
         setMentorData(response.data);
       } catch (error) {
         console.error('Error fetching mentor data:', error);
@@ -54,29 +64,38 @@ export default function CompatibilityReportPreview() {
     if (mentorId) {
       fetchMentorData();
     }
-  }, [mentorId]);
+  }, [mentorId, location.state.domain, location.state.score]);
   
   // Animate score on load with circular animation
   useEffect(() => {
     if (!score) return;
     
-    let currentScore = 0;
-    const targetScore = score;
-    const increment = 1;
-    const animationDuration = 1500; // ms
-    const steps = targetScore / increment;
-    const interval = animationDuration / steps;
+    let startTime: number;
+    const duration = 2000; // 2 seconds
+    const startValue = 0;
+    const endValue = score;
     
-    const timer = setInterval(() => {
-      if (currentScore < targetScore) {
-        currentScore += increment;
-        setAnimatedScore(currentScore);
-      } else {
-        clearInterval(timer);
+    const animate = (currentTime: number) => {
+      if (!startTime) startTime = currentTime;
+      const timeElapsed = currentTime - startTime;
+      const progress = Math.min(timeElapsed / duration, 1);
+      
+      // Ease out cubic function for smoother animation
+      const easedProgress = 1 - Math.pow(1 - progress, 3);
+      const currentValue = Math.round(startValue + (endValue - startValue) * easedProgress);
+      
+      setAnimatedScore(currentValue);
+      
+      if (progress < 1) {
+        requestAnimationFrame(animate);
       }
-    }, interval);
+    };
     
-    return () => clearInterval(timer);
+    requestAnimationFrame(animate);
+    
+    return () => {
+      startTime = 0; // Reset start time on cleanup
+    };
   }, [score]);
 
   const handleRequestMentorship = async () => {
@@ -85,11 +104,11 @@ export default function CompatibilityReportPreview() {
         `${import.meta.env.VITE_API_URL}/mentee/mentorship`,
         { 
           mentor_id: mentorId,
-          domain: "Software Development"  // Placeholder domain
+          domain: location.state.domain
         },
         {
           headers: {
-            'Authorization': `Bearer ${localStorage.getItem('accessToken')}`,
+            'Token': `${localStorage.getItem('accessToken')}`,
             'Content-Type': 'application/json',
             'Accept': 'application/json'
           },
@@ -100,7 +119,7 @@ export default function CompatibilityReportPreview() {
       
       if (response.status === 200) {
         toast.success('Mentorship request sent successfully');
-        navigate('/mentee/find-mentors');
+        navigate('/mentee/dashboard/find-mentors');
       }
     } catch (error) {
       console.error('Error sending mentorship request:', error);
@@ -120,7 +139,7 @@ export default function CompatibilityReportPreview() {
     <div className="min-h-screen w-full bg-gray-50">
       {/* Main Content */}
       <div className="flex-1 p-6">
-        {/* Close Button - Now more prominent in the content area */}
+        {/* Close Button */}
         <div className="flex justify-end mb-4">
           <button
             onClick={() => navigate(-1)}
@@ -136,13 +155,13 @@ export default function CompatibilityReportPreview() {
         {/* Compatibility Score Section */}
         <div className="bg-white rounded-lg shadow-sm mb-6 p-4 flex flex-col md:flex-row items-center justify-between">
           <div className="flex items-center mb-4 md:mb-0">
-            <div className="relative w-28 h-28 mr-6">
+            <div className="relative w-32 h-32 mr-6">
               <svg className="w-full h-full" viewBox="0 0 100 100">
                 {/* Background Circle */}
                 <circle
                   cx="50"
                   cy="50"
-                  r="40"
+                  r="45"
                   fill="transparent"
                   stroke="#e5e7eb"
                   strokeWidth="8"
@@ -151,13 +170,18 @@ export default function CompatibilityReportPreview() {
                 <circle
                   cx="50"
                   cy="50"
-                  r="40"
+                  r="45"
                   fill="transparent"
                   stroke={getScoreColor(animatedScore)}
                   strokeWidth="8"
-                  strokeDasharray={`${2 * Math.PI * 40 * animatedScore/100} ${2 * Math.PI * 40}`}
+                  strokeDasharray={`${2 * Math.PI * 45 * animatedScore/100} ${2 * Math.PI * 45}`}
                   strokeDashoffset="0"
                   transform="rotate(-90 50 50)"
+                  className="transition-all duration-300 ease-in-out"
+                  style={{
+                    strokeDasharray: `${2 * Math.PI * 45 * animatedScore/100} ${2 * Math.PI * 45}`,
+                    transition: 'stroke-dasharray 0.3s ease-in-out, stroke 0.3s ease-in-out'
+                  }}
                 />
                 {/* Percentage Text */}
                 <text
@@ -166,54 +190,30 @@ export default function CompatibilityReportPreview() {
                   textAnchor="middle"
                   dominantBaseline="middle"
                   fill={getScoreColor(animatedScore)}
-                  fontSize="22"
+                  fontSize="24"
                   fontWeight="bold"
+                  className="transition-colors duration-300"
                 >
                   {animatedScore}%
                 </text>
               </svg>
             </div>
             <div>
-              <h2 className="text-xl font-bold text-gray-800">Compatibility</h2>
-              <p className="text-gray-500">with {mentorData.name}</p>
-              <div className="bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-sm font-medium inline-block mt-2">
-                {animatedScore >= 80 ? "Excellent Match" : 
-                 animatedScore >= 60 ? "Good Match" : 
-                 animatedScore >= 40 ? "Moderate Match" : 
-                 animatedScore >= 20 ? "Low Match" : "Poor Match"}
+              <h2 className="text-xl font-bold text-gray-800">Compatibility Score</h2>
+              <div className={`mt-2 px-3 py-1 rounded-full text-sm font-medium inline-block ${
+                animatedScore >= 90 ? "bg-green-100 text-green-800" :
+                animatedScore >= 70 ? "bg-blue-100 text-blue-800" :
+                animatedScore >= 50 ? "bg-yellow-100 text-yellow-800" :
+                animatedScore >= 30 ? "bg-orange-100 text-orange-800" :
+                "bg-red-100 text-red-800"
+              }`}>
+                {getScoreLabel(animatedScore)}
               </div>
             </div>
           </div>
         </div>
         
-        {/* Mentor Details Section */}
-        <div className="bg-white rounded-lg shadow-sm mb-6 p-6">
-          <h2 className="text-lg font-semibold text-gray-800 mb-4 border-b pb-2">Mentor Details</h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <div className="mb-3">
-                <span className="text-gray-500 block text-sm">Name</span>
-                <span className="text-gray-800 font-medium">{mentorData.name}</span>
-              </div>
-              <div className="mb-3">
-                <span className="text-gray-500 block text-sm">Email</span>
-                <span className="text-gray-800">{mentorData.email}</span>
-              </div>
-            </div>
-            <div>
-              <div className="mb-3">
-                <span className="text-gray-500 block text-sm">Designation</span>
-                <span className="text-gray-800">{mentorData.designation}</span>
-              </div>
-              <div className="mb-3">
-                <span className="text-gray-500 block text-sm">Domain</span>
-                <span className="text-gray-800">{mentorData.domain}</span>
-              </div>
-            </div>
-          </div>
-        </div>
-        
-        {/* Skills Match Section - Updated Design */}
+        {/* Skills Match Section */}
         <div className="bg-white rounded-lg shadow-sm mb-6 p-6">
           <h2 className="text-lg font-semibold text-gray-800 mb-4 border-b pb-2">Skills Match</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -226,7 +226,7 @@ export default function CompatibilityReportPreview() {
                 Matching Skills
               </h3>
               <div className="flex flex-wrap gap-2">
-                {mentorData.tech_stack.map((skill: string, index: number) => (
+                {(mentorData.e_skills || []).map((skill: string, index: number) => (
                   <div key={index} className="bg-white text-green-700 px-3 py-1 rounded-full text-sm border border-green-200 shadow-sm">
                     {skill}
                   </div>
@@ -234,22 +234,24 @@ export default function CompatibilityReportPreview() {
               </div>
             </div>
             
-            {/* Missing Skills */}
-            <div className="bg-amber-50 rounded-lg p-4">
-              <h3 className="text-amber-800 font-medium mb-3 flex items-center">
-                <svg className="w-5 h-5 mr-2" viewBox="0 0 20 20" fill="currentColor">
-                  <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
-                </svg>
-                Missing Skills
-              </h3>
-              <div className="flex flex-wrap gap-2">
-                {mentorData.missing_skills?.map((skill: string, index: number) => (
-                  <div key={index} className="bg-white text-amber-700 px-3 py-1 rounded-full text-sm border border-amber-200 shadow-sm">
-                    {skill}
-                  </div>
-                ))}
+            {/* Missing Skills - Only show if there are missing skills */}
+            {mentorData.m_skills && mentorData.m_skills.length > 0 && (
+              <div className="bg-amber-50 rounded-lg p-4">
+                <h3 className="text-amber-800 font-medium mb-3 flex items-center">
+                  <svg className="w-5 h-5 mr-2" viewBox="0 0 20 20" fill="currentColor">
+                    <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
+                  </svg>
+                  Missing Skills
+                </h3>
+                <div className="flex flex-wrap gap-2">
+                  {mentorData.m_skills.map((skill: string, index: number) => (
+                    <div key={index} className="bg-white text-amber-700 px-3 py-1 rounded-full text-sm border border-amber-200 shadow-sm">
+                      {skill}
+                    </div>
+                  ))}
+                </div>
               </div>
-            </div>
+            )}
           </div>
         </div>
         

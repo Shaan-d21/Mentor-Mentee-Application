@@ -82,12 +82,9 @@ const FindMentors: React.FC = () => {
         `${import.meta.env.VITE_API_URL}/mentee/Requests`,
         {
           headers: { 
-            'Authorization': `Bearer ${accessToken}`,
-            'Content-Type': 'application/json',
-            'Accept': 'application/json'
-          },
-          withCredentials: true,
-          maxRedirects: 0
+            'Token': accessToken,
+            'Content-Type': 'application/json'
+          }
         }
       );
       
@@ -203,14 +200,15 @@ const FindMentors: React.FC = () => {
       console.log('Using API URL:', import.meta.env.VITE_API_URL);
       
       const response = await axios.get(
-        `${import.meta.env.VITE_API_URL}/predict/?d=${encodeURIComponent(trimmedDomain)}`,
+        `${import.meta.env.VITE_API_URL}/predict`,
         {
           params: {
-            d: trimmedDomain
+            d: compatibilityDomain
           },
           headers: { 
             'Token': accessToken,
-            'Content-Type': 'application/json'
+            'Content-Type': 'application/json',
+            'Accept': 'application/json'
           }
         }
       );
@@ -236,7 +234,7 @@ const FindMentors: React.FC = () => {
             reason: mentor.reason || 'No reason provided',
             id: mentor.id?.toString() || '',
             domain: mentor.domain || trimmedDomain,
-            experience: mentor.experience || 0
+            experience: mentor.exp || 0
           });
         });
         
@@ -250,7 +248,7 @@ const FindMentors: React.FC = () => {
             reason: mentor.reason || 'No reason provided',
             id: mentor.id?.toString() || '',
             domain: mentor.domain || 'Other',
-            experience: mentor.experience || 0
+            experience: mentor.exp || 0
           });
         });
         
@@ -412,7 +410,11 @@ const FindMentors: React.FC = () => {
   // Replace the send request button with a compatibility report link
   const handleViewCompatibilityReport = (mentorId: string, score: number) => {
     navigate('/mentee/compatibility-report', {
-      state: { mentorId, score }
+      state: { 
+        mentorId, 
+        score,
+        domain: compatibilityDomain // Pass the selected domain
+      }
     });
   };
 
@@ -507,35 +509,38 @@ const FindMentors: React.FC = () => {
         <div className="mb-8">
           <h3 className="text-lg font-semibold mb-4">Compatible Mentors for {compatibilityDomain}</h3>
           
-          {/* Domain Mentors Section */}
-          <div className="mb-6">
-            <h4 className="text-md font-medium mb-3 text-blue-700">Domain Mentors</h4>
-            
-            {compatibleMentors
-              .filter(mentor => 
-                mentor.domain === compatibilityDomain && 
-                !requestedMentorIds.has(mentor.id || '')
-              ).length > 0 ? (
-              <div className="overflow-x-auto bg-white rounded-lg shadow">
-                <table className="min-w-full divide-y divide-gray-200">
-                  <thead className="bg-gray-50">
-                    <tr>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Name</th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Experience</th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Designation</th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Compatibility Score</th>
-                    </tr>
-                  </thead>
-                  <tbody className="bg-white divide-y divide-gray-200">
-                    {compatibleMentors
-                      .filter(mentor => 
-                        mentor.domain === compatibilityDomain && 
-                        !requestedMentorIds.has(mentor.id || '')
-                      ).map((mentor, index) => (
-                      <tr key={index}>
+          {/* Combined Mentors Table */}
+          <div className="overflow-x-auto bg-white rounded-lg shadow">
+            {compatibleMentors.length > 0 ? (
+              <table className="min-w-full divide-y divide-gray-200">
+                <thead className="bg-gray-50">
+                  <tr>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Name</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Email</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Designation</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Experience</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Domain</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Compatibility Score</th>
+                  </tr>
+                </thead>
+                <tbody className="bg-white divide-y divide-gray-200">
+                  {compatibleMentors
+                    .filter(mentor => !requestedMentorIds.has(mentor.id || ''))
+                    .map((mentor) => (
+                      <tr key={mentor.id} className={mentor.domain === compatibilityDomain ? 'bg-blue-50' : ''}>
                         <td className="px-6 py-4 whitespace-nowrap">{mentor.name}</td>
-                        <td className="px-6 py-4 whitespace-nowrap">{mentor.experience} years</td>
+                        <td className="px-6 py-4 whitespace-nowrap">{mentor.email}</td>
                         <td className="px-6 py-4 whitespace-nowrap">{mentor.designation}</td>
+                        <td className="px-6 py-4 whitespace-nowrap">{mentor.experience} years</td>
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+                            mentor.domain === compatibilityDomain 
+                              ? 'bg-blue-100 text-blue-800' 
+                              : 'bg-gray-100 text-gray-800'
+                          }`}>
+                            {mentor.domain}
+                          </span>
+                        </td>
                         <td className="px-6 py-4 whitespace-nowrap">
                           <button
                             onClick={() => mentor.id && handleViewCompatibilityReport(mentor.id, mentor.score)}
@@ -550,65 +555,12 @@ const FindMentors: React.FC = () => {
                         </td>
                       </tr>
                     ))}
-                  </tbody>
-                </table>
-              </div>
+                </tbody>
+              </table>
             ) : (
-              <div className="bg-white p-6 rounded-lg shadow text-center">
-                <p className="text-gray-500">No mentors found specifically for {compatibilityDomain}.</p>
-              </div>
-            )}
-          </div>
-          
-          {/* Other Domain Mentors Section */}
-          <div>
-            <h4 className="text-md font-medium mb-3 text-blue-700">Other Domain Mentors</h4>
-            
-            {compatibleMentors
-              .filter(mentor => 
-                mentor.domain !== compatibilityDomain && 
-                !requestedMentorIds.has(mentor.id || '')
-              ).length > 0 ? (
-              <div className="overflow-x-auto bg-white rounded-lg shadow">
-                <table className="min-w-full divide-y divide-gray-200">
-                  <thead className="bg-gray-50">
-                    <tr>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Name</th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Experience</th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Designation</th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Compatibility Score</th>
-                    </tr>
-                  </thead>
-                  <tbody className="bg-white divide-y divide-gray-200">
-                    {compatibleMentors
-                      .filter(mentor => 
-                        mentor.domain !== compatibilityDomain && 
-                        !requestedMentorIds.has(mentor.id || '')
-                      ).map((mentor, index) => (
-                      <tr key={index}>
-                        <td className="px-6 py-4 whitespace-nowrap">{mentor.name}</td>
-                        <td className="px-6 py-4 whitespace-nowrap">{mentor.experience} years</td>
-                        <td className="px-6 py-4 whitespace-nowrap">{mentor.designation}</td>
-                        <td className="px-6 py-4 whitespace-nowrap">
-                          <button
-                            onClick={() => mentor.id && handleViewCompatibilityReport(mentor.id, mentor.score)}
-                            className={`px-4 py-2 rounded-full font-semibold text-sm transition-all duration-200 transform hover:scale-105 ${
-                              mentor.score >= 90 ? 'bg-green-100 text-green-800 hover:bg-green-200' :
-                              mentor.score >= 70 ? 'bg-yellow-100 text-yellow-800 hover:bg-yellow-200' :
-                              'bg-red-100 text-red-800 hover:bg-red-200'
-                            }`}
-                          >
-                            {mentor.score}%
-                          </button>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            ) : (
-              <div className="bg-white p-6 rounded-lg shadow text-center">
-                <p className="text-gray-500">No other domain mentors found.</p>
+              <div className="p-6 text-center">
+                <p className="text-gray-500">No compatible mentors found for {compatibilityDomain}.</p>
+                <p className="text-sm text-gray-400 mt-2">Please try a different domain or check back later.</p>
               </div>
             )}
           </div>
