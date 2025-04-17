@@ -12,8 +12,10 @@ RUN npm ci
 
 # Copy the rest of the frontend code
 COPY . .
-ENV VITE_SERVER_ENDPOINT=http://181.214.44.15:8080/api/v1/
-# Build the React app (Vite output goes to dist/)
+# Set build arg and env variable
+ARG VITE_SERVER_ENDPOINT
+ENV VITE_SERVER_ENDPOINT=${VITE_SERVER_ENDPOINT}
+
 RUN npm run build && ls -l /app/dist
 
 # Use nginx to serve the React app
