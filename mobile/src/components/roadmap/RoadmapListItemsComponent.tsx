@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   StyleSheet, 
   View, 
@@ -21,10 +21,18 @@ import {
 } from '@fortawesome/free-solid-svg-icons';
 import { RoadmapResponse, RoadmapTopic } from '../../types/RoadmapTypes';
 import RoadmapEditModal from './RoadmapEditModal';
+import { useDispatch } from 'react-redux';
+import { AppDispatch } from '../../redux/store';
+import { addRoadmapTopic, editRoadmapTopic } from '../../redux/slices/sliceMenteeRoadmap';
 
 export const ListRoadmapItems = (props: { roadmap: RoadmapResponse }) => {
+  const dispatch = useDispatch<AppDispatch>();
   const [localRoadmap, setLocalRoadmap] = useState<RoadmapResponse>(props.roadmap);
   
+  // Update local state when props change
+  useEffect(() => {
+    setLocalRoadmap(props.roadmap);
+  }, [props.roadmap]);
   
   // State for expanded/collapsed topics
   const [expandedTopics, setExpandedTopics] = useState<number[]>([]);
@@ -32,6 +40,7 @@ export const ListRoadmapItems = (props: { roadmap: RoadmapResponse }) => {
   // State for editing
   const [editMode, setEditMode] = useState<boolean>(false);
   const [editingTopic, setEditingTopic] = useState<RoadmapTopic | null>(null);
+  const [isAddingTopic, setIsAddingTopic] = useState<boolean>(false);
   const [expandedImportance, setExpandedImportance] = useState<number | null>(null);
 
   const toggleImportanceExpansion = (topicId: number) => {
@@ -49,6 +58,7 @@ export const ListRoadmapItems = (props: { roadmap: RoadmapResponse }) => {
   
   // Start editing a topic
   const handleStartEdit = (topic: RoadmapTopic) => {
+    setIsAddingTopic(false);
     setEditingTopic(topic);
     setEditMode(true);
   };
@@ -57,28 +67,69 @@ export const ListRoadmapItems = (props: { roadmap: RoadmapResponse }) => {
   const handleCancelEdit = () => {
     setEditMode(false);
     setEditingTopic(null);
+    setIsAddingTopic(false);
   };
   
   // Save edited topic
-  const handleSaveEdit = (editedTopic: RoadmapTopic) => {
-    // Here you would save the changes to the backend
-    // For now, we'll just log the edited topic and close the modal
-    console.log('Saving edited topic:', editedTopic);
-    setEditMode(false);
-    setEditingTopic(null);
+  const handleSaveEdit = async (editedTopic: RoadmapTopic) => {
+    try {
+      // If we are adding a new topic
+      if (isAddingTopic) {
+        const { topic_id, topic_status, ...topicData } = editedTopic;
+        const result = await dispatch(addRoadmapTopic({
+          roadmapId: localRoadmap.roadmap_id,
+          topicData:editedTopic
+        })).unwrap();
+        
+        // Add the new topic to the local state
+        const updatedRoadmap = {
+          ...localRoadmap,
+          topics: [...localRoadmap.topics, result]
+        };
+        setLocalRoadmap(updatedRoadmap);
+        Alert.alert("Success", "Topic added successfully!");
+      } 
+      // If we are editing an existing topic
+      else {
+        const result = await dispatch(editRoadmapTopic(editedTopic)).unwrap();
+        
+        // Update the topic in the local state
+        const updatedTopics = localRoadmap.topics.map(topic => 
+          topic.topic_id === editedTopic.topic_id ? editedTopic : topic
+        );
+        
+        setLocalRoadmap({
+          ...localRoadmap,
+          topics: updatedTopics
+        });
+        Alert.alert("Success", "Topic updated successfully!");
+      }
+    } catch (error: any) {
+      Alert.alert("Error", error.toString() || "Failed to save changes");
+    } finally {
+      setEditMode(false);
+      setEditingTopic(null);
+      setIsAddingTopic(false);
+    }
   };
   
-  // Add a new topic (placeholder)
+  // Add a new topic
   const handleAddTopic = () => {
-    // Implementation would be similar to edit but with a new empty topic
-    Alert.alert("Add Topic", "This functionality will be implemented soon.");
+    // Create an empty topic template
+    const newTopic: RoadmapTopic = {
+      topic_id: -1,
+      name: "",
+      description: "",
+      subtopics: [""],
+      importance: "",
+      topic_status: "pending"
+    };
+    
+    setIsAddingTopic(true);
+    setEditingTopic(newTopic);
+    setEditMode(true);
   };
 
-  // function handleDeleteTopic(topicId: string): void {
-  //   throw new Error('Function not implemented.');
-  // }
-
-  // **Added function for deleting a topic**
   const handleDeleteTopic = (topicId: number) => {
     Alert.alert(
       "Delete Topic",
@@ -89,19 +140,13 @@ export const ListRoadmapItems = (props: { roadmap: RoadmapResponse }) => {
           text: "Delete",
           style: "destructive",
           onPress: () => {
-            const updatedTopics = localRoadmap.topics.filter(
-              topic => topic.topic_id !== topicId
-            );
-            setLocalRoadmap({ ...localRoadmap, topics: updatedTopics }); // ✅ state update
-            setEditMode(false); // ✅ close modal after delete
+     
           },
         },
       ]
     );
   };
   
-  
-
   return (
     <View style={styles.container}>
       <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
@@ -138,13 +183,7 @@ export const ListRoadmapItems = (props: { roadmap: RoadmapResponse }) => {
                 styles.topicCard,
                 index === localRoadmap.topics.length - 1 && styles.lastTopicCard
               ]}
-            > {/* **Added Delete button** */}
-            {/* <TouchableOpacity 
-              onPress={() => handleDeleteTopic(topic.topic_id)} 
-              style={styles.actionButton}
             >
-              <FontAwesomeIcon icon={faTrash} size={16} color="#F87171" />
-            </TouchableOpacity> */}
               <TouchableOpacity 
                 style={styles.topicHeader} 
                 onPress={() => toggleTopicExpansion(topic.topic_id)}
@@ -226,13 +265,13 @@ export const ListRoadmapItems = (props: { roadmap: RoadmapResponse }) => {
         onCancel={handleCancelEdit}
         onSave={handleSaveEdit}
         onDelete={(topicId: string) => handleDeleteTopic(Number(topicId))}
-
+        isAddingTopic={isAddingTopic}
       />
     </View>
   );
 };
 
-// Keep the existing styles, just remove the edit modal styles that are now in the separate component
+// Keep the existing styles
 const styles = StyleSheet.create({
   container: {
     flex: 1,
@@ -416,17 +455,9 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     marginLeft: 8,
   },
-  // actionButton: {
-  //   padding: 6,
-  //   marginRight: 12,
-  // },
   deleteButton: {
     padding: 6,
     marginRight: 12,
     color: '#F87171', 
   },
 });
-
-function setRoadmap(arg0: { topics: RoadmapTopic[]; status_code: number; message: string; roadmap_id: number; roadmap_explanation: string; }) {
-  throw new Error('Function not implemented.');
-}

@@ -6,7 +6,8 @@ import {
   TextInput,
   TouchableOpacity, 
   ScrollView,
-  Dimensions
+  Dimensions,
+  ActivityIndicator
 } from 'react-native';
 import { Text } from 'react-native-gesture-handler';
 import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome';
@@ -24,15 +25,16 @@ interface RoadmapEditModalProps {
   onCancel: () => void;
   onSave: (editedTopic: RoadmapTopic) => void;
   onDelete: (topicId: string) => void;
+  isAddingTopic?: boolean;
 }
 
 const RoadmapEditModal: React.FC<RoadmapEditModalProps> = ({ 
   visible, 
   editingTopic, 
   onCancel, 
-  onSave ,
-  onDelete 
-
+  onSave,
+  onDelete,
+  isAddingTopic = false
 }) => {
   const [editedValues, setEditedValues] = useState<any>({
     name: '',
@@ -41,6 +43,7 @@ const RoadmapEditModal: React.FC<RoadmapEditModalProps> = ({
     importance: ''
   });
   const [isSaving, setIsSaving] = useState(false);
+  const [errors, setErrors] = useState<{[key: string]: string}>({});
 
   // Initialize form values when editingTopic changes
   useEffect(() => {
@@ -51,6 +54,7 @@ const RoadmapEditModal: React.FC<RoadmapEditModalProps> = ({
         subtopics: [...editingTopic.subtopics],
         importance: editingTopic.importance
       });
+      setErrors({});
     }
   }, [editingTopic]);
 
@@ -65,7 +69,7 @@ const RoadmapEditModal: React.FC<RoadmapEditModalProps> = ({
   const addSubtopic = () => {
     setEditedValues({
       ...editedValues, 
-      subtopics: [...editedValues.subtopics, "New subtopic"]
+      subtopics: [...editedValues.subtopics, ""]
     });
   };
   
@@ -75,24 +79,56 @@ const RoadmapEditModal: React.FC<RoadmapEditModalProps> = ({
     setEditedValues({...editedValues, subtopics: updatedSubtopics});
   };
 
-  
+  // Validate the form
+  const validateForm = (): boolean => {
+    const newErrors: {[key: string]: string} = {};
+    
+    if (!editedValues.name.trim()) {
+      newErrors.name = "Topic name is required";
+    }
+    
+    if (!editedValues.description.trim()) {
+      newErrors.description = "Description is required";
+    }
+    
+    if (!editedValues.importance.trim()) {
+      newErrors.importance = "Importance is required";
+    }
+    
+    if (editedValues.subtopics.length === 0) {
+      newErrors.subtopics = "At least one subtopic is required";
+    } else {
+      const emptySubtopics = editedValues.subtopics.filter((st: string) => !st.trim());
+      if (emptySubtopics.length > 0) {
+        newErrors.subtopics = "Subtopics cannot be empty";
+      }
+    }
+    
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
 
   // Handle save
   const handleSave = async() => {
+    if (!validateForm()) {
+      return;
+    }
+    
     if (editingTopic) {
       setIsSaving(true);
-     await onSave({
-        ...editingTopic,
-        name: editedValues.name,
-        description: editedValues.description,
-        subtopics: editedValues.subtopics,
-        importance: editedValues.importance
-      });
-      setIsSaving(false);
+      try {
+        await onSave({
+          ...editingTopic,
+          name: editedValues.name.trim(),
+          description: editedValues.description.trim(),
+          subtopics: editedValues.subtopics.map((st: string) => st.trim()),
+          importance: editedValues.importance.trim()
+        });
+      } finally {
+        setIsSaving(false);
+      }
     }
   };
-  const isFormValid = editedValues.name && editedValues.importance && editedValues.subtopics.length > 0;
-
 
   return (
     <Modal
@@ -104,8 +140,9 @@ const RoadmapEditModal: React.FC<RoadmapEditModalProps> = ({
       <View style={styles.modalOverlay}>
         <View style={styles.modalContainer}>
           <View style={styles.editModalHeader}>
-            
-            <Text style={styles.editModalTitle}>Edit Topic</Text>
+            <Text style={styles.editModalTitle}>
+              {isAddingTopic ? "Add New Topic" : "Edit Topic"}
+            </Text>
             <TouchableOpacity onPress={onCancel}>
               <FontAwesomeIcon icon={faTimes} size={20} color="#6B7280" />
             </TouchableOpacity>
@@ -114,44 +151,51 @@ const RoadmapEditModal: React.FC<RoadmapEditModalProps> = ({
           <ScrollView style={styles.editModalBody}>
             <Text style={styles.editLabel}>Topic Name</Text>
             <TextInput
-              style={styles.editInput}
+              style={[styles.editInput, errors.name ? styles.inputError : null]}
               value={editedValues.name}
               onChangeText={(text) => setEditedValues({...editedValues, name: text})}
               placeholder="Topic name"
             />
+            {errors.name && <Text style={styles.errorText}>{errors.name}</Text>}
             
             <Text style={styles.editLabel}>Description</Text>
             <TextInput
-              style={[styles.editInput, styles.multilineInput]}
+              style={[styles.editInput, styles.multilineInput, errors.description ? styles.inputError : null]}
               value={editedValues.description}
               onChangeText={(text) => setEditedValues({...editedValues, description: text})}
               placeholder="Topic description"
               multiline
               numberOfLines={3}
             />
+            {errors.description && <Text style={styles.errorText}>{errors.description}</Text>}
             
             <Text style={styles.editLabel}>Importance</Text>
             <TextInput
-              style={[styles.editInput, styles.multilineInput]}
+              style={[styles.editInput, styles.multilineInput, errors.importance ? styles.inputError : null]}
               value={editedValues.importance}
               onChangeText={(text) => setEditedValues({...editedValues, importance: text})}
               placeholder="Why is this topic important?"
               multiline
               numberOfLines={3}
             />
+            {errors.importance && <Text style={styles.errorText}>{errors.importance}</Text>}
             
             <Text style={styles.editLabel}>Subtopics</Text>
+            {errors.subtopics && <Text style={styles.errorText}>{errors.subtopics}</Text>}
+            
             {editedValues.subtopics.map((subtopic: string, idx: number) => (
               <View key={idx} style={styles.editSubtopicRow}>
                 <TextInput
-                  style={styles.editSubtopicInput}
+                  style={[styles.editSubtopicInput, errors.subtopics ? styles.inputError : null]}
                   value={subtopic}
                   onChangeText={(text) => updateSubtopic(idx, text)}
                   placeholder="Subtopic"
                 />
-                <TouchableOpacity onPress={() => deleteSubtopic(idx)}>
-                  <FontAwesomeIcon icon={faTrash} size={18} color="#EF4444" />
-                </TouchableOpacity>
+                {editedValues.subtopics.length > 1 && (
+                  <TouchableOpacity onPress={() => deleteSubtopic(idx)}>
+                    <FontAwesomeIcon icon={faTrash} size={18} color="#EF4444" />
+                  </TouchableOpacity>
+                )}
               </View>
             ))}
             
@@ -162,32 +206,42 @@ const RoadmapEditModal: React.FC<RoadmapEditModalProps> = ({
           </ScrollView>
           
           <View style={styles.editModalFooter}>
-  {editingTopic && (
-    <TouchableOpacity 
-      style={[styles.editModalButton, styles.deleteButton]} 
-      onPress={() => onDelete(editingTopic.topic_id.toString())}
-      >
-      <FontAwesomeIcon icon={faTrash} size={16} color="#FFF" />
-      <Text style={styles.deleteButtonText}>Delete</Text>
-    </TouchableOpacity>
-  )}
-  
-  <TouchableOpacity 
-    style={[styles.editModalButton, styles.cancelButton]} 
-    onPress={onCancel}
-  >
-    <Text style={styles.cancelButtonText}>Cancel</Text>
-  </TouchableOpacity>
-  
-  <TouchableOpacity 
-    style={[styles.editModalButton, styles.saveButton]} 
-    onPress={handleSave}
-  >
-    <FontAwesomeIcon icon={faSave} size={16} color="#FFF" />
-    <Text style={styles.saveButtonText}>Save Changes</Text>
-  </TouchableOpacity>
-</View>
-
+            {!isAddingTopic && editingTopic && (
+              <TouchableOpacity 
+                style={[styles.editModalButton, styles.deleteButton]} 
+                onPress={() => onDelete(editingTopic.topic_id.toString())}
+                disabled={isSaving}
+              >
+                <FontAwesomeIcon icon={faTrash} size={16} color="#FFF" />
+                <Text style={styles.deleteButtonText}>Delete</Text>
+              </TouchableOpacity>
+            )}
+            
+            <TouchableOpacity 
+              style={[styles.editModalButton, styles.cancelButton]} 
+              onPress={onCancel}
+              disabled={isSaving}
+            >
+              <Text style={styles.cancelButtonText}>Cancel</Text>
+            </TouchableOpacity>
+            
+            <TouchableOpacity 
+              style={[styles.editModalButton, styles.saveButton]} 
+              onPress={handleSave}
+              disabled={isSaving}
+            >
+              {isSaving ? (
+                <ActivityIndicator size="small" color="#FFF" />
+              ) : (
+                <>
+                  <FontAwesomeIcon icon={faSave} size={16} color="#FFF" />
+                  <Text style={styles.saveButtonText}>
+                    {isAddingTopic ? "Add Topic" : "Save Changes"}
+                  </Text>
+                </>
+              )}
+            </TouchableOpacity>
+          </View>
         </View>
       </View>
     </Modal>
@@ -205,7 +259,6 @@ const styles = StyleSheet.create({
     backgroundColor: '#FFF',
     borderRadius: 12,
     width: '90%',
-    
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.25,
@@ -244,6 +297,14 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: '#E5E7EB',
     color: '#1F2937',
+  },
+  inputError: {
+    borderColor: '#EF4444',
+  },
+  errorText: {
+    color: '#EF4444',
+    fontSize: 12,
+    marginTop: 4,
   },
   multilineInput: {
     minHeight: 80,
@@ -285,7 +346,6 @@ const styles = StyleSheet.create({
     fontWeight: '500',
     marginLeft: 6,
   },
-  
   editModalFooter: {
     flexDirection: 'row',
     justifyContent: 'flex-end',
