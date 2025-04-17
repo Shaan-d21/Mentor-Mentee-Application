@@ -26,7 +26,7 @@ const MenteeRequests: React.FC = () => {
 
         const authToken = accessToken.startsWith('Bearer ') ? accessToken : `Bearer ${accessToken}`;
 
-        const response = await axios.get('http://181.214.44.15:8080/mentee/Requests', {
+        const response = await axios.get(`${import.meta.env.VITE_API_URL}/mentee/Requests`, {
           headers: { 
             Token: authToken,
             'Content-Type': 'application/json'

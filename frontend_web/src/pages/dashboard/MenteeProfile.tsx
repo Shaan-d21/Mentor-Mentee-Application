@@ -219,7 +219,7 @@ const MenteeProfileContent: React.FC = () => {
         console.log(`Calling API: GET ${apiBaseUrl}/mentee/mentee/profile`);
         console.log('Headers:', { 'Token': authToken.substring(0, 20) + '...' });
         
-        const profileResponse = await axios.get('http://181.214.44.15:8080/mentee/mentee/profile', {
+        const profileResponse = await axios.get(`${import.meta.env.VITE_API_URL}/mentee/mentee/profile`, {
           headers: {
             'Token': authToken
           }
@@ -349,7 +349,7 @@ const MenteeProfileContent: React.FC = () => {
       // First update the profile
       // const profileResponse = await axios.put(
       await axios.put(
-        'http://181.214.44.15:8080/mentee/mentee/profile_creation',
+        `${import.meta.env.VITE_API_URL}/mentee/mentee/profile_creation`,
         profileData,
         {
           headers: {
@@ -373,7 +373,7 @@ const MenteeProfileContent: React.FC = () => {
             };
 
             await axios.post(
-              'http://181.214.44.15:8080/mentee/mentee/skills',
+              `${import.meta.env.VITE_API_URL}/mentee/mentee/skills`,
               skillsPayload,
               {
                 headers: {

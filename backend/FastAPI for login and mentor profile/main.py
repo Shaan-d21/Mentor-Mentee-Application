@@ -37,7 +37,6 @@ app.include_router(mentor_topics_update.router)
 app.include_router(progress_tracking.router)
 app.include_router(view_feedback.router)
 
-
 @app.get("/")
 def read_root():
     return {"message": "Hello from FastAPI"}
