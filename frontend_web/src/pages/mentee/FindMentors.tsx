@@ -76,18 +76,18 @@ const FindMentors: React.FC = () => {
         return;
       }
       
-      const authToken = accessToken.startsWith('Bearer ') ? accessToken : `Bearer ${accessToken}`;
-      
       console.log('Fetching requests from:', `${import.meta.env.VITE_API_URL}/mentee/Requests`);
       
-      // Use the correct endpoint for fetching all requests
       const response = await axios.get(
         `${import.meta.env.VITE_API_URL}/mentee/Requests`,
         {
           headers: { 
-            Token: authToken,
-            'Content-Type': 'application/json'
-          }
+            'Authorization': `Bearer ${accessToken}`,
+            'Content-Type': 'application/json',
+            'Accept': 'application/json'
+          },
+          withCredentials: true,
+          maxRedirects: 0
         }
       );
       
@@ -197,18 +197,25 @@ const FindMentors: React.FC = () => {
         throw new Error('No access token found');
       }
       
-      const authToken = accessToken.startsWith('Bearer ') ? accessToken : `Bearer ${accessToken}`;
-      
       const trimmedDomain = compatibilityDomain.trim();
       
+      console.log('Checking compatibility for domain:', trimmedDomain);
+      console.log('Using API URL:', import.meta.env.VITE_API_URL);
+      
       const response = await axios.get(
-        `${import.meta.env.VITE_API_URL}/predict/?d=${encodeURIComponent(trimmedDomain)}`,
+        `${import.meta.env.VITE_API_URL}/predict`,
         {
+          params: {
+            d: trimmedDomain
+          },
           headers: { 
-            'Token': authToken
+            'Token': accessToken,
+            'Content-Type': 'application/json'
           }
         }
       );
+      
+      console.log('Compatibility check response:', response.data);
       
       // Process the response data
       let domainMentorsList: CompatibleMentor[] = [];
