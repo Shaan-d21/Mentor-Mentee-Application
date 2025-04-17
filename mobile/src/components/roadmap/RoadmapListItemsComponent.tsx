@@ -16,13 +16,15 @@ import {
   faChevronDown, 
   faChevronUp,
   faInfo,
-  faCheckCircle
+  faCheckCircle,
+  faTrash
 } from '@fortawesome/free-solid-svg-icons';
 import { RoadmapResponse, RoadmapTopic } from '../../types/RoadmapTypes';
 import RoadmapEditModal from './RoadmapEditModal';
 
 export const ListRoadmapItems = (props: { roadmap: RoadmapResponse }) => {
-  const { roadmap } = props;
+  const [localRoadmap, setLocalRoadmap] = useState<RoadmapResponse>(props.roadmap);
+  
   
   // State for expanded/collapsed topics
   const [expandedTopics, setExpandedTopics] = useState<number[]>([]);
@@ -72,24 +74,52 @@ export const ListRoadmapItems = (props: { roadmap: RoadmapResponse }) => {
     Alert.alert("Add Topic", "This functionality will be implemented soon.");
   };
 
+  // function handleDeleteTopic(topicId: string): void {
+  //   throw new Error('Function not implemented.');
+  // }
+
+  // **Added function for deleting a topic**
+  const handleDeleteTopic = (topicId: number) => {
+    Alert.alert(
+      "Delete Topic",
+      "Are you sure you want to delete this topic?",
+      [
+        { text: "Cancel", style: "cancel" },
+        {
+          text: "Delete",
+          style: "destructive",
+          onPress: () => {
+            const updatedTopics = localRoadmap.topics.filter(
+              topic => topic.topic_id !== topicId
+            );
+            setLocalRoadmap({ ...localRoadmap, topics: updatedTopics }); // ✅ state update
+            setEditMode(false); // ✅ close modal after delete
+          },
+        },
+      ]
+    );
+  };
+  
+  
+
   return (
     <View style={styles.container}>
       <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
         {/* Roadmap Overview Card */}
         <View style={styles.overviewCard}>
           <Text style={styles.overviewTitle}>Learning Roadmap Overview</Text>
-          <Text style={styles.overviewDescription}>{roadmap.roadmap_explanation}</Text>
+          <Text style={styles.overviewDescription}>{localRoadmap.roadmap_explanation}</Text>
           
           <View style={styles.statsContainer}>
             <View style={styles.statItem}>
-              <Text style={styles.statValue}>{roadmap.topics.length}</Text>
+              <Text style={styles.statValue}>{localRoadmap.topics.length}</Text>
               <Text style={styles.statLabel}>Topics</Text>
             </View>
             <View style={styles.statItem}>
               <Text style={styles.statValue}>
-                {roadmap.topics.filter(topic => topic.topic_status === 'completed').length}%
+                {/* {roadmap.topics.filter(topic => topic.topic_status === 'completed').length}% */}
               </Text>
-              <Text style={styles.statLabel}>Complete</Text>
+              {/* <Text style={styles.statLabel}>Complete</Text> */}
             </View>
           </View>
         </View>
@@ -97,7 +127,7 @@ export const ListRoadmapItems = (props: { roadmap: RoadmapResponse }) => {
         {/* Topics List */}
         <Text style={styles.sectionTitle}>Learning Path</Text>
         
-        {roadmap.topics.map((topic, index) => {
+        {localRoadmap.topics.map((topic, index) => {
           const isExpanded = expandedTopics.includes(topic.topic_id);
           const isImportanceExpanded = expandedImportance === topic.topic_id;
 
@@ -106,9 +136,15 @@ export const ListRoadmapItems = (props: { roadmap: RoadmapResponse }) => {
               key={topic.topic_id} 
               style={[
                 styles.topicCard,
-                index === roadmap.topics.length - 1 && styles.lastTopicCard
+                index === localRoadmap.topics.length - 1 && styles.lastTopicCard
               ]}
+            > {/* **Added Delete button** */}
+            {/* <TouchableOpacity 
+              onPress={() => handleDeleteTopic(topic.topic_id)} 
+              style={styles.actionButton}
             >
+              <FontAwesomeIcon icon={faTrash} size={16} color="#F87171" />
+            </TouchableOpacity> */}
               <TouchableOpacity 
                 style={styles.topicHeader} 
                 onPress={() => toggleTopicExpansion(topic.topic_id)}
@@ -184,12 +220,13 @@ export const ListRoadmapItems = (props: { roadmap: RoadmapResponse }) => {
         </TouchableOpacity>
       </ScrollView>
       
-      {/* Edit Modal */}
       <RoadmapEditModal
         visible={editMode}
         editingTopic={editingTopic}
         onCancel={handleCancelEdit}
         onSave={handleSaveEdit}
+        onDelete={(topicId: string) => handleDeleteTopic(Number(topicId))}
+
       />
     </View>
   );
@@ -228,15 +265,16 @@ const styles = StyleSheet.create({
     lineHeight: 22,
   },
   statsContainer: {
-    flexDirection: 'row',
-    marginTop: 16,
-    padding: 12,
-    backgroundColor: '#F9FAFB',
-    borderRadius: 8,
+    flex: 1, 
+    justifyContent: 'flex-end', 
+    alignItems: 'center',       
+    paddingBottom: 10 ,
+    
   },
   statItem: {
-    flex: 1,
+    flex: 0,
     alignItems: 'center',
+    
   },
   statValue: {
     fontSize: 18,
@@ -378,4 +416,17 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     marginLeft: 8,
   },
+  // actionButton: {
+  //   padding: 6,
+  //   marginRight: 12,
+  // },
+  deleteButton: {
+    padding: 6,
+    marginRight: 12,
+    color: '#F87171', 
+  },
 });
+
+function setRoadmap(arg0: { topics: RoadmapTopic[]; status_code: number; message: string; roadmap_id: number; roadmap_explanation: string; }) {
+  throw new Error('Function not implemented.');
+}

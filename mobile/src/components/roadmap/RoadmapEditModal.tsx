@@ -23,13 +23,16 @@ interface RoadmapEditModalProps {
   editingTopic: RoadmapTopic | null;
   onCancel: () => void;
   onSave: (editedTopic: RoadmapTopic) => void;
+  onDelete: (topicId: string) => void;
 }
 
 const RoadmapEditModal: React.FC<RoadmapEditModalProps> = ({ 
   visible, 
   editingTopic, 
   onCancel, 
-  onSave 
+  onSave ,
+  onDelete 
+
 }) => {
   const [editedValues, setEditedValues] = useState<any>({
     name: '',
@@ -37,6 +40,7 @@ const RoadmapEditModal: React.FC<RoadmapEditModalProps> = ({
     subtopics: [],
     importance: ''
   });
+  const [isSaving, setIsSaving] = useState(false);
 
   // Initialize form values when editingTopic changes
   useEffect(() => {
@@ -71,18 +75,24 @@ const RoadmapEditModal: React.FC<RoadmapEditModalProps> = ({
     setEditedValues({...editedValues, subtopics: updatedSubtopics});
   };
 
+  
+
   // Handle save
-  const handleSave = () => {
+  const handleSave = async() => {
     if (editingTopic) {
-      onSave({
+      setIsSaving(true);
+     await onSave({
         ...editingTopic,
         name: editedValues.name,
         description: editedValues.description,
         subtopics: editedValues.subtopics,
         importance: editedValues.importance
       });
+      setIsSaving(false);
     }
   };
+  const isFormValid = editedValues.name && editedValues.importance && editedValues.subtopics.length > 0;
+
 
   return (
     <Modal
@@ -94,6 +104,7 @@ const RoadmapEditModal: React.FC<RoadmapEditModalProps> = ({
       <View style={styles.modalOverlay}>
         <View style={styles.modalContainer}>
           <View style={styles.editModalHeader}>
+            
             <Text style={styles.editModalTitle}>Edit Topic</Text>
             <TouchableOpacity onPress={onCancel}>
               <FontAwesomeIcon icon={faTimes} size={20} color="#6B7280" />
@@ -151,20 +162,32 @@ const RoadmapEditModal: React.FC<RoadmapEditModalProps> = ({
           </ScrollView>
           
           <View style={styles.editModalFooter}>
-            <TouchableOpacity 
-              style={[styles.editModalButton, styles.cancelButton]} 
-              onPress={onCancel}
-            >
-              <Text style={styles.cancelButtonText}>Cancel</Text>
-            </TouchableOpacity>
-            <TouchableOpacity 
-              style={[styles.editModalButton, styles.saveButton]} 
-              onPress={handleSave}
-            >
-              <FontAwesomeIcon icon={faSave} size={16} color="#FFF" />
-              <Text style={styles.saveButtonText}>Save Changes</Text>
-            </TouchableOpacity>
-          </View>
+  {editingTopic && (
+    <TouchableOpacity 
+      style={[styles.editModalButton, styles.deleteButton]} 
+      onPress={() => onDelete(editingTopic.topic_id.toString())}
+      >
+      <FontAwesomeIcon icon={faTrash} size={16} color="#FFF" />
+      <Text style={styles.deleteButtonText}>Delete</Text>
+    </TouchableOpacity>
+  )}
+  
+  <TouchableOpacity 
+    style={[styles.editModalButton, styles.cancelButton]} 
+    onPress={onCancel}
+  >
+    <Text style={styles.cancelButtonText}>Cancel</Text>
+  </TouchableOpacity>
+  
+  <TouchableOpacity 
+    style={[styles.editModalButton, styles.saveButton]} 
+    onPress={handleSave}
+  >
+    <FontAwesomeIcon icon={faSave} size={16} color="#FFF" />
+    <Text style={styles.saveButtonText}>Save Changes</Text>
+  </TouchableOpacity>
+</View>
+
         </View>
       </View>
     </Modal>
@@ -253,6 +276,16 @@ const styles = StyleSheet.create({
     fontSize: 14,
     marginLeft: 6,
   },
+  deleteButton: {
+    backgroundColor: '#EF4444',
+  },
+  deleteButtonText: {
+    color: '#FFF',
+    fontSize: 14,
+    fontWeight: '500',
+    marginLeft: 6,
+  },
+  
   editModalFooter: {
     flexDirection: 'row',
     justifyContent: 'flex-end',
