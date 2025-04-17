@@ -59,7 +59,8 @@ async def add_topic(new_topic: Add_topic, db :  db_dependency, user : user_depen
     )
     db.add(topic_model)
     db.commit()
-    return {'status_code' : 200, 'Message': 'Topic Added successfully'}
+    topic_model = db.query(Topic).filter(Topic.name==new_topic.topic_name).first()
+    return {'status_code' : 200, 'Message': 'Topic Added successfully', 'topic': topic_model}
 
 
 @router.put('/modify_topic')
