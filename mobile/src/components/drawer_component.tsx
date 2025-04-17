@@ -376,6 +376,16 @@ const CustomDrawerContent = (props: CustomDrawerContentProps) => {
                   <Text style={styles.menuText}>View Roadmap</Text>
                 </TouchableOpacity>
               </View>
+              <View style={styles.menuItem}>
+                <TouchableOpacity
+                  onPress={() => {
+                    props.toggleDrawer();
+                    navigation.navigate("MenteeFeedback");
+                  }}
+                >
+                  <Text style={styles.menuText}>View Feedbacks</Text>
+                </TouchableOpacity>
+              </View>
             </>
           )}
 

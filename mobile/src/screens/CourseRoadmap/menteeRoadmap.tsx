@@ -186,7 +186,7 @@ import { fetchMentors, ApprovedMentor } from '../../redux/slices/sliceMenteeRoad
 import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../../navigation/types';
-import { getRoadmapTopics } from '../../services/apiRoadmap/apiGetRoadmap';
+import { apiGetTopicsOnMenteeScreen } from '../../services/apiRoadmap/apiGetRoadmap';
 import AppBar from '../../components/appbar_component';
 
 type MenteeRoadmapNavProp = NativeStackNavigationProp<RootStackParamList, 'MenteeRoadmap'>;
@@ -203,13 +203,11 @@ const MenteeRoadmap = () => {
     dispatch(fetchMentors());
   }, [dispatch]);
 
-  const handleViewRoadmap = async (mentor_id: number, domain_name: string, domain_id: number) => {
+  const handleViewRoadmap = async (roadmap_id:number) => {
     try {
-      await getRoadmapTopics(mentor_id, domain_id);
+      await apiGetTopicsOnMenteeScreen(roadmap_id);
       navigation.navigate('RoadmapScreen', {
-        mentor_id: mentor_id,
-        domain_name: domain_name,
-        domain_id: domain_id
+        roadmap_id:roadmap_id,
       });
     } catch (error: any) {
       if (error.response && error.response.status === 404) {
@@ -237,7 +235,7 @@ const MenteeRoadmap = () => {
       </View>
       <TouchableOpacity
         style={styles.button}
-        onPress={() => handleViewRoadmap(item.mentor_id, item.domain_name, item.domain_id)}
+        onPress={() => handleViewRoadmap(item.roadmap_id)}
       >
         <Text style={styles.buttonText}>View Roadmap</Text>
       </TouchableOpacity>
