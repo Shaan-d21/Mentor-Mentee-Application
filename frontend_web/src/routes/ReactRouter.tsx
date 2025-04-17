@@ -5,6 +5,7 @@ import RegisterPage from "../pages/auth/RegisterPage";
 import MentorDashboard from "../pages/dashboard/MentorDashboard";
 import MenteeDashboard from "../pages/dashboard/MenteeDashboard";
 import ProfileCompletion from "../pages/ProfileCompletion";
+import CompatibilityReportPreview from "../pages/mentee/CompatibilityReportPreview";
 
 const AppRouter: React.FC = () => {
   const isAuthenticated = localStorage.getItem('accessToken') !== null;
@@ -30,6 +31,16 @@ const AppRouter: React.FC = () => {
         element={
           isAuthenticated && userRole === "mentee" ? (
             <MenteeDashboard />
+          ) : (
+            <Navigate to="/auth/login" replace />
+          )
+        }
+      />
+      <Route
+        path="/mentee/compatibility-report"
+        element={
+          isAuthenticated && userRole === "mentee" ? (
+            <CompatibilityReportPreview />
           ) : (
             <Navigate to="/auth/login" replace />
           )

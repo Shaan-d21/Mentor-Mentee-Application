@@ -116,16 +116,20 @@ const RegisterPage: React.FC = () => {
       console.log("Registering user through API with data:", userData);
       
       // Use the direct backend URL with CORS headers
-      const registerResponse = await axios.post('http://181.214.44.15:8080/users/register/User', userData, {
-        headers: {
-          'Content-Type': 'application/json',
-          'Accept': 'application/json',
-          'Access-Control-Allow-Origin': '*',
-          'Access-Control-Allow-Methods': 'POST, GET, OPTIONS',
-          'Access-Control-Allow-Headers': 'Content-Type'
-        },
-        withCredentials: true
-      });
+      const registerResponse = await axios.post(
+        `${import.meta.env.VITE_API_URL}/users/register/User`,
+        userData,
+        {
+          headers: {
+            'Content-Type': 'application/json',
+            'Accept': 'application/json',
+            'Access-Control-Allow-Origin': '*',
+            'Access-Control-Allow-Methods': 'POST, GET, OPTIONS',
+            'Access-Control-Allow-Headers': 'Content-Type'
+          },
+          withCredentials: true
+        }
+      );
 
       if (registerResponse && registerResponse.status === 200) {
         toast.success("Account created successfully!");

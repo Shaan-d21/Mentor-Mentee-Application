@@ -442,7 +442,7 @@ const ProfileCompletion = () => {
       console.log('Token header format:', authToken);
       
       // Use deployed API URL
-      const apiUrl = 'http://181.214.44.15:8080';
+      const apiUrl = import.meta.env.VITE_API_URL;
       
       // Create role-specific profile
       const userRole = localStorage.getItem('role');
