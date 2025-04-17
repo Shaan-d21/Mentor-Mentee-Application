@@ -10,6 +10,8 @@ import { ListRoadmapItems } from '../../components/roadmap/RoadmapListItemsCompo
 import DomainView from '../../components/roadmap/domainView';
 import { MMKV } from 'react-native-mmkv';
 import { useIsFocused } from '@react-navigation/native';
+import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome';
+import { faArrowLeft } from '@fortawesome/free-solid-svg-icons';
 
 export const MentorRoadmapGeneration: FC<ScreenProps<'MentorRoadmapGeneration'>> = ({ navigation }) => {
   const dispatch = useDispatch<AppDispatch>();
@@ -27,6 +29,7 @@ export const MentorRoadmapGeneration: FC<ScreenProps<'MentorRoadmapGeneration'>>
 
     }
   }, [isFocused]);
+
 
   useEffect(() => {
     dispatch(fetchApprovedMentees());
@@ -66,21 +69,32 @@ export const MentorRoadmapGeneration: FC<ScreenProps<'MentorRoadmapGeneration'>>
     console.log("Selected Domain:", selectedDomain);
     dispatch(assignRoadmap({ roadmapId: roadmapId || "", menteeId: mentees.find((mentee) => mentee.name === selectedMentee)?.id.toString() || '', domainId: mentees.find((mentee) => mentee.name === selectedMentee)?.domain_id.toString() || '' }));
     console.log("Selected Mentee Name:", selectedMentee);
+    dispatch(initialStateMentorRoadmap())
+    dispatch(fetchApprovedMentees());
   };
 
   return (
     <View style={styles.container}>
-
-      <AppBar onProfilePress={() => { navigation.navigate("MentorProfileScreen")}} openDrawer={() => { }} />
+      {
+        !roadmap && (<AppBar onProfilePress={() => { navigation.navigate("MentorProfileScreen") }} openDrawer={() => { }} />)
+      }
 
       <ScrollView contentContainerStyle={styles.scrollContent}>
         {status === 'loading' && (
           <ActivityIndicator size="large" color="#007bff" style={{ marginTop: 20 }} />
         )}
 
+        {status !== 'loading' && mentees.length === 0 && (
+          <View style={styles.noMenteesContainer}>
+            <Text style={styles.noMenteesText}>No mentees found.</Text>
+            <Text style={styles.noMenteesSubText}>Please add mentees to generate a roadmap.</Text>
+          </View>
+        )}
 
-        {status !== 'loading' && !roadmap && (
+
+        {status !== 'loading' && mentees.length > 0 && !roadmap && (
           <>
+
             <View style={styles.dropdownContainer}>
               <Text style={styles.label}>Select Mentee</Text>
               <DropdownComponent
@@ -104,24 +118,39 @@ export const MentorRoadmapGeneration: FC<ScreenProps<'MentorRoadmapGeneration'>>
 
         {roadmap && (
           <View style={styles.topicsWrapper}>
-            <Text style={styles.header}>
-              {selectedDomain || 'Your Domain'} Roadmap for {selectedMentee || 'Your Mentee'}
-            </Text>
 
+
+            <View style={{ flexDirection: 'row', alignItems: 'flex-start' }}>
+
+              <TouchableOpacity
+                style={{
+                  marginTop: 12,
+                }}
+                onPress={() => {
+                  dispatch(initialStateMentorRoadmap())
+                  dispatch(fetchApprovedMentees());
+                }}>
+                <FontAwesomeIcon icon={faArrowLeft} size={24} color="#007bff" />
+              </TouchableOpacity>
+
+              <Text style={styles.header}>
+                {selectedDomain || 'Your Domain'} Roadmap for {selectedMentee || 'Your Mentee'}
+              </Text>
+            </View>
             <ListRoadmapItems roadmap={roadmap} />
 
           </View>
         )}
       </ScrollView>
 
-      {!roadmap && status !== 'loading' && (
+      {!roadmap && status !== 'loading' && mentees.length > 0 && (
         <View style={styles.bottomBar}>
           <TouchableOpacity style={styles.button} onPress={handleGenerateRoadmap}>
             <Text style={styles.buttonText}>Generate Roadmap</Text>
           </TouchableOpacity>
         </View>
       )}
-      {roadmap && status !== 'loading' && (
+      {roadmap && status !== 'loading' && mentees.length > 0 && (
         <View style={styles.bottomBar}>
           {/* <TouchableOpacity style={styles.button} onPress={handleAssignRoadmap}>
             <Text style={styles.buttonText}>Go Back</Text>
@@ -143,6 +172,8 @@ const styles = StyleSheet.create({
   scrollContent: {
     padding: 16,
   },
+
+
   dropdownContainer: {
     marginBottom: 20,
   },
@@ -154,11 +185,13 @@ const styles = StyleSheet.create({
   },
   topicsWrapper: {
     marginVertical: 20,
+
   },
   header: {
     fontSize: 20,
     fontWeight: '700',
-    marginBottom: 12,
+    margin: 12,
+
     color: '#000',
   },
   topicCard: {
@@ -196,5 +229,23 @@ const styles = StyleSheet.create({
     color: '#fff',
     fontWeight: '700',
     fontSize: 16,
+  },
+  noMenteesContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 20,
+  },
+  noMenteesText: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: '#333',
+    textAlign: 'center',
+    marginBottom: 10,
+  },
+  noMenteesSubText: {
+    fontSize: 16,
+    color: '#666',
+    textAlign: 'center',
   },
 });

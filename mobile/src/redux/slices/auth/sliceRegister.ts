@@ -47,7 +47,14 @@ const sliceRegister = createSlice({
 });
 
 export const registerUser = createAsyncThunk("userLogin/registerUser", async ({ email, password, name, role }: { email: string, password: string, name: string, role: "admin" | "mentee" | "mentor" }) => {
-    const response = await apiRegisterUser({ email, password, name, role });
+   
+    const fromatedName = name
+    .trim()
+    .toLowerCase()
+    .split(' ')
+    .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+    .join(' ');
+    const response = await apiRegisterUser({ email, password, name:fromatedName, role });
     // console.log(`Response in the slice is `, response);
     return response;
 });

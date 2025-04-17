@@ -77,7 +77,12 @@ export const apiUpdateMentorProfile = async (name: string, exp: string, designat
     return 0;
   }
 }
-export const apiaddMentorProfileSkill = async (skillName: string,proficiency:string) => {
+// export const apiaddMentorProfileSkill = async (skillName: string,proficiency:string) => {
+  type SkillMap = {
+    [key: string]: number;
+  };
+export const apiaddMentorProfileSkill = async (skills:SkillMap) => {
+
     const api = axios.create({
       baseURL: "http://181.214.44.15:8080/",
       headers: {
@@ -88,14 +93,16 @@ export const apiaddMentorProfileSkill = async (skillName: string,proficiency:str
     });
   
     try {
-      const data = {
-        skills: [
-          {
-            skill_name: skillName,
-            proficiency: Number(proficiency),
-          },
-        ],
-      };
+      const mappedSkills = Object.keys(skills).map(skillName => ({
+        skill_name: skillName,
+        proficiency: skills[skillName],
+      }));
+    
+   
+  const data = {
+    skills: mappedSkills,
+  };
+
       const response = await api.post("users/mentor/skills", data);
       if (response.status == 200) {
         return 1;

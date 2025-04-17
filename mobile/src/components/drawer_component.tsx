@@ -236,8 +236,6 @@
 // });
 
 // export default CustomDrawerContent;
-
-
 import { CommonActions, useNavigation } from "@react-navigation/native";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import React, { useState, useEffect } from "react";
@@ -248,7 +246,6 @@ import {
   Dimensions,
   TouchableOpacity,
   Animated,
-  Button,
 } from "react-native";
 import { RootStackParamList } from "../navigation/types";
 import { MMKV } from "react-native-mmkv";
@@ -266,7 +263,7 @@ interface CustomDrawerContentProps {
 }
 
 const CustomDrawerContent = (props: CustomDrawerContentProps) => {
-  const userName= useSelector((state:RootState)=> state.login.name);
+  const userName = useSelector((state: RootState) => state.login.name);
   const dispatch = useDispatch();
   const storage = new MMKV();
   const [drawerAnimation] = useState(new Animated.Value(0));
@@ -321,19 +318,17 @@ const CustomDrawerContent = (props: CustomDrawerContentProps) => {
     navigation.dispatch(
       CommonActions.reset({
         index: 0,
-        routes: [{ name: 'SignInPage' }], // Replace with your login screen name
-      }))
-    // navigation.navigate("SignInPage");
+        routes: [{ name: "SignInPage" }],
+      })
+    );
   };
 
   return (
     <>
-      {/* Animated Overlay */}
       <Animated.View style={[styles.overlay, { opacity: overlayOpacity }]}>
         <TouchableOpacity style={{ flex: 1 }} onPress={props.toggleDrawer} />
       </Animated.View>
 
-      {/* Animated Drawer */}
       <Animated.View
         style={[
           styles.drawerContainer,
@@ -342,90 +337,77 @@ const CustomDrawerContent = (props: CustomDrawerContentProps) => {
       >
         <View style={styles.drawerContent}>
           <View style={styles.profileContainer}>
-            {/* <View style={[styles.profileIcon, { backgroundColor: "gray" }]} /> */}
-            <View style={{margin: 10}}> <FontAwesomeIcon icon={faUserCircle} size={24} color="#333333" /> </View>
+            <View style={{ margin: 10 }}>
+              <FontAwesomeIcon icon={faUserCircle} size={24} color="#333333" />
+            </View>
             <Text style={styles.profileName}>{userName}</Text>
           </View>
           <View style={styles.separator} />
 
-          {/* Conditional Navigation */}
           {userRole === "mentee" && (
             <>
               <View style={styles.menuItem}>
-                <Button
+                <TouchableOpacity
                   onPress={() => {
-                    props.toggleDrawer(); // Close the drawer before navigating
+                    props.toggleDrawer();
                     navigation.navigate("MenteeDashboard");
                   }}
-                  title="My Mentors"
-                />
+                >
+                  <Text style={styles.menuText}>My Mentors</Text>
+                </TouchableOpacity>
               </View>
               <View style={styles.menuItem}>
-                <Button
-                  onPress={() =>{
-                    closeDrawer(); // Close the drawer first
-                    navigation.navigate("MenteeRequests")}}
-                  title="My Requests"
-                />
-              </View>
-              <View style={styles.menuItem}>
-                <Button
+                <TouchableOpacity
                   onPress={() => {
-                    props.toggleDrawer(); // Close the drawer before navigating
+                    closeDrawer();
+                    navigation.navigate("MenteeRequests");
+                  }}
+                >
+                  <Text style={styles.menuText}>My Requests</Text>
+                </TouchableOpacity>
+              </View>
+              <View style={styles.menuItem}>
+                <TouchableOpacity
+                  onPress={() => {
+                    props.toggleDrawer();
                     navigation.navigate("MenteeRoadmap");
                   }}
-                  title="View Roadmap"
-                />
+                >
+                  <Text style={styles.menuText}>View Roadmap</Text>
+                </TouchableOpacity>
               </View>
             </>
           )}
 
-{userRole === "mentor" && (
-  <>
-    <View style={styles.menuItem}>
-      <Button
-        onPress={() => {
-          props.toggleDrawer(); // Close the drawer first
-          navigation.navigate("MentorDashboard");
-        }}
-        title="My Mentees"
-      />
-    </View>
-    <View style={styles.menuItem}>
-      <Button
-        onPress={() => {
-          props.toggleDrawer(); // Close the drawer first
-          navigation.navigate("MentorRoadmapGeneration");
-        }}
-        title="Generate Roadmap"
-      />
-    </View>
-  </>
-)}
+          {userRole === "mentor" && (
+            <>
+              <View style={styles.menuItem}>
+                <TouchableOpacity
+                  onPress={() => {
+                    props.toggleDrawer();
+                    navigation.navigate("MentorDashboard");
+                  }}
+                >
+                  <Text style={styles.menuText}>My Mentees</Text>
+                </TouchableOpacity>
+              </View>
+              <View style={styles.menuItem}>
+                <TouchableOpacity
+                  onPress={() => {
+                    props.toggleDrawer();
+                    navigation.navigate("MentorRoadmapGeneration");
+                  }}
+                >
+                  <Text style={styles.menuText}>Generate Roadmap</Text>
+                </TouchableOpacity>
+              </View>
+            </>
+          )}
 
-
-          {/*Logout Button */}
-          {/* <View style={styles.menuItem}>
-          <Button
-            onPress={() => {
-              props.toggleDrawer(); // Close the drawer first
-              storage.clearAll() // Remove user data from storage
-              navigation.navigate('SignInPage'); // Then navigate to SignInPage
-            }}
-            title="Logout"
-          />
-</View>
-          {/* <View style={styles.menuItem}>
-            <TouchableOpacity onPress={()=> navigation.navigate("SignInPage")} >
-                              <Text>
-                                Log Out
-                                </Text>
-                              </TouchableOpacity>
-          </View> 
-        
-        </View> */}
-        <View style={styles.menuItem}>
-            <Button onPress={handleLogout} title="Logout" />
+          <View style={styles.menuItem}>
+            <TouchableOpacity onPress={handleLogout}>
+              <Text style={styles.menuText}>Logout</Text>
+            </TouchableOpacity>
           </View>
         </View>
       </Animated.View>
@@ -453,7 +435,7 @@ const styles = StyleSheet.create({
     elevation: 4,
   },
   drawerContent: {
-    alignItems:"baseline",
+    alignItems: "baseline",
     width: "100%",
     height: "100%",
     backgroundColor: "white",
@@ -463,12 +445,6 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     padding: 16,
-  },
-  profileIcon: {
-    width: 50,
-    height: 50,
-    borderRadius: 25,
-    marginRight: 16,
   },
   profileName: {
     fontSize: 18,
@@ -481,6 +457,10 @@ const styles = StyleSheet.create({
   },
   menuItem: {
     paddingVertical: 12,
+  },
+  menuText: {
+    fontSize: 16,
+    color: "dodgerblue",
   },
 });
 

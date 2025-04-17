@@ -9,12 +9,15 @@ import {
   View,
   ActivityIndicator,
 } from 'react-native';
+ import {FontAwesomeIcon} from '@fortawesome/react-native-fontawesome'; 
+import { faEye, faEyeSlash } from '@fortawesome/free-solid-svg-icons';
 import {useDispatch, useSelector} from 'react-redux';
 import { changeStatusToInitial, loginUser } from '../../redux/slices/auth/sliceLogin';
 import { AppDispatch, RootState } from '../../redux/store';
 import { ScreenProps } from '../../navigation/types';
 import { current } from '@reduxjs/toolkit';
 import { authStyles } from './authStyle';
+import { useState } from 'react';
 
 const SignInPage: React.FC<ScreenProps<"SignInPage">> = ({navigation}) => {
   const dispatch = useDispatch<AppDispatch>();
@@ -24,6 +27,7 @@ const SignInPage: React.FC<ScreenProps<"SignInPage">> = ({navigation}) => {
   const userType= useSelector((state:RootState)=> state.login.role);
   const currentStatus= useSelector((state:RootState)=> state.login.status);
   const profileStatus= useSelector((state:RootState)=> state.login.profile_status);
+  const [isPasswordVisible, setIsPasswordVisible] = useState(false);
 
   const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
 
@@ -107,6 +111,7 @@ const SignInPage: React.FC<ScreenProps<"SignInPage">> = ({navigation}) => {
       style={authStyles.container}>
       <View style={authStyles.formContainer}>
         <Text style={authStyles.title}>Sign In</Text>
+       
         <TextInput
           style={authStyles.input}
           placeholder="Email"
@@ -114,17 +119,38 @@ const SignInPage: React.FC<ScreenProps<"SignInPage">> = ({navigation}) => {
           value={emailLocal}
           onChangeText={setEmailLocal}
         />
-        <TextInput
+        
+        {/* <TextInput
           style={authStyles.input}
           placeholder="Password"
           secureTextEntry
           value={passwordLocal}
           onChangeText={setPasswordLocal}
-        />
-        <TouchableOpacity
+        /> */}
+            <View style={authStyles.passwordContainer}>
+            <TextInput
+              style={authStyles.passwordInput}
+              placeholder="Password"
+              secureTextEntry={!isPasswordVisible} // Toggle secureTextEntry
+              value={passwordLocal}
+              onChangeText={setPasswordLocal}
+            />
+            <TouchableOpacity
+              style={authStyles.eyeIconContainer}
+              onPress={() => setIsPasswordVisible(!isPasswordVisible)} // Toggle password visibility
+            >
+              <FontAwesomeIcon
+                icon={isPasswordVisible ? faEyeSlash : faEye} // Show eye or eye-slash icon
+                size={20}
+                color="gray"
+              />
+            </TouchableOpacity>
+          </View>
+        {/* <TextInput
+        {/* <TouchableOpacity
           onPress={() => setIsForgotPassword(!isForgotPassword)}>
           <Text style={authStyles.toggleText}>Forgot your password?</Text>
-        </TouchableOpacity>
+        </TouchableOpacity> */}
         
         <TouchableOpacity style={authStyles.button} onPress={handleFormSubmit}>
           <Text style={authStyles.buttonText}>

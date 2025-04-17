@@ -13,7 +13,7 @@ export const getRoadmapTopics = async (mentorId: number, domainId: number): Prom
 
     try {
         const response = await axios.post<RoadmapResponse>(
-          `http://181.214.44.15:8080/mentee/roadmap-topics`,
+          `${process.env.API_URL}mentee/roadmap-topics`,
           { // Request body
             mentor_id: mentorId,
             domain_id: domainId

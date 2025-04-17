@@ -20,7 +20,7 @@ export const profileStyles = StyleSheet.create({
   },
   profileImage: {
     width: 150,
-    height: 150, 
+    height: 150,
     marginBottom: 16,
     overflow: 'hidden',
   },
@@ -160,7 +160,6 @@ export const profileStyles = StyleSheet.create({
   },
 });
 
-// Mentor-specific styles
 export const mentorSpecificStyles = StyleSheet.create({
   skillLevel: {
     backgroundColor: '#3498db',
@@ -182,7 +181,42 @@ export const mentorSpecificStyles = StyleSheet.create({
     flex: 1,
     marginLeft: 0,
   },
-  // Modal styles
+
+  // Radio button container
+  radioContainer: {
+    marginTop: 16,
+    backgroundColor: '#fff',
+    padding: 12,
+    borderRadius: 8,
+  },
+  radioRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 12,
+  },
+  skillLabel: {
+    fontSize: 16,
+    fontWeight: '600',
+    marginRight: 12,
+    color: '#333',
+  },
+  radioButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginHorizontal: 8,
+  },
+  radioCircle: {
+    width: 18,
+    height: 18,
+    borderRadius: 9,
+    borderWidth: 2,
+    borderColor: '#3498db',
+    marginRight: 4,
+  },
+  radioCircleSelected: {
+    backgroundColor: '#3498db',
+  },
+
   modalBackground: {
     flex: 1,
     justifyContent: 'center',
@@ -193,7 +227,8 @@ export const mentorSpecificStyles = StyleSheet.create({
     backgroundColor: 'white',
     padding: 20,
     borderRadius: 10,
-    width: 300,
+    width: '100%',               // <-- wider modal
+    maxHeight: '100%',           // <-- taller modal
     alignItems: 'center',
   },
   modalTitle: {
@@ -212,4 +247,54 @@ export const mentorSpecificStyles = StyleSheet.create({
     color: '#fff',
     fontSize: 16,
   },
+  // ...existing code...
+expandableSkillItem: {
+  backgroundColor: '#fff',
+  borderRadius: 8,
+  marginBottom: 10,
+  padding: 12,
+  shadowColor: '#000',
+  shadowOffset: { width: 0, height: 1 },
+  shadowOpacity: 0.05,
+  shadowRadius: 1,
+  elevation: 1,
+},
+expandableSkillHeader: {
+  flexDirection: 'row',
+  alignItems: 'center',
+  justifyContent: 'space-between',
+},
+selectedLevelBadge: {
+  backgroundColor: '#3498db',
+  borderRadius: 12,
+  paddingHorizontal: 8,
+  paddingVertical: 2,
+  marginLeft: 10,
+},
+selectedLevelText: {
+  color: '#fff',
+  fontSize: 12,
+},
+levelButtonRow: {
+  flexDirection: 'row',
+  justifyContent: 'flex-start',
+  marginTop: 10,
+},
+levelButton: {
+  backgroundColor: '#ecf0f1',
+  borderRadius: 8,
+  paddingVertical: 6,
+  paddingHorizontal: 16,
+  marginRight: 10,
+},
+levelButtonSelected: {
+  backgroundColor: '#3498db',
+},
+levelButtonText: {
+  color: '#333',
+  fontWeight: 'bold',
+},
+levelButtonTextSelected: {
+  color: '#fff',
+},
 });

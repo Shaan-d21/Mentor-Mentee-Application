@@ -349,6 +349,7 @@ interface PendingRequest {
   email: string;
   role: string;
   domain: string;
+  designation: string
 }
 interface Props {
   onBackPress: () => void;
@@ -466,7 +467,7 @@ const CheckRequestScreen: React.FC = () => {
             color="#777"
             style={styles.icon}
           />
-          <Text style={styles.cardText}>{item.role}</Text>
+          <Text style={styles.cardText}>{item.designation}</Text>
         </View>
         <View style={styles.cardItem}>
           <FontAwesomeIcon
@@ -588,9 +589,10 @@ const CheckRequestScreen: React.FC = () => {
                 paddingVertical: 10,
                 borderRadius: 5,
               }}
-              onPress={() => 
-              setModalVisible(false)
-              }>
+              onPress={() =>{
+              setModalVisible(false),
+              setComment('')
+}}>
               <Text
                 style={{color: '#fff', textAlign: 'center', fontWeight: '600'}}>
                 Cancel

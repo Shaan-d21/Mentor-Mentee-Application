@@ -19,6 +19,7 @@ interface Mentee {
   domain: string;
   role: string;
   comment?: string;
+  designation: string;
 }
 
 interface MenteeRequestsState {
@@ -99,8 +100,9 @@ const menteeSlice = createSlice({
           name: entry.name,
           email: entry.mail,
           domain: entry.domain_name,
-          role: entry.role,
+          designation: entry.designation,
         }));
+        // console.log('Approved Mentees:', state.approved[0]);
       })
       .addCase(fetchApprovedMentees.pending, state => {
         state.status = currentStatus.loading;
@@ -121,7 +123,7 @@ const menteeSlice = createSlice({
       //       name: user.name,
       //       email: user.mail,
       //       domain: user.domain_id,
-      //       role: user.role,
+      //       designation: user.role,
       //     };
       //   });
       // })
@@ -134,7 +136,7 @@ state.status = currentStatus.success;
           name: entry.name,
           email: entry.mail,
           domain: entry.domain_name,
-          role: entry.role,
+          designation: entry.designation,
         }));
       })
       .addCase(fetchPendingRequest.pending, state => {

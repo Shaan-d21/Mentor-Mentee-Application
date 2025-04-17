@@ -106,6 +106,7 @@ const styles = StyleSheet.create({
         padding: 10,
         backgroundColor: 'transparent', // Make background transparent
         borderBottomWidth: 0, // Remove border
+        marginTop: 10, 
     },
     icon: {
         padding: 10,
@@ -127,8 +128,8 @@ const AppBar: React.FC<Props> = ({ openDrawer, onProfilePress, title }) => {
     const { isDrawerOpen, toggleDrawer } = useDrawer();
     const showProfileIcon = title !== "Mentor Profile" && 
     title !== "Mentee Profile" &&
-    title !== "Mentor Profile Edit" && 
-    title !== "Mentee Profile Edit";
+    title !== "Edit Mentor Profile" && 
+    title !== "Edit Mentee Profile";
 
     return (
         <View style={styles.header}>

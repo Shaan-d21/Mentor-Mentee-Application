@@ -195,6 +195,10 @@ const MentorDashboardScreen = () => {
   //     <Text style={styles.cell}>{item.comment || '-'}</Text>
   //   </View>
   // );
+
+
+
+  // ---------------------------------
   const renderMenteeCard = ({ item }: { item: any }) => (
     <View style={styles.card}>
       <View style={styles.cardHeader}>
@@ -207,7 +211,7 @@ const MentorDashboardScreen = () => {
         </View>
         <View style={styles.cardItem}>
           <FontAwesomeIcon icon={faUserTag} size={16} color="#777" style={styles.icon} />
-          <Text style={styles.cardText}>{item.role}</Text>
+          <Text style={styles.cardText}>{item.designation??"Intern"}</Text>
         </View>
         <View style={styles.cardItem}>
           <FontAwesomeIcon icon={faCodeBranch} size={16} color="#777" style={styles.icon} />
@@ -220,6 +224,29 @@ const MentorDashboardScreen = () => {
       </View>
     </View>
   );
+  // ----------------------------------------
+
+// const renderMenteeCard = ({ item }: { item: any }) => (
+//   <View style={styles.card}>
+//     <View style={styles.cardHeader}>
+//       <Text style={styles.cardTitle}>{item.name}</Text>
+//     </View>
+//     <View style={styles.cardBody}>
+//       <View style={styles.cardItem}>
+//         <Text style={styles.cardTextTitle}>Email: </Text>
+//         <Text style={styles.cardText}>{item.email}</Text>
+//       </View>
+//       <View style={styles.cardItem}>
+//         <Text style={styles.cardTextTitle}>Designation: </Text>
+//         <Text style={styles.cardText}>{item.designation ?? 'Intern'}</Text>
+//       </View>
+//       <View style={styles.cardItem}>
+//         <Text style={styles.cardTextTitle}>Domain: </Text>
+//         <Text style={styles.cardText}>{item.domain}</Text>
+//       </View>
+//     </View>
+//   </View>
+// );
 
   return (
   
@@ -267,12 +294,20 @@ const MentorDashboardScreen = () => {
           )}
         </View>
       </ScrollView> */}
+{approved.length === 0? (
+  
+  <Text style={styles.noMenteesText}>
+    No approved mentees available.
+  </Text>
 
+):(
 <FlatList
-  data={approved}
-  keyExtractor={item => item.id.toString()}
-  renderItem={renderMenteeCard}
+data={approved}
+keyExtractor={item => item.id.toString()}
+renderItem={renderMenteeCard}
 />
+)}
+
 
     </View>
   );
@@ -281,6 +316,11 @@ const MentorDashboardScreen = () => {
 export default MentorDashboardScreen;
 
 const styles = StyleSheet.create({
+  cardTextTitle:{
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: '#333',
+  },
   container: {
     flex: 1,
     padding: 16,
@@ -334,7 +374,7 @@ const styles = StyleSheet.create({
   rowHeaderContainer: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    alignItems: 'center',
+    alignItems:'flex-end',
     marginHorizontal: 3,
     marginTop: 3,
     padding: 10,

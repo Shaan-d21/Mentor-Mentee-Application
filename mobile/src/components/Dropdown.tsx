@@ -7,6 +7,7 @@ interface DropdownComponentProps {
   selectedValue: string;
   onSelect: (value: string) => void;
   placeholder?: string;
+  direction?: 'up' | 'down';
 }
 
 const DropdownComponent: React.FC<DropdownComponentProps> = ({
@@ -14,11 +15,15 @@ const DropdownComponent: React.FC<DropdownComponentProps> = ({
   selectedValue,
   onSelect,
   placeholder = 'Select an option',
+  direction = 'down',
 }) => {
   return (
     <View style={styles.container}>
       <Dropdown
+        
         style={styles.dropdown}
+        dropdownPosition={direction === 'up' ? 'top' : 'bottom'}
+        maxHeight={300}
         data={data}
         labelField="label"
         valueField="value"
