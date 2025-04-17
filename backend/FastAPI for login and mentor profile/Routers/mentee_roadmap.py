@@ -95,27 +95,36 @@ def get_roadmap_topics(
     )
 
     mentee_roadmap = db.execute(query).first()
+    #print(mentee_roadmap)
 
     if mentee_roadmap is None:
         raise HTTPException(status_code = status.HTTP_404_NOT_FOUND, detail='Roadmap not found or is not assigned')
     
     topics = db.query(Topic).filter(Topic.roadmap_id == mentee_roadmap[0]).all()
-
+    roadmap = db.query(Roadmap).filter(Roadmap.id == mentee_roadmap[0]).first()
+    #print(topics)
     if not topics:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="No topics found for the given roadmap id")
     
-    
-    roadmap_list = {}
+    if not roadmap:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="No roadmap found")
+    # print(roadmap.description)
+
+    topic_list = []
     for topic in topics:
+        # print(topic)
         topic_status = topic.status
         topic_id = topic.id
         name = topic.name
-        if topic_status not in roadmap_list:
-            roadmap_list[topic_status] = []
-        roadmap_list[topic_status].append({'topic_id':topic_id, 'topic_name':name})
-        
+        subtopics = [item.strip() for item in topic.subtopics.split(',')]
+        description = topic.description
+        importance = topic.reasoning
+        topic_list.append({'topic_id':topic_id, 'name':name, "description": description, "subtopics": subtopics, "importance": importance, "topic_status": topic_status})
+
     return {
         "status_code": status.HTTP_200_OK,
         "message": "success",
-        "object": roadmap_list
+        "roadmap_id": mentee_roadmap[0],
+        "roadmap_explanation": roadmap.description,
+        "topic": topic_list
     }
