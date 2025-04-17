@@ -203,7 +203,7 @@ const FindMentors: React.FC = () => {
       console.log('Using API URL:', import.meta.env.VITE_API_URL);
       
       const response = await axios.get(
-        `${import.meta.env.VITE_API_URL}/predict`,
+        `${import.meta.env.VITE_API_URL}/predict/?d=${encodeURIComponent(trimmedDomain)}`,
         {
           params: {
             d: trimmedDomain
