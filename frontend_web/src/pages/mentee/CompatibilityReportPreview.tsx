@@ -35,8 +35,12 @@ export default function CompatibilityReportPreview() {
       try {
         const response = await axios.get(`${import.meta.env.VITE_API_URL}/users/mentor/${mentorId}`, {
           headers: {
-            'Authorization': `Bearer ${localStorage.getItem('accessToken')}`
-          }
+            'Authorization': `Bearer ${localStorage.getItem('accessToken')}`,
+            'Content-Type': 'application/json',
+            'Accept': 'application/json'
+          },
+          withCredentials: true,
+          maxRedirects: 0
         });
         setMentorData(response.data);
       } catch (error) {
@@ -85,8 +89,12 @@ export default function CompatibilityReportPreview() {
         },
         {
           headers: {
-            'Token': localStorage.getItem('accessToken')
-          }
+            'Authorization': `Bearer ${localStorage.getItem('accessToken')}`,
+            'Content-Type': 'application/json',
+            'Accept': 'application/json'
+          },
+          withCredentials: true,
+          maxRedirects: 0
         }
       );
       
