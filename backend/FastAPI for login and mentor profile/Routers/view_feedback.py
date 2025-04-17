@@ -40,6 +40,7 @@ async def view_all_feedbacks(user: user_dependency, db: db_dependency):
         domain_name = domain_model.name
 
         object = {
+            'feedback_id': feedback.id,
             "mentee_id" : mentee_id,
             "mentor_id" : mentor_id,
             "domain_id" : domain_id,
