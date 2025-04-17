@@ -1,5 +1,6 @@
 import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
 import { apiGetApprovedMentees, apiPostAssignRoadmap, apiPostGenerateRoadMap } from "../../services/apiRoadmap/apiGenerateRoadmapMentor";
+import { RoadmapResponse, roadmapResponseFromJson } from "../../types/RoadmapTypes";
 
 enum currentStatus {
   idle = "idle",
@@ -18,7 +19,7 @@ interface Mentee {
 
 interface MentorRoadmapState {
   mentees: Mentee[];
-  roadmap: string[] | null;
+  roadmap: RoadmapResponse | null;
   roadmapId: string | null;
   status: currentStatus;
   error: string | null;
@@ -127,15 +128,19 @@ initialStateMentorRoadmap (state)  {
         state.error = null;
       })
       .addCase(generateRoadmap.fulfilled, (state, action) => {
+        // Remove this line 
+        const roadmapData = JSON.parse(action.payload.toString());
         state.status = currentStatus.success;
         state.error = null;
         console.log("Roadmap generated:", action.payload);
-        state.roadmapId = action.payload.roadmap_id; 
-    //     state.roadmap = action.payload.topics
-    // .split('\n')
-    // .map((topic: string) => topic.trim())
-    // .filter(item => item.length > 0);
-    state.roadmap= splitByNewLine(action.payload.roadmap_name);
+        // state.roadmapId = action.payload.roadmap_id;
+        state.roadmapId = roadmapData.roadmap_id;
+
+      // state.roadmap= splitByNewLine(action.payload.roadmap_name);
+        state.roadmap= roadmapResponseFromJson(roadmapData);
+        console.log("Roadmap ID:", state.roadmapId);
+        console.log("Roadmap name:", roadmapData.roadmap_name);
+        
     console.log("Roadmap topics:", state.roadmap);
       })
       .addCase(generateRoadmap.rejected, (state, action) => {
