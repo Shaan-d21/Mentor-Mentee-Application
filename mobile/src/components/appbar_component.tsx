@@ -4,13 +4,12 @@
 // import { faBars, faUserCircle } from '@fortawesome/free-solid-svg-icons'
 // import { useDrawer } from '../context/drawer_context';
 
-
 // const styles = StyleSheet.create({
 //     header: {
 //         flexDirection: 'row',
 //         justifyContent: 'space-between',
 //         alignItems: 'center',
-//         padding: 10, 
+//         padding: 10,
 //         backgroundColor: '#FFFFFF', // White background
 //         borderBottomWidth: 1, // Subtle border
 //         borderBottomColor: '#E0E0E0',
@@ -27,7 +26,6 @@
 
 // const AppBar: React.FC<Props> = ({ openDrawer, onProfilePress }) => {
 //       const { isDrawerOpen, toggleDrawer } = useDrawer();
-    
 
 //     return (
 //         <View style={styles.header}>
@@ -93,61 +91,62 @@
 // export default AppBar;
 
 import React from 'react';
-import { View, TouchableOpacity, StyleSheet, Text } from 'react-native';
-import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome'
-import { faBars, faUserCircle } from '@fortawesome/free-solid-svg-icons'
-import { useDrawer } from '../context/drawer_context';
+import {View, TouchableOpacity, StyleSheet, Text} from 'react-native';
+import {FontAwesomeIcon} from '@fortawesome/react-native-fontawesome';
+import {faBars, faUserCircle} from '@fortawesome/free-solid-svg-icons';
+import {useDrawer} from '../context/drawer_context';
 
 const styles = StyleSheet.create({
-    header: {
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-        padding: 10,
-        backgroundColor: 'transparent', // Make background transparent
-        borderBottomWidth: 0, // Remove border
-    },
-    icon: {
-        padding: 10,
-    },
-    title: {
-        fontSize: 20,
-        fontWeight: 'bold',
-        color: '#333333', // Adjust color as needed
-    },
+  header: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    padding: 20,
+    backgroundColor: 'transparent', // Make background transparent
+    borderBottomWidth: 0, // Remove border
+  },
+  icon: {
+    padding: 10,
+  },
+  title: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    color: '#333333', // Adjust color as needed
+  },
 });
 
 interface Props {
-    openDrawer: () => void;
-    onProfilePress: () => void;
-    title?: string; // Add optional title prop
+  openDrawer: () => void;
+  onProfilePress: () => void;
+  title?: string; // Add optional title prop
 }
 
-const AppBar: React.FC<Props> = ({ openDrawer, onProfilePress, title }) => {
-    const { isDrawerOpen, toggleDrawer } = useDrawer();
-    const showProfileIcon = title !== "Mentor Profile" && 
-    title !== "Mentee Profile" &&
-    title !== "Edit Mentor Profile" && 
-    title !== "Edit Mentee Profile";
+const AppBar: React.FC<Props> = ({openDrawer, onProfilePress, title}) => {
+  const {isDrawerOpen, toggleDrawer} = useDrawer();
+  const showProfileIcon =
+    title !== 'Mentor Profile' &&
+    title !== 'Mentee Profile' &&
+    title !== 'Edit Mentor Profile' &&
+    title !== 'Edit Mentee Profile';
 
-    return (
-        <View style={styles.header}>
-            <TouchableOpacity onPress={toggleDrawer} style={styles.icon}>
-                <FontAwesomeIcon icon={faBars} size={24} color="#333333" />
-            </TouchableOpacity>
-            {title && <Text style={styles.title}>{title}</Text>} {/* Render title if provided */}
-            
-            {showProfileIcon ?
-                (<TouchableOpacity onPress={onProfilePress} style={styles.icon}>
-                <FontAwesomeIcon icon={faUserCircle} size={24} color="#333333" />
-            </TouchableOpacity>):(
-                <View style={styles.icon}>
-                    <FontAwesomeIcon icon={faUserCircle} size={24} color="transparent" />
-                </View>
-            )
-            }
+  return (
+    <View style={styles.header}>
+      <TouchableOpacity onPress={toggleDrawer} style={styles.icon}>
+        <FontAwesomeIcon icon={faBars} size={24} color="#333333" />
+      </TouchableOpacity>
+      {title && <Text style={styles.title}>{title}</Text>}{' '}
+      {/* Render title if provided */}
+      {showProfileIcon ? (
+        <TouchableOpacity onPress={onProfilePress} style={styles.icon}>
+          <FontAwesomeIcon icon={faUserCircle} size={24} color="#333333" />
+        </TouchableOpacity>
+      ) : (
+        <View style={styles.icon}>
+          <FontAwesomeIcon icon={faUserCircle} size={24} color="transparent" />
         </View>
-    );
+      )}
+    </View>
+  );
 };
 
 export default AppBar;
