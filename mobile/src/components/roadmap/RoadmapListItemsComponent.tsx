@@ -36,6 +36,9 @@ export const ListRoadmapItems = (props: { roadmap: RoadmapResponse }) => {
   
   // State for expanded/collapsed topics
   const [expandedTopics, setExpandedTopics] = useState<number[]>([]);
+
+  const dispatch = useAppDispatch();
+
    
   // State for editing
   const [editMode, setEditMode] = useState<boolean>(false);
@@ -461,3 +464,11 @@ const styles = StyleSheet.create({
     color: '#F87171', 
   },
 });
+
+function setRoadmap(arg0: { topics: RoadmapTopic[]; status_code: number; message: string; roadmap_id: number; roadmap_explanation: string; }) {
+  throw new Error('Function not implemented.');
+}
+function useAppDispatch() {
+  throw new Error('Function not implemented.');
+}
+

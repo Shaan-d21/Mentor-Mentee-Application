@@ -162,3 +162,31 @@ export const apiAddRoadmapTopic = async (
     return { error: "Request failed", details: error };
   }
 };
+
+
+// for delete
+
+export const apiDeleteTopic = async (topicId: number) => {
+  const api = axios.create({
+    baseURL: process.env.API_URL,
+    headers: {
+      accept: "application/json",
+      token: storage.getString("token"),
+    },
+  });
+
+  try {
+    const response = await api.delete(`/roadmaps/delete-topic/${topicId}`);
+    console.log("Response from delete-topic:", response);
+    
+    if (response.status === 200) {
+      return { success: true };
+    } else {
+      console.error("Unexpected response status:", response.status);
+      return { success: false, status: response.status };
+    }
+  } catch (error: any) {
+    console.error("Error deleting topic:", error);
+    return { success: false, error };
+  }
+};

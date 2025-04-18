@@ -2,6 +2,7 @@
 
 import { createSlice, createAsyncThunk, PayloadAction } from "@reduxjs/toolkit";
 import { getRoadmapTopics } from "../../services/apiRoadmap/apiGetRoadmap";
+import { apiDeleteTopic } from "../../services/apiRoadmap/apiGenerateRoadmapMentor";
 
 
 interface RoadmapState {
@@ -31,6 +32,25 @@ export const fetchRoadmapTopics = createAsyncThunk(
     }
   }
 );
+
+
+export const deleteRoadmapThunk = createAsyncThunk(
+  "roadmap/deleteRoadmap",
+  async (topicId: number, { rejectWithValue }) => {
+    try {
+      const response = await apiDeleteTopic(topicId);
+
+      if (response.success) {
+        return topicId;
+      } else {
+        return rejectWithValue(response?.error?.message || "Failed to delete topic");
+      }
+    } catch (error: any) {
+      return rejectWithValue(error.message || "Error deleting topic");
+    }
+  }
+);
+
 
 const roadmapSlice = createSlice({
   name: "roadmap",
