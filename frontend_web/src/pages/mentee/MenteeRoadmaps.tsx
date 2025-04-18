@@ -109,7 +109,7 @@ const MenteeRoadmaps: React.FC = () => {
       
       const authToken = accessToken.startsWith('Bearer ') ? accessToken : `Bearer ${accessToken}`;
       
-      const response = await axios.post(`${import.meta.env.VITE_API_URL}/mentee/roadmap-topics`, {
+      const response = await axios.post(`${import.meta.env.VITE_API_URL || 'https://mm-be.shaandewang.publicvm.com'}/mentee/roadmap-topics`, {
         mentor_id: mentor.mentor_id,
         domain_id: mentor.domain_id
       }, {
