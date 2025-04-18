@@ -117,7 +117,7 @@ const RegisterPage: React.FC = () => {
       
       // Use the direct backend URL with CORS headers
       const registerResponse = await axios.post(
-        `${import.meta.env.VITE_API_URL}/users/register/User`,
+        `${import.meta.env.VITE_API_URL || 'https://mm-be.shaandewang.publicvm.com'}/users/register/User`,
         userData,
         {
           headers: {

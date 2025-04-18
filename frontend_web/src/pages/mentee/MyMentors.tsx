@@ -47,7 +47,7 @@ const MyMentors: React.FC = () => {
         }
         
         const authToken = accessToken.startsWith('Bearer ') ? accessToken : `Bearer ${accessToken}`;
-        const apiBaseUrl = `${import.meta.env.VITE_API_URL}`;
+        const apiBaseUrl = `${import.meta.env.VITE_API_URL || 'https://mm-be.shaandewang.publicvm.com'}`;
         
         console.log('Fetching mentors from:', `${apiBaseUrl}/mentee/get-approved-mentors`);
         console.log('Using token:', authToken.substring(0, 20) + '...');

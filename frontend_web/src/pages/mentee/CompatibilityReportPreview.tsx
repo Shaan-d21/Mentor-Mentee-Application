@@ -10,8 +10,8 @@ interface MentorData {
 }
 
 // Add these constants at the top of the file
-const API_URL = import.meta.env.VITE_API_URL;
-const AI_API_URL = import.meta.env.VITE_AI_API_URL;
+// const API_URL = import.meta.env.VITE_API_URL;
+// const AI_API_URL = import.meta.env.VITE_AI_API_URL;
 
 export default function CompatibilityReportPreview() {
   const navigate = useNavigate();
@@ -43,7 +43,7 @@ export default function CompatibilityReportPreview() {
     const fetchMentorData = async () => {
       try {
         const response = await axios.post(
-          `${AI_API_URL}/matching_report`,
+          `${import.meta.env.VITE_AI_API_URL || 'https://mm-ai.shaandewang.publicvm.com'}/matching_report`,
           {
             mentor_id: parseInt(mentorId),
             domain: location.state.domain,
@@ -105,7 +105,7 @@ export default function CompatibilityReportPreview() {
   const handleRequestMentorship = async () => {
     try {
       const response = await axios.post(
-        `${API_URL}/mentee/mentorship`,
+        `${import.meta.env.VITE_API_URL || 'https://mm-be.shaandewang.publicvm.com'}/mentee/mentorship`,
         { 
           mentor_id: mentorId,
           domain: location.state.domain
