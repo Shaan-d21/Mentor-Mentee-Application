@@ -35,22 +35,21 @@ const RoadmapScreen: React.FC<RoadmapScreenProps> = ({ navigation,route }) => {
   } = useSelector((state: RootState) => state.viewRoadmap);
   const isFocused = useIsFocused();
 
-  const [RoadmapItems, setRoadmapItems] = useState<RoadmapResponse | null>(null);
 
  
 // Inside the component, add this useEffect dependency
 useEffect(() => {
   dispatch(fetchRoadmap(roadmap_id)).then((response) => {
-    setRoadmapItems({
-      status_code: 200,
-      message: 'success',
-      roadmap_id: roadmap_id,
-      roadmap_explanation: roadmapExplanation,
-      topic:[...assignedTopics, ...completedTopics, ...markedTopics]
-    });
+
   });
 }, [dispatch, refersh,roadmap_id,isFocused]);
-
+const roadmapItems = status === 'success' ? {
+  status_code: 200,
+  message: 'success',
+  roadmap_id: roadmap_id,
+  roadmap_explanation: roadmapExplanation,
+  topic: [...assignedTopics, ...completedTopics, ...markedTopics]
+} : null;
   if (status === 'loading') {
     return (
       <View style={styles.loaderContainer}>
@@ -77,7 +76,7 @@ else if (status === 'success') {
           title="Roadmap"
         />
      
-      <ListRoadmapItems roadmap={RoadmapItems} />
+      <ListRoadmapItems roadmap={roadmapItems} />
        
       
     </ScrollView>
