@@ -20,6 +20,7 @@ interface Mentee {
   role: string;
   comment?: string;
   designation: string;
+  roadmap_id: number;
 }
 
 interface MenteeRequestsState {
@@ -101,6 +102,7 @@ const menteeSlice = createSlice({
           email: entry.mail,
           domain: entry.domain_name,
           designation: entry.designation,
+          roadmap_id: entry.roadmap_id
         }));
         // console.log('Approved Mentees:', state.approved[0]);
       })
