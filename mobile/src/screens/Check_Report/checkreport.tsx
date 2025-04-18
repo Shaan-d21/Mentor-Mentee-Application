@@ -19,7 +19,6 @@ type CheckReportNavigationProp = StackNavigationProp<
   RootStackParamList,
   'CheckReport'
 >;
-
 const CheckReport = ({route}: any) => {
   const {mentorId, domain, score} = route.params; // Get mentorId from navigation params
   const dispatch = useDispatch<AppDispatch>();
