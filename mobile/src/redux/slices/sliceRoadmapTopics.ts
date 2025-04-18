@@ -51,7 +51,8 @@ export const markTopicAsDone = createAsyncThunk<number, { topicId: number }, { r
   "menteeRoadmap/markTopicAsDone",
   async ({ topicId }, { rejectWithValue }) => {
     try {
-      await apiMarkTopicAsDone(topicId); 
+      await apiMarkTopicAsDone(topicId);
+       
       console.log("Marked topic as done:", topicId);
       return topicId;
      
