@@ -100,7 +100,7 @@ def get_roadmap_topics(
     if mentee_roadmap is None:
         raise HTTPException(status_code = status.HTTP_404_NOT_FOUND, detail='Roadmap not found or is not assigned')
     
-    topics = db.query(Topic).filter(Topic.roadmap_id == mentee_roadmap[0]).all()
+    topics = db.query(Topic).filter(Topic.roadmap_id == mentee_roadmap[0]).order_by(Topic.id).all()
     roadmap = db.query(Roadmap).filter(Roadmap.id == mentee_roadmap[0]).first()
     #print(topics)
     if not topics:
