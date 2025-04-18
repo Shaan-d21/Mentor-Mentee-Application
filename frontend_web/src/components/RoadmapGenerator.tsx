@@ -353,11 +353,6 @@ const RoadmapGenerator: React.FC = () => {
         }
     };
 
-    const isButtonDisabled = () => {
-        if (!selectedMentee || loading) return true;
-        return false; // Only disable if no mentee selected or loading
-    };
-
     const handleAddTopic = () => {
         if (!newTopic.name.trim()) {
             setError('Topic name is required');
@@ -421,7 +416,7 @@ const RoadmapGenerator: React.FC = () => {
             if (topic.topic_id === topicId) {
                 return {
                     ...topic,
-                    subtopics: topic.subtopics.filter((_, index) => index !== subtopicId)
+                    subtopics: topic.subtopics.filter((_, i) => i !== subtopicId)
                 };
             }
             return topic;
@@ -594,7 +589,7 @@ const RoadmapGenerator: React.FC = () => {
                                 </div>
 
                                 <div className="space-y-6">
-                                    {topics.map((topic, index) => (
+                                    {topics.map((topic) => (
                                         <div 
                                             key={topic.topic_id} 
                                             className={`border rounded-lg p-6 bg-white shadow-md hover:shadow-lg transition-shadow duration-200`}

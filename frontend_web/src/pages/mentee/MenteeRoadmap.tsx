@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 import toast from 'react-hot-toast';
-import { ChevronRightIcon, BookOpenIcon, DocumentTextIcon, CheckCircleIcon, CheckIcon, ArrowPathIcon } from '@heroicons/react/24/outline';
+import { ChevronRightIcon, BookOpenIcon, DocumentTextIcon, CheckIcon, ArrowPathIcon } from '@heroicons/react/24/outline';
 
 interface Mentor {
   mentor_id: number;
@@ -12,6 +12,7 @@ interface Mentor {
   domain: string;
   domain_id: number;
   experience: string;
+  has_roadmap: boolean;
 }
 
 interface Topic {
@@ -36,7 +37,6 @@ const MenteeRoadmap: React.FC = () => {
   const [mentors, setMentors] = useState<Mentor[]>([]);
   const [selectedRoadmap, setSelectedRoadmap] = useState<RoadmapResponse | null>(null);
   const [loading, setLoading] = useState(true);
-  const [loadingTopics, setLoadingTopics] = useState(false);
   const [showConfirmation, setShowConfirmation] = useState(false);
   const [selectedTopic, setSelectedTopic] = useState<Topic | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -75,9 +75,16 @@ const MenteeRoadmap: React.FC = () => {
           designation: mentor.designation,
           experience: mentor.experience,
           domain: mentor.domain_name,
-          domain_id: mentor.domain_id
+          domain_id: mentor.domain_id,
+          has_roadmap: mentor.has_roadmap || false
         }));
         setMentors(mappedMentors);
+
+        // If there's only one mentor with a roadmap, automatically select it
+        const mentorsWithRoadmap = mappedMentors.filter((mentor: Mentor) => mentor.has_roadmap);
+        if (mentorsWithRoadmap.length === 1) {
+          fetchRoadmapTopics(mentorsWithRoadmap[0]);
+        }
       } else {
         setError('No mentor data found in response');
       }
@@ -97,11 +104,16 @@ const MenteeRoadmap: React.FC = () => {
 
   const fetchRoadmapTopics = async (mentor: Mentor) => {
     try {
-      setLoadingTopics(true);
       const accessToken = localStorage.getItem('accessToken');
       
       if (!accessToken) {
         toast.error('Please login to view roadmap topics');
+        return;
+      }
+
+      // First check if the mentor has a roadmap
+      if (!mentor.has_roadmap) {
+        toast.error('No roadmap has been assigned by this mentor yet');
         return;
       }
 
@@ -118,14 +130,25 @@ const MenteeRoadmap: React.FC = () => {
 
       if (response.data.status_code === 200) {
         setSelectedRoadmap(response.data);
+        toast.success('Roadmap loaded successfully');
       } else {
         toast.error('Failed to fetch roadmap topics');
       }
     } catch (error) {
       console.error('Error fetching roadmap topics:', error);
-      toast.error('Failed to fetch roadmap topics');
-    } finally {
-      setLoadingTopics(false);
+      if (axios.isAxiosError(error) && error.response?.status === 404) {
+        toast.error('No roadmap found for this mentor');
+        // Update the mentor's has_roadmap status
+        setMentors(prevMentors => 
+          prevMentors.map(m => 
+            m.mentor_id === mentor.mentor_id 
+              ? { ...m, has_roadmap: false }
+              : m
+          )
+        );
+      } else {
+        toast.error('Failed to fetch roadmap topics');
+      }
     }
   };
 
@@ -245,10 +268,10 @@ const MenteeRoadmap: React.FC = () => {
                       <div className="mb-4 ml-12">
                         <h4 className="text-sm font-medium text-gray-700 mb-2">Subtopics</h4>
                         <div className="flex flex-wrap gap-2">
-                          {topic.subtopics.map((subtopic, index) => (
+                          {topic.subtopics.map((subtopic, _) => (
                             <span
-                              key={index}
-                              className="bg-gray-100 text-gray-800 px-3 py-1 rounded-full text-sm"
+                              key={_}
+                              className="px-3 py-1 bg-gray-100 text-gray-700 rounded-full text-sm"
                             >
                               {subtopic}
                             </span>
@@ -256,34 +279,13 @@ const MenteeRoadmap: React.FC = () => {
                         </div>
                       </div>
 
-                      <div className="bg-yellow-50 p-3 rounded-lg ml-12">
-                        <p className="text-sm text-gray-700">
-                          <span className="font-medium">Importance:</span> {topic.importance}
-                        </p>
+                      <div className="ml-12">
+                        <div className="bg-indigo-50 p-3 rounded-lg">
+                          <p className="text-sm text-gray-700">
+                            <span className="font-medium text-indigo-700">Importance:</span> {topic.importance}
+                          </p>
+                        </div>
                       </div>
-                    </div>
-                    <div className="ml-4">
-                      <span className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium ${
-                        topic.topic_status === 'marked' 
-                          ? 'bg-green-100 text-green-800' 
-                          : topic.topic_status === 'assigned'
-                          ? 'bg-blue-100 text-blue-800'
-                          : 'bg-gray-100 text-gray-800'
-                      }`}>
-                        {topic.topic_status === 'marked' ? (
-                          <>
-                            <CheckCircleIcon className="h-4 w-4 mr-1" />
-                            Completed
-                          </>
-                        ) : topic.topic_status === 'assigned' ? (
-                          <>
-                            <CheckCircleIcon className="h-4 w-4 mr-1" />
-                            Assigned
-                          </>
-                        ) : (
-                          'Pending'
-                        )}
-                      </span>
                     </div>
                   </div>
                 </div>
@@ -295,7 +297,9 @@ const MenteeRoadmap: React.FC = () => {
             {mentors.map((mentor) => (
               <div
                 key={mentor.mentor_id}
-                className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow duration-300"
+                className={`bg-white rounded-lg shadow-md overflow-hidden transition-shadow duration-300 ${
+                  mentor.has_roadmap ? 'hover:shadow-lg' : 'opacity-75'
+                }`}
               >
                 <div className="p-6">
                   <div className="flex items-center mb-4">
@@ -315,10 +319,15 @@ const MenteeRoadmap: React.FC = () => {
                   </div>
                   <button
                     onClick={() => fetchRoadmapTopics(mentor)}
-                    className="w-full bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 transition-colors duration-200 flex items-center justify-center"
+                    className={`w-full py-2 px-4 rounded-md transition-colors duration-200 flex items-center justify-center ${
+                      mentor.has_roadmap
+                        ? 'bg-blue-600 text-white hover:bg-blue-700'
+                        : 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                    }`}
+                    disabled={!mentor.has_roadmap}
                   >
                     <DocumentTextIcon className="h-5 w-5 mr-2" />
-                    View Roadmap
+                    {mentor.has_roadmap ? 'View Roadmap' : 'No Roadmap Assigned'}
                   </button>
                 </div>
               </div>
@@ -329,17 +338,14 @@ const MenteeRoadmap: React.FC = () => {
         {/* Confirmation Modal */}
         {showConfirmation && selectedTopic && (
           <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-            <div className="bg-white rounded-lg p-6 max-w-md w-full mx-4">
+            <div className="bg-white rounded-lg p-6 max-w-md w-full">
               <h3 className="text-lg font-semibold text-gray-900 mb-4">Mark Topic as Complete</h3>
               <p className="text-gray-600 mb-6">
                 Are you sure you want to mark "{selectedTopic.name}" as complete?
               </p>
-              <div className="flex justify-end gap-4">
+              <div className="flex justify-end space-x-4">
                 <button
-                  onClick={() => {
-                    setShowConfirmation(false);
-                    setSelectedTopic(null);
-                  }}
+                  onClick={() => setShowConfirmation(false)}
                   className="px-4 py-2 text-gray-600 hover:text-gray-800"
                 >
                   Cancel
@@ -348,17 +354,10 @@ const MenteeRoadmap: React.FC = () => {
                   onClick={confirmMarkComplete}
                   className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
                 >
-                  Yes, Mark Complete
+                  Confirm
                 </button>
               </div>
             </div>
-          </div>
-        )}
-
-        {loadingTopics && (
-          <div className="fixed inset-0 bg-gray-50 bg-opacity-50 flex items-center justify-center">
-            <ArrowPathIcon className="h-8 w-8 animate-spin text-blue-600" />
-            <span className="ml-2 text-gray-600">Loading...</span>
           </div>
         )}
       </div>
