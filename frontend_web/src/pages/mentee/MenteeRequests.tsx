@@ -26,7 +26,7 @@ const MenteeRequests: React.FC = () => {
 
         const authToken = accessToken.startsWith('Bearer ') ? accessToken : `Bearer ${accessToken}`;
 
-        const response = await axios.get(`${import.meta.env.VITE_API_URL}/mentee/Requests`, {
+        const response = await axios.get(`${import.meta.env.VITE_API_URL || 'https://mm-be.shaandewang.publicvm.com'}/mentee/Requests`, {
           headers: { 
             Token: authToken,
             'Content-Type': 'application/json'
