@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import { Check, Star, Send } from 'lucide-react';
+import { Check} from 'lucide-react';
 import toast from 'react-hot-toast';
-import { useLocation } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 
 // Interface for compatibility results
 interface CompatibleMentor {
@@ -14,6 +14,7 @@ interface CompatibleMentor {
   reason: string;
   id?: string; // Changed to string to match the response format
   domain?: string; // Added domain field
+  experience?: number;
 }
 
 // Hardcoded domains list - updated to match the FastAPI Domains enum
@@ -36,7 +37,12 @@ interface MentorshipRequest {
   mentor_id: string;
 }
 
+// Add these constants at the top of the file
+const API_URL = import.meta.env.VITE_API_URL ;
+const AI_API_URL = import.meta.env.VITE_AI_API_URL;
+
 const FindMentors: React.FC = () => {
+  const navigate = useNavigate();
   // Track if we're on the dashboard home or dedicated page
   const location = useLocation();
   const isOnDashboardHome = location.pathname === '/mentee/dashboard' || location.pathname === '/mentee/dashboard/';
@@ -51,7 +57,7 @@ const FindMentors: React.FC = () => {
   // States for mentor requests
   const [pendingRequestDomains, setPendingRequestDomains] = useState<Set<string>>(new Set());
   const [approvedRequestDomains, setApprovedRequestDomains] = useState<Set<string>>(new Set());
-  const [requestingMentorId, setRequestingMentorId] = useState<string | null>(null);
+  // const [requestingMentorId, setRequestingMentorId] = useState<string | null>(null);
   const [isLoadingRequests, setIsLoadingRequests] = useState(true);
   const [requestedMentorIds, setRequestedMentorIds] = useState<Set<string>>(new Set());
 
@@ -74,37 +80,38 @@ const FindMentors: React.FC = () => {
         return;
       }
       
-      const authToken = accessToken.startsWith('Bearer ') ? accessToken : `Bearer ${accessToken}`;
+      console.log('Fetching requests from:', `${API_URL}/mentee/Requests`);
       
-      console.log('Fetching requests from:', 'http://181.214.44.15:8080/mentee/Requests');
-      
-      // Use the correct endpoint for fetching all requests
       const response = await axios.get(
-        'http://181.214.44.15:8080/mentee/Requests',
+        `${API_URL}/mentee/Requests`,
         {
           headers: { 
-            Token: authToken,
-            'Content-Type': 'application/json'
+            'Token': accessToken,
+            'Content-Type': 'application/json',
+            'Accept': 'application/json'
           }
         }
       );
       
       console.log('Requests response:', response.data);
       
-      // Handle both response formats: array of requests or object with object property
+      // Initialize empty arrays for requests
       let requests: MentorshipRequest[] = [];
       
-      if (Array.isArray(response.data)) {
-        // Response is an array of requests
-        requests = response.data as MentorshipRequest[];
-      } else if (response.data && response.data.object) {
-        // Response is an object with an object property
-        requests = response.data.object as MentorshipRequest[];
+      // Check if response.data is an object and has the expected structure
+      if (response.data && typeof response.data === 'object') {
+        if (Array.isArray(response.data)) {
+          requests = response.data;
+        } else if (response.data.object && Array.isArray(response.data.object)) {
+          requests = response.data.object;
+        } else if (response.data.requests && Array.isArray(response.data.requests)) {
+          requests = response.data.requests;
+        }
       }
       
-      console.log('All requests:', requests);
+      console.log('Processed requests:', requests);
       
-      // Extract mentor IDs from all requests (both pending and approved)
+      // Extract mentor IDs from all requests
       const mentorIds = new Set(requests.map(req => req.mentor_id));
       setRequestedMentorIds(mentorIds);
       
@@ -126,14 +133,11 @@ const FindMentors: React.FC = () => {
         approvedRequests.map(req => req.domain_name || req.domain)
       );
       
-      console.log('Pending domains before update:', pendingDomains);
-      console.log('Approved domains before update:', approvedDomains);
+      console.log('Pending domains:', pendingDomains);
+      console.log('Approved domains:', approvedDomains);
       
       setPendingRequestDomains(pendingDomains);
       setApprovedRequestDomains(approvedDomains);
-      
-      console.log('Pending domains updated:', pendingDomains);
-      console.log('Approved domains updated:', approvedDomains);
       
       // If we have a selected domain and it's in the pending domains, hide the results
       if (compatibilityDomain && (pendingDomains.has(compatibilityDomain) || approvedDomains.has(compatibilityDomain))) {
@@ -146,8 +150,6 @@ const FindMentors: React.FC = () => {
       }
     } catch (err) {
       console.error('Error fetching active requests:', err);
-      // Don't show error toast to avoid spamming the user
-      // Just log the error and continue
     } finally {
       setIsLoadingRequests(false);
     }
@@ -195,50 +197,36 @@ const FindMentors: React.FC = () => {
         throw new Error('No access token found');
       }
       
-      // Ensure token is properly formatted
-      const authToken = accessToken.startsWith('Bearer ') ? accessToken : `Bearer ${accessToken}`;
-      
-      // Trim any whitespace from the domain
       const trimmedDomain = compatibilityDomain.trim();
       
-      // Log the exact domain being sent
-      console.log('Selected domain:', trimmedDomain);
-      console.log('Domain type:', typeof trimmedDomain);
-      console.log('Is domain in DOMAINS list:', DOMAINS.includes(trimmedDomain));
+      console.log('Checking compatibility for domain:', trimmedDomain);
+      console.log('Using API URL:', AI_API_URL);
       
-      // Log the full URL with parameters for debugging
-      const fullUrl = `http://181.214.44.15:8080/predict/?d=${encodeURIComponent(trimmedDomain)}`;
-      console.log('Full URL:', fullUrl);
-      
-      console.log('Sending request to:', fullUrl);
-      console.log('With domain:', trimmedDomain);
-      console.log('With headers:', { Token: authToken });
-      
-      // Make a GET request with the domain parameter in the URL
       const response = await axios.get(
-        fullUrl,
+        `${AI_API_URL}/predict`,
         {
+          params: {
+            d: compatibilityDomain
+          },
           headers: { 
-            'Token': authToken
+            'Token': accessToken,
+            'Content-Type': 'application/json',
+            'Accept': 'application/json'
           }
         }
       );
       
-      console.log('Raw API Response:', response.data);
+      console.log('Compatibility check response:', response.data);
       
       // Process the response data
       let domainMentorsList: CompatibleMentor[] = [];
       let otherMentorsList: CompatibleMentor[] = [];
       
       try {
-        // The response is now a proper JSON object
         const data = response.data;
-        
-        // Extract mentors from the response
         const domainMentors = data.domain_mentors || [];
         const otherMentors = data.other_domain_mentors || [];
         
-        // Process domain mentors
         domainMentors.forEach((mentor: any) => {
           domainMentorsList.push({
             name: mentor.name || '',
@@ -248,11 +236,11 @@ const FindMentors: React.FC = () => {
             score: mentor.score || 0,
             reason: mentor.reason || 'No reason provided',
             id: mentor.id?.toString() || '',
-            domain: mentor.domain || trimmedDomain
+            domain: mentor.domain || trimmedDomain,
+            experience: mentor.exp || 0
           });
         });
         
-        // Process other domain mentors
         otherMentors.forEach((mentor: any) => {
           otherMentorsList.push({
             name: mentor.name || '',
@@ -262,21 +250,17 @@ const FindMentors: React.FC = () => {
             score: mentor.score || 0,
             reason: mentor.reason || 'No reason provided',
             id: mentor.id?.toString() || '',
-            domain: mentor.domain || 'Other'
+            domain: mentor.domain || 'Other',
+            experience: mentor.exp || 0
           });
         });
         
-        console.log('Domain mentors list:', domainMentorsList);
-        console.log('Other mentors list:', otherMentorsList);
-        
         // Check again if there's a pending request for this domain before showing results
-        if (pendingRequestDomains.has(trimmedDomain)) {
-          showErrorToast(`You already have a pending request for ${trimmedDomain}`);
+        if (pendingRequestDomains.has(trimmedDomain) || approvedRequestDomains.has(trimmedDomain)) {
           setShowCompatibilityResults(false);
           return;
         }
         
-        // Combine both lists for backward compatibility
         setCompatibleMentors([...domainMentorsList, ...otherMentorsList]);
         setShowCompatibilityResults(true);
       } catch (e) {
@@ -285,117 +269,90 @@ const FindMentors: React.FC = () => {
       }
     } catch (err: any) {
       console.error('Error checking compatibility:', err);
-      
-      // Log the full error response for debugging
-      if (err.response) {
-        console.error('Error response data:', err.response.data);
-        console.error('Error response status:', err.response.status);
-        console.error('Error response headers:', err.response.headers);
-      }
-      
-      // Provide more specific error messages based on the error
-      if (err.response) {
-        if (err.response.status === 400) {
-          // Check if the error is related to the domain format
-          if (err.response.data?.detail && err.response.data.detail.includes('value is not a valid enumeration member')) {
-            showErrorToast(`Invalid domain format. Please select a valid domain from the dropdown.`);
-          } else {
-            showErrorToast(`Bad request: ${err.response.data?.detail || 'Invalid domain format'}`);
-          }
-        } else if (err.response.status === 401) {
-          showErrorToast('Authentication failed. Please log in again.');
-          // Optionally redirect to login page
-        } else {
-          showErrorToast(`Server error: ${err.response.data?.detail || 'Unknown error'}`);
-        }
-      } else if (err.request) {
-        showErrorToast('No response from server. Please check your connection.');
-      } else {
-        showErrorToast('Failed to check compatibility. Please try again.');
-      }
+      showErrorToast('Failed to check compatibility. Please try again.');
     } finally {
       setIsCheckingCompatibility(false);
     }
   };
 
   // Handle sending mentorship request
-  const handleSendRequest = async (mentorId: string) => {
-    if (!compatibilityDomain) {
-      showErrorToast('Domain information missing');
-      return;
-    }
+  // const handleSendRequest = async (mentorId: string) => {
+  //   if (!compatibilityDomain) {
+  //     showErrorToast('Domain information missing');
+  //     return;
+  //   }
 
-    // Check if there's already a pending request for this domain
-    if (pendingRequestDomains.has(compatibilityDomain)) {
-      showErrorToast(`You already have a pending request for ${compatibilityDomain}`);
-      return;
-    }
+  //   // Check if there's already a pending request for this domain
+  //   if (pendingRequestDomains.has(compatibilityDomain)) {
+  //     showErrorToast(`You already have a pending request for ${compatibilityDomain}`);
+  //     return;
+  //   }
     
-    // Check if there's already an approved mentorship for this domain
-    if (approvedRequestDomains.has(compatibilityDomain)) {
-      showErrorToast(`You already have an approved mentorship for ${compatibilityDomain}`);
-      return;
-    }
+  //   // Check if there's already an approved mentorship for this domain
+  //   if (approvedRequestDomains.has(compatibilityDomain)) {
+  //     showErrorToast(`You already have an approved mentorship for ${compatibilityDomain}`);
+  //     return;
+  //   }
 
-    setRequestingMentorId(mentorId);
+  //   setRequestingMentorId(mentorId);
 
-    try {
-      const accessToken = localStorage.getItem('accessToken');
+  //   try {
+  //     const accessToken = localStorage.getItem('accessToken');
       
-      if (!accessToken) {
-        throw new Error('No access token found');
-      }
+  //     if (!accessToken) {
+  //       throw new Error('No access token found');
+  //     }
       
-      const authToken = accessToken.startsWith('Bearer ') ? accessToken : `Bearer ${accessToken}`;
+  //     const authToken = accessToken.startsWith('Bearer ') ? accessToken : `Bearer ${accessToken}`;
       
-      console.log('Sending mentorship request for domain:', compatibilityDomain);
+  //     console.log('Sending mentorship request for domain:', compatibilityDomain);
       
-      await axios.post(
-        'http://181.214.44.15:8080/mentee/mentorship',
-        {
-          mentor_id: mentorId,
-          domain: compatibilityDomain
-        },
-        {
-          headers: { 
-            Token: authToken,
-            'Content-Type': 'application/json'
-          },
-          withCredentials: true
-        }
-      );
+  //     await axios.post(
+  //       'http://181.214.44.15:8080/mentee/mentorship',
+  //       {
+  //         mentor_id: mentorId,
+  //         domain: compatibilityDomain
+  //       },
+  //       {
+  //         headers: { 
+  //           Token: authToken,
+  //           'Content-Type': 'application/json'
+  //         },
+  //         withCredentials: true
+  //       }
+  //     );
       
-      // Add the mentor to requested mentors set
-      setRequestedMentorIds(prev => new Set([...prev, mentorId]));
+  //     // Add the mentor to requested mentors set
+  //     setRequestedMentorIds(prev => new Set([...prev, mentorId]));
       
-      // Add the domain to pending domains
-      const updatedDomains = new Set(pendingRequestDomains);
-      updatedDomains.add(compatibilityDomain);
-      setPendingRequestDomains(updatedDomains);
+  //     // Add the domain to pending domains
+  //     const updatedDomains = new Set(pendingRequestDomains);
+  //     updatedDomains.add(compatibilityDomain);
+  //     setPendingRequestDomains(updatedDomains);
       
-      // Also fetch fresh data from server
-      await fetchActiveRequests();
+  //     // Also fetch fresh data from server
+  //     await fetchActiveRequests();
       
-      // Remove the pending request error message
-      toast.dismiss();
-      toast.success(`Mentorship request sent for ${compatibilityDomain}`);
-    } catch (err: any) {
-      console.error('Error sending mentorship request:', err);
-      if (err.response?.status === 409) {
-        showErrorToast('You already have a pending request for this domain');
-        // Update pending domains in case the local state is out of sync
-        const updatedDomains = new Set(pendingRequestDomains);
-        updatedDomains.add(compatibilityDomain);
-        setPendingRequestDomains(updatedDomains);
-      } else if (err.code === 'ERR_NETWORK') {
-        showErrorToast('Network error. Please check your connection and try again.');
-      } else {
-        showErrorToast('Failed to send request. Please try again.');
-      }
-    } finally {
-      setRequestingMentorId(null);
-    }
-  };
+  //     // Remove the pending request error message
+  //     toast.dismiss();
+  //     toast.success(`Mentorship request sent for ${compatibilityDomain}`);
+  //   } catch (err: any) {
+  //     console.error('Error sending mentorship request:', err);
+  //     if (err.response?.status === 409) {
+  //       showErrorToast('You already have a pending request for this domain');
+  //       // Update pending domains in case the local state is out of sync
+  //       const updatedDomains = new Set(pendingRequestDomains);
+  //       updatedDomains.add(compatibilityDomain);
+  //       setPendingRequestDomains(updatedDomains);
+  //     } else if (err.code === 'ERR_NETWORK') {
+  //       showErrorToast('Network error. Please check your connection and try again.');
+  //     } else {
+  //       showErrorToast('Failed to send request. Please try again.');
+  //     }
+  //   } finally {
+  //     setRequestingMentorId(null);
+  //   }
+  // };
 
   // Check if a request is already pending for the current domain
   const isDomainPending = compatibilityDomain && pendingRequestDomains.has(compatibilityDomain);
@@ -452,6 +409,17 @@ const FindMentors: React.FC = () => {
     setShowCompatibilityResults(false);
     setCompatibleMentors([]);
   }, [compatibilityDomain]);
+
+  // Replace the send request button with a compatibility report link
+  const handleViewCompatibilityReport = (mentorId: string, score: number) => {
+    navigate('/mentee/compatibility-report', {
+      state: { 
+        mentorId, 
+        score,
+        domain: compatibilityDomain // Pass the selected domain
+      }
+    });
+  };
 
   return (
     <div className={`container mx-auto ${!isOnDashboardHome ? 'p-6' : 'p-0 mt-8'}`}>
@@ -544,236 +512,58 @@ const FindMentors: React.FC = () => {
         <div className="mb-8">
           <h3 className="text-lg font-semibold mb-4">Compatible Mentors for {compatibilityDomain}</h3>
           
-          {/* Domain Mentors Section */}
-          <div className="mb-6">
-            <h4 className="text-md font-medium mb-3 text-blue-700">Domain Mentors</h4>
-            
-            {compatibleMentors
-              .filter(mentor => 
-                mentor.domain === compatibilityDomain && 
-                !requestedMentorIds.has(mentor.id || '')
-              ).length > 0 ? (
-              <div className="overflow-x-auto bg-white rounded-lg shadow">
-                <table className="min-w-full divide-y divide-gray-200">
-                  <thead className="bg-gray-50">
-                    <tr>
-                      <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Mentor Name
-                      </th>
-                      <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Email
-                      </th>
-                      <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Designation
-                      </th>
-                      <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Compatibility Score
-                      </th>
-                      <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Action
-                      </th>
-                    </tr>
-                  </thead>
-                  <tbody className="bg-white divide-y divide-gray-200">
-                    {compatibleMentors
-                      .filter(mentor => 
-                        mentor.domain === compatibilityDomain && 
-                        !requestedMentorIds.has(mentor.id || '')
-                      ).map((mentor, index) => (
-                      <tr key={index} className="hover:bg-gray-50">
+          {/* Combined Mentors Table */}
+          <div className="overflow-x-auto bg-white rounded-lg shadow">
+            {compatibleMentors.length > 0 ? (
+              <table className="min-w-full divide-y divide-gray-200">
+                <thead className="bg-gray-50">
+                  <tr>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Name</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Email</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Designation</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Experience</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Domain</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Compatibility Score</th>
+                  </tr>
+                </thead>
+                <tbody className="bg-white divide-y divide-gray-200">
+                  {compatibleMentors
+                    .filter(mentor => !requestedMentorIds.has(mentor.id || ''))
+                    .map((mentor) => (
+                      <tr key={mentor.id} className={mentor.domain === compatibilityDomain ? 'bg-blue-50' : ''}>
+                        <td className="px-6 py-4 whitespace-nowrap">{mentor.name}</td>
+                        <td className="px-6 py-4 whitespace-nowrap">{mentor.email}</td>
+                        <td className="px-6 py-4 whitespace-nowrap">{mentor.designation}</td>
+                        <td className="px-6 py-4 whitespace-nowrap">{mentor.experience} years</td>
                         <td className="px-6 py-4 whitespace-nowrap">
-                          <div className="text-sm font-medium text-gray-900">{mentor.name}</div>
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap">
-                          <div className="text-sm text-gray-900">{mentor.email}</div>
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap">
-                          <div className="text-sm text-gray-900">{mentor.designation || 'Not specified'}</div>
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap">
-                          <div className="flex items-center group relative">
-                            <div className="absolute right-full mr-2 w-[500px] p-4 bg-white border border-gray-200 rounded-lg shadow-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-10">
-                              <div className="max-h-60 overflow-y-auto">
-                                <p className="text-sm text-gray-700 whitespace-pre-wrap">{mentor.reason}</p>
-                              </div>
-                            </div>
-                            <span className={`text-sm font-semibold ${
-                              mentor.score >= 90 ? 'text-green-600' : 
-                              mentor.score >= 70 ? 'text-yellow-600' : 'text-gray-600'
-                            }`}>
-                              {mentor.score}%
-                            </span>
-                            <Star 
-                              size={16} 
-                              className={`ml-1 ${
-                                mentor.score >= 90 ? 'text-green-600 fill-green-600' : 
-                                mentor.score >= 70 ? 'text-yellow-600 fill-yellow-600' : 'text-gray-600'
-                              }`} 
-                            />
-                          </div>
+                          <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+                            mentor.domain === compatibilityDomain 
+                              ? 'bg-blue-100 text-blue-800' 
+                              : 'bg-gray-100 text-gray-800'
+                          }`}>
+                            {mentor.domain}
+                          </span>
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap">
                           <button
-                            onClick={() => mentor.id && handleSendRequest(mentor.id)}
-                            disabled={pendingRequestDomains.has(compatibilityDomain) || requestingMentorId === mentor.id}
-                            className={`px-3 py-1 rounded flex items-center text-sm ${
-                              pendingRequestDomains.has(compatibilityDomain)
-                                ? 'bg-gray-200 text-gray-500 cursor-not-allowed border border-gray-300'
-                                : requestingMentorId === mentor.id
-                                ? 'bg-blue-100 text-blue-400 cursor-wait'
-                                : 'bg-blue-600 text-white hover:bg-blue-700'
+                            onClick={() => mentor.id && handleViewCompatibilityReport(mentor.id, mentor.score)}
+                            className={`px-4 py-2 rounded-full font-semibold text-sm transition-all duration-200 transform hover:scale-105 ${
+                              mentor.score >= 90 ? 'bg-green-100 text-green-800 hover:bg-green-200' :
+                              mentor.score >= 70 ? 'bg-yellow-100 text-yellow-800 hover:bg-yellow-200' :
+                              'bg-red-100 text-red-800 hover:bg-red-200'
                             }`}
                           >
-                            {requestingMentorId === mentor.id ? (
-                              <>
-                                <div className="animate-spin mr-1 h-3 w-3 border-2 border-blue-200 border-t-transparent rounded-full"></div>
-                                Sending...
-                              </>
-                            ) : (
-                              <>
-                                {pendingRequestDomains.has(compatibilityDomain) ? (
-                                  <>
-                                    <Check size={14} className="mr-1" />
-                                    Request Pending
-                                  </>
-                                ) : (
-                                  <>
-                                    <Send size={14} className="mr-1" />
-                                    Send Request
-                                  </>
-                                )}
-                              </>
-                            )}
+                            {mentor.score}%
                           </button>
                         </td>
                       </tr>
                     ))}
-                  </tbody>
-                </table>
-              </div>
+                </tbody>
+              </table>
             ) : (
-              <div className="bg-white p-6 rounded-lg shadow text-center">
-                <p className="text-gray-500">No mentors found specifically for {compatibilityDomain}.</p>
-              </div>
-            )}
-          </div>
-          
-          {/* Other Domain Mentors Section */}
-          <div>
-            <h4 className="text-md font-medium mb-3 text-blue-700">Other Domain Mentors</h4>
-            
-            {compatibleMentors
-              .filter(mentor => 
-                mentor.domain !== compatibilityDomain && 
-                !requestedMentorIds.has(mentor.id || '')
-              ).length > 0 ? (
-              <div className="overflow-x-auto bg-white rounded-lg shadow">
-                <table className="min-w-full divide-y divide-gray-200">
-                  <thead className="bg-gray-50">
-                    <tr>
-                      <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Mentor Name
-                      </th>
-                      <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Email
-                      </th>
-                      <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Designation
-                      </th>
-                      <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Domain
-                      </th>
-                      <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Compatibility Score
-                      </th>
-                      <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Action
-                      </th>
-                    </tr>
-                  </thead>
-                  <tbody className="bg-white divide-y divide-gray-200">
-                    {compatibleMentors
-                      .filter(mentor => 
-                        mentor.domain !== compatibilityDomain && 
-                        !requestedMentorIds.has(mentor.id || '')
-                      ).map((mentor, index) => (
-                      <tr key={index} className="hover:bg-gray-50">
-                        <td className="px-6 py-4 whitespace-nowrap">
-                          <div className="text-sm font-medium text-gray-900">{mentor.name}</div>
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap">
-                          <div className="text-sm text-gray-900">{mentor.email}</div>
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap">
-                          <div className="text-sm text-gray-900">{mentor.designation || 'Not specified'}</div>
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap">
-                          <div className="text-sm text-gray-900">{mentor.domain || 'Not specified'}</div>
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap">
-                          <div className="flex items-center group relative">
-                            <div className="absolute right-full mr-2 w-[500px] p-4 bg-white border border-gray-200 rounded-lg shadow-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-10">
-                              <div className="max-h-60 overflow-y-auto">
-                                <p className="text-sm text-gray-700 whitespace-pre-wrap">{mentor.reason}</p>
-                              </div>
-                            </div>
-                            <span className={`text-sm font-semibold ${
-                              mentor.score >= 90 ? 'text-green-600' : 
-                              mentor.score >= 70 ? 'text-yellow-600' : 'text-gray-600'
-                            }`}>
-                              {mentor.score}%
-                            </span>
-                            <Star 
-                              size={16} 
-                              className={`ml-1 ${
-                                mentor.score >= 90 ? 'text-green-600 fill-green-600' : 
-                                mentor.score >= 70 ? 'text-yellow-600 fill-yellow-600' : 'text-gray-600'
-                              }`} 
-                            />
-                          </div>
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap">
-                          <button
-                            onClick={() => mentor.id && handleSendRequest(mentor.id)}
-                            disabled={pendingRequestDomains.has(compatibilityDomain) || requestingMentorId === mentor.id}
-                            className={`px-3 py-1 rounded flex items-center text-sm ${
-                              pendingRequestDomains.has(compatibilityDomain)
-                                ? 'bg-gray-200 text-gray-500 cursor-not-allowed border border-gray-300'
-                                : requestingMentorId === mentor.id
-                                ? 'bg-blue-100 text-blue-400 cursor-wait'
-                                : 'bg-blue-600 text-white hover:bg-blue-700'
-                            }`}
-                          >
-                            {requestingMentorId === mentor.id ? (
-                              <>
-                                <div className="animate-spin mr-1 h-3 w-3 border-2 border-blue-200 border-t-transparent rounded-full"></div>
-                                Sending...
-                              </>
-                            ) : (
-                              <>
-                                {pendingRequestDomains.has(compatibilityDomain) ? (
-                                  <>
-                                    <Check size={14} className="mr-1" />
-                                    Request Pending
-                                  </>
-                                ) : (
-                                  <>
-                                    <Send size={14} className="mr-1" />
-                                    Send Request
-                                  </>
-                                )}
-                              </>
-                            )}
-                          </button>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            ) : (
-              <div className="bg-white p-6 rounded-lg shadow text-center">
-                <p className="text-gray-500">No other domain mentors found.</p>
+              <div className="p-6 text-center">
+                <p className="text-gray-500">No compatible mentors found for {compatibilityDomain}.</p>
+                <p className="text-sm text-gray-400 mt-2">Please try a different domain or check back later.</p>
               </div>
             )}
           </div>

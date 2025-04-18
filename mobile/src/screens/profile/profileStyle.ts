@@ -1,5 +1,3 @@
-//// filepath: c:\Users\Kavan\Desktop\Mentor-Mentee-Application\mobile\src\screens\profile\profileStyle.ts
-// ...existing code...
 import { StyleSheet } from 'react-native';
 
 export const profileStyles = StyleSheet.create({
@@ -22,7 +20,7 @@ export const profileStyles = StyleSheet.create({
   },
   profileImage: {
     width: 150,
-    height: 150, 
+    height: 150,
     marginBottom: 16,
     overflow: 'hidden',
   },
@@ -249,4 +247,54 @@ export const mentorSpecificStyles = StyleSheet.create({
     color: '#fff',
     fontSize: 16,
   },
+  // ...existing code...
+expandableSkillItem: {
+  backgroundColor: '#fff',
+  borderRadius: 8,
+  marginBottom: 10,
+  padding: 12,
+  shadowColor: '#000',
+  shadowOffset: { width: 0, height: 1 },
+  shadowOpacity: 0.05,
+  shadowRadius: 1,
+  elevation: 1,
+},
+expandableSkillHeader: {
+  flexDirection: 'row',
+  alignItems: 'center',
+  justifyContent: 'space-between',
+},
+selectedLevelBadge: {
+  backgroundColor: '#3498db',
+  borderRadius: 12,
+  paddingHorizontal: 8,
+  paddingVertical: 2,
+  marginLeft: 10,
+},
+selectedLevelText: {
+  color: '#fff',
+  fontSize: 12,
+},
+levelButtonRow: {
+  flexDirection: 'row',
+  justifyContent: 'flex-start',
+  marginTop: 10,
+},
+levelButton: {
+  backgroundColor: '#ecf0f1',
+  borderRadius: 8,
+  paddingVertical: 6,
+  paddingHorizontal: 16,
+  marginRight: 10,
+},
+levelButtonSelected: {
+  backgroundColor: '#3498db',
+},
+levelButtonText: {
+  color: '#333',
+  fontWeight: 'bold',
+},
+levelButtonTextSelected: {
+  color: '#fff',
+},
 });

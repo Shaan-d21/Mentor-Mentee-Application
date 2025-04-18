@@ -106,6 +106,7 @@ const styles = StyleSheet.create({
         padding: 10,
         backgroundColor: 'transparent', // Make background transparent
         borderBottomWidth: 0, // Remove border
+        marginTop: 10, 
     },
     icon: {
         padding: 10,

@@ -1,3 +1,4 @@
+from operator import or_
 from typing import Annotated
 from fastapi import APIRouter, Depends, HTTPException
 from starlette import status
@@ -38,6 +39,7 @@ def get_approved_mentors_details(user: user_dependency, db: db_dependency):
         select(
             MentorMentee.mentor_id,
             MentorMentee.domain_id,
+            MentorMentee.roadmap_id,
             User.name.label("mentor_name"),
             Domain.name.label("domain_name")
         )
@@ -69,14 +71,14 @@ def get_approved_mentors_details(user: user_dependency, db: db_dependency):
     }
 
 
-# Endpoint 2: Get Roadmap Topic List by Mentor ID and Domain ID
+# Endpoint 2: Get Roadmap Topic List by Roadmap id
 @router.get('/roadmap-topics/{roadmap_id}', status_code=status.HTTP_200_OK)
 def get_roadmap_topics(
     roadmap_id: int,
     user: user_dependency,
     db: db_dependency
 ):
-    if user is None or user.get('role') != 'mentee':
+    if user is None or (user.get('role') != 'mentee' and user.get('role') != 'mentor'):
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Unauthorized Access")
 
     query = (
@@ -84,33 +86,45 @@ def get_roadmap_topics(
             MentorMentee.roadmap_id
         )
         .where(and_(
+            MentorMentee.roadmap_id == roadmap_id,
+            or_(
             MentorMentee.mentee_id == user.get('user_id'),
-            MentorMentee.roadmap_id == roadmap_id
+            MentorMentee.mentor_id == user.get('user_id')
+            )
         ))
     )
 
-    mentee_roadmap_id = db.execute(query).first()
+    mentee_roadmap = db.execute(query).first()
+    #print(mentee_roadmap)
 
-    if mentee_roadmap_id is None:
+    if mentee_roadmap is None:
         raise HTTPException(status_code = status.HTTP_404_NOT_FOUND, detail='Roadmap not found or is not assigned')
     
-    topics = db.query(Topic).filter(Topic.roadmap_id == roadmap_id).all()
-
+    topics = db.query(Topic).filter(Topic.roadmap_id == mentee_roadmap[0]).all()
+    roadmap = db.query(Roadmap).filter(Roadmap.id == mentee_roadmap[0]).first()
+    #print(topics)
     if not topics:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="No topics found for the given roadmap id")
     
-    roadmap_list = [{'topic_name': topic.name, 'status': topic.status} for topic in topics]
-    
-    roadmap_list = {}
+    if not roadmap:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="No roadmap found")
+    # print(roadmap.description)
+
+    topic_list = []
     for topic in topics:
+        # print(topic)
         topic_status = topic.status
+        topic_id = topic.id
         name = topic.name
-        if topic_status not in roadmap_list:
-            roadmap_list[topic_status] = []
-        roadmap_list[topic_status].append(name)
-        
+        subtopics = [item.strip() for item in topic.subtopics.split(',')]
+        description = topic.description
+        importance = topic.reasoning
+        topic_list.append({'topic_id':topic_id, 'name':name, "description": description, "subtopics": subtopics, "importance": importance, "topic_status": topic_status})
+
     return {
         "status_code": status.HTTP_200_OK,
         "message": "success",
-        "object": roadmap_list
+        "roadmap_id": mentee_roadmap[0],
+        "roadmap_explanation": roadmap.description,
+        "topic": topic_list
     }
