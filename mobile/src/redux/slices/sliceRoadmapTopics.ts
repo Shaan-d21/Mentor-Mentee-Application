@@ -86,14 +86,21 @@ const sliceRoadmapTopics = createSlice({
       .addCase(markTopicAsDone.pending, (state, action) => {
         // Optimistically update the UI
         const topicId = action.meta.arg.topicId;
-        state.assignedTopics = state.assignedTopics.filter(topic => topic.topic_id !== topicId);
-        state.markedTopics.push(state.assignedTopics.find(topic => topic.topic_id === topicId)!);
+        // console.log("Optimistically marking topic as done:", topicId);
+        // state.assignedTopics = state.assignedTopics.filter(topic => topic.topic_id !== topicId);
+        // state.markedTopics.push(state.assignedTopics.find(topic => topic.topic_id === topicId)!);
       })
       .addCase(markTopicAsDone.fulfilled, (state, action) => {
         // Update the state after successfully marking the topic as done
         const topicId = action.payload;
-        state.markedTopics = state.markedTopics.filter(topic => topic.topic_id !== topicId);
-        state.completedTopics.push(state.markedTopics.find(topic => topic.topic_id === topicId)!);
+        console.log("Successfully marked topic as done:", topicId);
+        state.assignedTopics = state.assignedTopics.filter(topic => topic.topic_id !== topicId);
+
+        state.markedTopics.push(state.assignedTopics.find(topic => topic.topic_id === topicId)!);
+        console.log("Updated assigned topics:", state.assignedTopics);
+        console.log("Updated marked topics:", state.markedTopics);
+        // state.markedTopics = state.markedTopics.filter(topic => topic.topic_id !== topicId);
+        // state.completedTopics.push(state.markedTopics.find(topic => topic.topic_id === topicId)!);
       })
       .addCase(markTopicAsDone.rejected, (state, action) => {
         // If marking as done failed, revert the optimistic update

@@ -8,6 +8,7 @@ import menteeRequestsSlice from './slices/mentorSlice';
 import MenteeRoadmapSlice from './slices/sliceMenteeRoadmap';
 import MentorRoadmapSlice from './slices/sliceMentorRoadmap';
 import sliceRoadmapTopics from './slices/sliceRoadmapTopics';
+import { useDispatch } from 'react-redux';
 
 
 export const store = configureStore({
@@ -31,3 +32,4 @@ export const store = configureStore({
 
 export type RootState = ReturnType<typeof store.getState>;
 export type AppDispatch = typeof store.dispatch;
+export const useAppDispatch = () => useDispatch<AppDispatch>();
