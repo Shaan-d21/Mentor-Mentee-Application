@@ -832,7 +832,7 @@ const CheckCompatibility: FC<ScreenProps<'CheckCompatibility'>> = ({
                     navigation.navigate('CheckReport', {
                       mentorId: mentor.id,
                       score: mentor.score,
-                      domain: mentor.domain,
+                      domain: value,
                     })
                   }>
                   <View style={styles.scoreContainer}>

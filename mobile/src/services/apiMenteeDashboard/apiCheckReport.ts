@@ -18,13 +18,13 @@ export const apiFetchReport = async (credentials: {
   try {
     const data = {
       domain: credentials.domain,
-
       mentor_id: credentials.mentorId,
       score: credentials.score,
     };
+    console.log('Request Data:', data); // Debugging log to verify request data
 
     const response = await api.post(
-      'http://181.214.44.15:8003/matching_report',
+      'https://mm-ai.shaandewang.publicvm.com/matching_report',
       JSON.stringify(data),
       {
         headers: {
@@ -34,6 +34,7 @@ export const apiFetchReport = async (credentials: {
         },
       },
     );
+    console.log('Raw API Data:', response.data);
 
     if (response.status === 200) {
       console.log('Report fetched successfully:', response.data);
@@ -42,6 +43,7 @@ export const apiFetchReport = async (credentials: {
         existingSkills: response.data.e_skills || [],
         missingSkills: response.data.m_skills || [],
         summary: response.data.summary || '',
+        domain: credentials.domain,
       };
     } else {
       console.error('Unexpected response status:', response.status);

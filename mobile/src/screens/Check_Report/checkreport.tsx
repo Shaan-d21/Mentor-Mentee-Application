@@ -85,7 +85,7 @@ const CheckReport = ({route}: any) => {
         <Text style={styles.score}>{score}% Compatible</Text>
 
         <Text style={styles.section}>Mentor's Skills</Text>
-        {data.existingSkills.length > 0 ? (
+        {data.existingSkills.length > 0 && (
           <>
             <Text style={styles.subSection}>Existing Skills</Text>
             <View style={styles.skillContainer}>
@@ -96,7 +96,9 @@ const CheckReport = ({route}: any) => {
               ))}
             </View>
           </>
-        ) : (
+        )}
+
+        {data.missingSkills.length > 0 && (
           <>
             <Text style={styles.subSection}>Missing Skills</Text>
             <View style={styles.skillContainer}>

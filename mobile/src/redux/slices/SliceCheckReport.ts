@@ -30,13 +30,15 @@ export const fetchCheckReport = createAsyncThunk(
     {rejectWithValue},
   ) => {
     try {
+      console.log('Domain Passed to Thunk:', domain); // Debugging log to verify the domain
+
       const response: {
         existingSkills?: string[];
         missingSkills?: string[];
         summary?: string;
       } = await apiFetchReport({mentorId, domain, score}); // Call the API function
 
-      //console.log('API Response:', response); // Debugging log to verify API response
+      console.log('API Response:', response); // Debugging log to verify API response
 
       return {
         existingSkills: response.existingSkills || [], // Map `existingSkills`
