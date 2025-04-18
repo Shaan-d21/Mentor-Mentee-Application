@@ -1,6 +1,8 @@
-import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
-import { apiGetApprovedMentees, apiPostAssignRoadmap, apiPostGenerateRoadMap } from "../../services/apiRoadmap/apiGenerateRoadmapMentor";
-import { RoadmapResponse, roadmapResponseFromJson } from "../../types/RoadmapTypes";
+import { createAsyncThunk, createSlice, PayloadAction } from "@reduxjs/toolkit";
+import { apiAddRoadmapTopic, apiDeleteTopic, apiGetApprovedMentees, apiModifyRoadmapTopic, apiPostAssignRoadmap, apiPostGenerateRoadMap } from "../../services/apiRoadmap/apiGenerateRoadmapMentor";
+import { RoadmapResponse, roadmapResponseFromJson, RoadmapTopic } from "../../types/RoadmapTypes";
+import { apiGetTopicsOnMentorScreen } from "../../services/apiFeedback/apiFeedbackMentor/apiGetTopicsOnMentorScreen";
+import { apiReassignTopic } from "../../services/apiFeedback/apiFeedbackMentor/apiReassignTopic";
 
 enum currentStatus {
   idle = "idle",
@@ -24,6 +26,7 @@ interface MentorRoadmapState {
   status: currentStatus;
   error: string | null;
   assignStatus: 0|1 | null;
+  loading?: boolean; // Added to match usage in reducers
 }
 
 const initialState: MentorRoadmapState = {
@@ -33,6 +36,7 @@ const initialState: MentorRoadmapState = {
   status: currentStatus.idle,
   error: null,
   assignStatus: null,
+  loading: false,
 };
 
 // Async thunk to fetch approved mentees
@@ -59,7 +63,7 @@ export const fetchApprovedMentees = createAsyncThunk("mentorRoadmap/fetchMentees
 export const generateRoadmap = createAsyncThunk(
   "mentorRoadmap/generateRoadmap", async ({domainId,id}:{domainId: string,id:string}) => {
     try {
-      const roadmaps =await apiPostGenerateRoadMap(domainId,id); 
+      const roadmaps = await apiPostGenerateRoadMap(domainId,id); 
       console.log("generateRoadmap", roadmaps);
       if(roadmaps.status!== 200){
         throw new Error(roadmaps.toString() || "Failed to generate roadmap");
@@ -71,6 +75,87 @@ export const generateRoadmap = createAsyncThunk(
   }
 );
 
+// New thunk for editing a topic
+export const editRoadmapTopic = createAsyncThunk(
+  "mentorRoadmap/editTopic",
+  async (topic: RoadmapTopic, { rejectWithValue }) => {
+    try {
+      const response = await apiModifyRoadmapTopic(
+        topic.topic_id,
+        topic.name,
+        topic.description,
+        topic.subtopics,
+        topic.importance
+      );
+      
+      if (response.error) {
+        return rejectWithValue(response.error);
+      }
+      
+      return topic; // Return the updated topic
+    } catch (error: any) {
+      return rejectWithValue(error.message || "Failed to update topic");
+    }
+  }
+);
+
+
+// New thunk for adding a topic
+export const addRoadmapTopic = createAsyncThunk(
+  "mentorRoadmap/addTopic",
+  async ({roadmapId, topicData}: {roadmapId: number, topicData: RoadmapTopic}, { rejectWithValue }) => {
+    try {
+      const response = await apiAddRoadmapTopic(
+        roadmapId,
+        topicData.name,
+        topicData.description,
+        topicData.subtopics,
+        topicData.importance
+      );
+      
+      if (response.error) {
+        return rejectWithValue(response.error);
+      }
+      
+      // Handle the nested topic structure in the response
+      if (response.topic) {
+        // Make sure subtopics is properly handled as an array
+        const subtopics = Array.isArray(response.topic.subtopics) 
+          ? response.topic.subtopics 
+          : typeof response.topic.subtopics === 'string'
+            ? [response.topic.subtopics] // Convert single string to array
+            : []; // Default to empty array if undefined
+            
+        return {
+          ...response.topic,
+          topic_id: response.topic.id,
+          // Ensure subtopics is always an array
+          subtopics: subtopics,
+          importance: topicData.importance // Preserve this if not returned by API
+        };
+      } else {
+        // Fallback for unexpected response format
+        console.warn("Unexpected API response format:", response);
+        const responseData = response.object || response.data || {};
+        
+        // Ensure subtopics is always an array
+        const subtopics = Array.isArray(responseData.subtopics) 
+          ? responseData.subtopics 
+          : typeof responseData.subtopics === 'string'
+            ? [responseData.subtopics] // Convert single string to array
+            : topicData.subtopics || []; // Use the original subtopics or default to empty array
+            
+        return {
+          ...responseData,
+          topic_id: responseData.id || `temp-${Date.now()}`,
+          subtopics: subtopics
+        };
+      }
+    } catch (error: any) {
+      return rejectWithValue(error.message || "Failed to add topic");
+    }
+  }
+);
 export const assignRoadmap = createAsyncThunk("mentorRoadmap/assignRoadmap", async ({menteeId,domainId,roadmapId}:{menteeId:string,domainId:string,roadmapId:string}) => {
   console.log("Assigning roadmap with ID:", roadmapId);
 
@@ -90,11 +175,60 @@ export const assignRoadmap = createAsyncThunk("mentorRoadmap/assignRoadmap", asy
 }
 );
 
+export const deleteRoadmapThunk = createAsyncThunk(
+  "roadmap/deleteRoadmap",
+  async (topicId: number, { rejectWithValue }) => {
+    try {
+      const response = await apiDeleteTopic(topicId);
+
+      if (response.success) {
+        return topicId;
+      } else {
+        return rejectWithValue(response?.error?.message || "Failed to delete topic");
+      }
+    } catch (error: any) {
+      return rejectWithValue(error.message || "Error deleting topic");
+    }
+  }
+);
+//Fetch the list of the topics present in the roadmap
+export const fetchRoadmap = createAsyncThunk<RoadmapResponse, number, { rejectValue: string }>("mentorProgress/fetchRoadmap", async (roadmap_id, { rejectWithValue }) => {
+    const response = await apiGetTopicsOnMentorScreen(roadmap_id);
+    // console.log("response from the fetchRoadmap async thunk is", response);
+
+    if (!response) {
+        return rejectWithValue("No data returned from API");
+    }
+
+    // console.log("fetchRoamap asyncThunk: ", response);
+    return {
+        status_code: response.status_code || 200,
+        message: response.message || "",
+        roadmap_id: response.roadmap_id,
+        roadmap_explanation: response.roadmap_explanation,
+        topics: response.topic || [] // Change to match the interface
+    };
+})
+
+//Reassigning the task to the mentee4
+export const reassignTopic = createAsyncThunk<{ message: string; status_code: number }, { topic_id: number; mentee_id: number; feedback: string }, { rejectValue: string }>("mentorProgress/reassignTopic", async ({ topic_id, mentee_id, feedback }, { rejectWithValue }) => {
+    console.log(topic_id, mentee_id, feedback);
+    const response = await apiReassignTopic(topic_id, mentee_id, feedback);
+    console.log("the response from the reassignTopic asyncThunk is: ", response);
+
+    if (!response) {
+        return rejectWithValue("No data returned form API");
+    }
+
+    return response;
+});
+
+
 const mentorRoadmapSlice = createSlice({
   name: "mentorRoadmap",
   initialState,
   reducers: {
-initialStateMentorRoadmap (state)  {
+    initialStateMentorRoadmap (state)  {
       state.mentees = [];
       state.roadmap = null;
       state.roadmapId = null;
@@ -102,14 +236,27 @@ initialStateMentorRoadmap (state)  {
       state.error = null;
       state.assignStatus = null;
     }
-  
-
-
-
   },
   extraReducers: (builder) => {
     builder
-      // Fetch approved mentees
+      .addCase(deleteRoadmapThunk.pending, (state) => {
+        state.status = currentStatus.loading;
+        state.error = null;
+      })
+      .addCase(deleteRoadmapThunk.fulfilled, (state, action: PayloadAction<number>) => {
+        state.status = currentStatus.success;
+        // Only filter topics if roadmap exists
+        if (state.roadmap) {
+          state.roadmap = {
+            ...state.roadmap,
+            topics: state.roadmap.topics.filter(topic => topic.topic_id !== action.payload)
+          };
+        }
+      })
+      .addCase(deleteRoadmapThunk.rejected, (state, action) => {
+        state.status = currentStatus.failed;
+        state.error = action.payload as string || "Failed to delete topic";
+      })
       .addCase(fetchApprovedMentees.pending, (state) => {
         state.status = currentStatus.loading;
         state.error = null;
@@ -122,7 +269,6 @@ initialStateMentorRoadmap (state)  {
         state.status = currentStatus.failed;
         state.error = action.error.message || "Failed to fetch mentees";
       })
-
       // Generate roadmap
       .addCase(generateRoadmap.pending, (state) => {
         state.status = currentStatus.loading;
@@ -139,35 +285,113 @@ initialStateMentorRoadmap (state)  {
         // state.roadmapId = action.payload.roadmap_id;
         state.roadmapId = roadmapData.roadmap_id;
 
-      // state.roadmap= splitByNewLine(action.payload.roadmap_name);
-        state.roadmap= roadmapResponseFromJson(roadmapData);
+        // state.roadmap= splitByNewLine(action.payload.roadmap_name);
+        state.roadmap = roadmapResponseFromJson(roadmapData);
         console.log("Roadmap ID:", state.roadmapId);
         console.log("Roadmap name:", roadmapData.roadmap_name);
         
-    console.log("Roadmap topics:", state.roadmap);
+        console.log("Roadmap topics:", state.roadmap);
       })
       .addCase(generateRoadmap.rejected, (state, action) => {
         state.status = currentStatus.failed;
         state.error = action.error.message || "Failed to generate roadmap";
-      }).addCase(assignRoadmap.pending, (state) => {
+      })
+      
+      // Handle topic editing
+      .addCase(editRoadmapTopic.pending, (state) => {
+        state.status = currentStatus.loading;
+        state.error = null;
+      })
+      .addCase(editRoadmapTopic.fulfilled, (state, action) => {
+        state.status = currentStatus.success;
+        state.error = null;
+
+        if (state.roadmap) {
+          // Find and replace the edited topic
+          const updatedTopics = state.roadmap.topics.map(topic => 
+            topic.topic_id === action.payload.topic_id ? action.payload : topic
+          );
+          state.roadmap = {
+            ...state.roadmap,
+            topics: updatedTopics
+          };
+        }
+      })
+      .addCase(editRoadmapTopic.rejected, (state, action) => {
+        state.status = currentStatus.failed;
+        state.error = action.payload as string || "Failed to update topic";
+      })
+
+      // Handle topic addition
+      .addCase(addRoadmapTopic.pending, (state) => {
+        state.status = currentStatus.loading;
+        state.error = null;
+      })
+      .addCase(addRoadmapTopic.fulfilled, (state, action) => {
+        state.status = currentStatus.success;
+        state.error = null;
+
+        if (state.roadmap) {
+          // Add the new topic to the list
+          state.roadmap = {
+            ...state.roadmap,
+            topics: [...state.roadmap.topics, action.payload]
+          };
+        }
+      })
+      .addCase(addRoadmapTopic.rejected, (state, action) => {
+        state.status = currentStatus.failed;
+        state.error = action.payload as string || "Failed to add topic";
+      })
+
+      .addCase(assignRoadmap.pending, (state) => {
         state.status = currentStatus.loading;
         state.error = null;
       })
       .addCase(assignRoadmap.fulfilled, (state, action) => {
         state.status = currentStatus.idle;
-        state.roadmap= null;
+        state.roadmap = null;
         state.roadmapId = null;
         state.error = null;
         state.assignStatus = action.payload == 1 ? 1 : 0;
         console.log("Roadmap assigned:", action.payload);
-
       })
       .addCase(assignRoadmap.rejected, (state, action) => {
         state.status = currentStatus.failed;
         state.error = action.error.message || "Failed to assign roadmap";
-      }
-      );
+      })
+      
+      // Add fetchRoadmap cases
+      .addCase(fetchRoadmap.pending, (state) => {
+        state.status = currentStatus.loading;
+        state.error = null;
+      })
+      .addCase(fetchRoadmap.fulfilled, (state, action) => {
+        state.status = currentStatus.success;
+        state.roadmap = action.payload;
+        state.roadmapId = String(action.payload.roadmap_id);
+        state.error = null;
+      })
+      .addCase(fetchRoadmap.rejected, (state, action) => {
+        state.status = currentStatus.failed;
+        state.error = action.error.message || "Failed to fetch roadmap";
+      })
+      
+      // Add reassignTopic cases
+      .addCase(reassignTopic.pending, (state) => {
+        state.status = currentStatus.loading;
+        state.error = null;
+      })
+      .addCase(reassignTopic.fulfilled, (state) => {
+        state.status = currentStatus.success;
+        state.error = null;
+      })
+      .addCase(reassignTopic.rejected, (state, action) => {
+        state.status = currentStatus.failed;
+        state.error = action.error.message || "Failed to reassign topic";
+      });
   },
 });
+
 export const { initialStateMentorRoadmap } = mentorRoadmapSlice.actions;
 export default mentorRoadmapSlice.reducer;
