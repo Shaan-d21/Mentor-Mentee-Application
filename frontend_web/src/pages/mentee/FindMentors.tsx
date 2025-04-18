@@ -37,6 +37,10 @@ interface MentorshipRequest {
   mentor_id: string;
 }
 
+// Add these constants at the top of the file
+const API_URL = import.meta.env.VITE_API_URL ;
+const AI_API_URL = import.meta.env.VITE_AI_API_URL;
+
 const FindMentors: React.FC = () => {
   const navigate = useNavigate();
   // Track if we're on the dashboard home or dedicated page
@@ -76,34 +80,38 @@ const FindMentors: React.FC = () => {
         return;
       }
       
-      console.log('Fetching requests from:', `${import.meta.env.VITE_API_URL}/mentee/Requests`);
+      console.log('Fetching requests from:', `${API_URL}/mentee/Requests`);
       
       const response = await axios.get(
-        `${import.meta.env.VITE_API_URL}/mentee/Requests`,
+        `${API_URL}/mentee/Requests`,
         {
           headers: { 
             'Token': accessToken,
-            'Content-Type': 'application/json'
+            'Content-Type': 'application/json',
+            'Accept': 'application/json'
           }
         }
       );
       
       console.log('Requests response:', response.data);
       
-      // Handle both response formats: array of requests or object with object property
+      // Initialize empty arrays for requests
       let requests: MentorshipRequest[] = [];
       
-      if (Array.isArray(response.data)) {
-        // Response is an array of requests
-        requests = response.data as MentorshipRequest[];
-      } else if (response.data && response.data.object) {
-        // Response is an object with an object property
-        requests = response.data.object as MentorshipRequest[];
+      // Check if response.data is an object and has the expected structure
+      if (response.data && typeof response.data === 'object') {
+        if (Array.isArray(response.data)) {
+          requests = response.data;
+        } else if (response.data.object && Array.isArray(response.data.object)) {
+          requests = response.data.object;
+        } else if (response.data.requests && Array.isArray(response.data.requests)) {
+          requests = response.data.requests;
+        }
       }
       
-      console.log('All requests:', requests);
+      console.log('Processed requests:', requests);
       
-      // Extract mentor IDs from all requests (both pending and approved)
+      // Extract mentor IDs from all requests
       const mentorIds = new Set(requests.map(req => req.mentor_id));
       setRequestedMentorIds(mentorIds);
       
@@ -125,14 +133,11 @@ const FindMentors: React.FC = () => {
         approvedRequests.map(req => req.domain_name || req.domain)
       );
       
-      console.log('Pending domains before update:', pendingDomains);
-      console.log('Approved domains before update:', approvedDomains);
+      console.log('Pending domains:', pendingDomains);
+      console.log('Approved domains:', approvedDomains);
       
       setPendingRequestDomains(pendingDomains);
       setApprovedRequestDomains(approvedDomains);
-      
-      console.log('Pending domains updated:', pendingDomains);
-      console.log('Approved domains updated:', approvedDomains);
       
       // If we have a selected domain and it's in the pending domains, hide the results
       if (compatibilityDomain && (pendingDomains.has(compatibilityDomain) || approvedDomains.has(compatibilityDomain))) {
@@ -145,8 +150,6 @@ const FindMentors: React.FC = () => {
       }
     } catch (err) {
       console.error('Error fetching active requests:', err);
-      // Don't show error toast to avoid spamming the user
-      // Just log the error and continue
     } finally {
       setIsLoadingRequests(false);
     }
@@ -197,10 +200,10 @@ const FindMentors: React.FC = () => {
       const trimmedDomain = compatibilityDomain.trim();
       
       console.log('Checking compatibility for domain:', trimmedDomain);
-      console.log('Using API URL:', import.meta.env.VITE_API_URL);
+      console.log('Using API URL:', AI_API_URL);
       
       const response = await axios.get(
-        `${import.meta.env.VITE_API_URL}/predict`,
+        `${AI_API_URL}/predict`,
         {
           params: {
             d: compatibilityDomain
