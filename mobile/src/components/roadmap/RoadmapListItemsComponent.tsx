@@ -23,9 +23,8 @@ import { RoadmapResponse, RoadmapTopic } from '../../types/RoadmapTypes';
 import RoadmapEditModal from './RoadmapEditModal';
 import { useDispatch } from 'react-redux';
 import { AppDispatch } from '../../redux/store';
-import { addRoadmapTopic, editRoadmapTopic } from '../../redux/slices/sliceMenteeRoadmap';
-import { deleteRoadmapThunk } from "../../redux/slices/sliceRoadmapTopics";
 import { apiDeleteTopic } from '../../services/apiRoadmap/apiGenerateRoadmapMentor';
+import { addRoadmapTopic, deleteRoadmapThunk, editRoadmapTopic } from '../../redux/slices/sliceMentorRoadmap';
 
 
 export const ListRoadmapItems = (props: { roadmap: RoadmapResponse }) => {

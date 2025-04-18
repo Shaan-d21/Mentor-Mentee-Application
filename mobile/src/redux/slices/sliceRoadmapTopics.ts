@@ -1,4 +1,3 @@
-// src/redux/slices/sliceRoadmapTopics.ts
 
 import { createSlice, createAsyncThunk, PayloadAction } from "@reduxjs/toolkit";
 import { getRoadmapTopics } from "../../services/apiRoadmap/apiGetRoadmap";
@@ -39,22 +38,6 @@ export const fetchRoadmapTopics = createAsyncThunk(
 );
 
 
-export const deleteRoadmapThunk = createAsyncThunk(
-  "roadmap/deleteRoadmap",
-  async (topicId: number, { rejectWithValue }) => {
-    try {
-      const response = await apiDeleteTopic(topicId);
-
-      if (response.success) {
-        return topicId;
-      } else {
-        return rejectWithValue(response?.error?.message || "Failed to delete topic");
-      }
-    } catch (error: any) {
-      return rejectWithValue(error.message || "Error deleting topic");
-    }
-  }
-);
 
 
 const roadmapSlice = createSlice({
@@ -76,18 +59,7 @@ const roadmapSlice = createSlice({
         state.error = action.payload as string;
       })
       
-      .addCase(deleteRoadmapThunk.pending, (state) => {
-        state.loading = true;
-        state.error = null;
-      })
-      .addCase(deleteRoadmapThunk.fulfilled, (state, action: PayloadAction<number>) => {
-        state.loading = false;
-        state.topics = state.topics.filter(topic => topic.topic_id !== action.payload);
-      })
-      .addCase(deleteRoadmapThunk.rejected, (state, action) => {
-        state.loading = false;
-        state.error = action.payload as string;
-      })
+    
   },
 });
 
