@@ -200,7 +200,7 @@ const FindMentors: React.FC = () => {
       console.log('Using API URL:', import.meta.env.VITE_API_URL || 'https://mm-be.shaandewang.publicvm.com');
       
       const response = await axios.get(
-        `${import.meta.env.VITE_AI_API_URL || 'https://mm-be.shaandewang.publicvm.com'}/predict`,
+        `${import.meta.env.VITE_AI_API_URL || 'https://mm-be.shaandewang.publicvm.com'}/predict/`,
         {
           params: {
             d: compatibilityDomain
