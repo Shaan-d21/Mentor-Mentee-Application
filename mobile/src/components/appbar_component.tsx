@@ -97,22 +97,23 @@ import {faBars, faUserCircle} from '@fortawesome/free-solid-svg-icons';
 import {useDrawer} from '../context/drawer_context';
 
 const styles = StyleSheet.create({
-  header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    padding: 20,
-    backgroundColor: 'transparent', // Make background transparent
-    borderBottomWidth: 0, // Remove border
-  },
-  icon: {
-    padding: 10,
-  },
-  title: {
-    fontSize: 20,
-    fontWeight: 'bold',
-    color: '#333333', // Adjust color as needed
-  },
+    header: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        padding: 10,
+        backgroundColor: 'transparent', // Make background transparent
+        borderBottomWidth: 0, // Remove border
+        marginTop: 10, 
+    },
+    icon: {
+        padding: 10,
+    },
+    title: {
+        fontSize: 20,
+        fontWeight: 'bold',
+        color: '#333333', // Adjust color as needed
+    },
 });
 
 interface Props {

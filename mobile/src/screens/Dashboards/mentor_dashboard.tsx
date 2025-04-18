@@ -1,139 +1,3 @@
-// import React, {FC, useEffect} from 'react';
-// import {
-//   View,
-//   Text,
-//   StyleSheet,
-//   ScrollView,
-//   TouchableOpacity,
-//   FlatList,
-// } from 'react-native';
-// import {Avatar} from 'react-native-elements';
-// import AppBar from '../../components/appbar_component';
-// import {useSelector, useDispatch} from 'react-redux';
-// import {RootState, AppDispatch} from '../../redux/store';
-// import {ScreenProps} from '../../navigation/types';
-// import {fetchApprovedMentees} from '../../redux/slices/mentorSlice';
-
-// const COLUMN_WIDTH = 130;
-
-// const MentorDashboard: FC<ScreenProps<'MentorDashboard'>> = ({navigation}) => {
-//   const dispatch = useDispatch<AppDispatch>();
-
-//   const userName = useSelector((state: RootState) => state.login.name);
-//   const acceptedMentees = useSelector(
-//     (state: RootState) => state.menteeRequests.acceptedRequests,
-//   );
-//   const approvedMentees = useSelector(state => state.mentor.approvedMentees);
-
-//   useEffect(() => {
-//   //   // Fetch only approved mentees here
-//      dispatch(fetchAprrovedMentees()); // Uncomment and replace 'menteeId' with the actual argument(s) required
-//    }, [dispatch]);
-
-//   const handleCheckRequest = () => {
-//     navigation.navigate('CheckRequestScreen');
-//   };
-
-//   const renderMenteeRow = ({item}: {item: any}) => (
-//     <View style={styles.row}>
-//       <Text style={styles.cell}>{item.name}</Text>
-//       <Text style={styles.cell}>{item.email}</Text>
-//       <Text style={styles.cell}>{item.role}</Text>
-//       <Text style={styles.cell}>{item.domain}</Text>
-//     </View>
-//   );
-
-//   return (
-//     <View style={styles.container}>
-//       <AppBar
-//         onProfilePress={() => navigation.navigate('MentorProfileScreen')}
-//         openDrawer={() => {}}
-//       />
-//       <View style={styles.header}>
-//         <Text style={styles.headerText}>Hello, {userName} 👋</Text>
-//         <Avatar rounded icon={{name: 'user', type: 'font-awesome'}} />
-//       </View>
-
-//       <TouchableOpacity style={styles.checkButton} onPress={handleCheckRequest}>
-//         <Text style={styles.checkButtonText}>Check Request</Text>
-//       </TouchableOpacity>
-
-//       <ScrollView horizontal>
-//         <View>
-//           {/* Header Row */}
-//           <View style={styles.headerRow}>
-//             <Text style={styles.headerCell}>Mentee Name</Text>
-//             <Text style={styles.headerCell}>Email</Text>
-//             <Text style={styles.headerCell}>Role</Text>
-//             <Text style={styles.headerCell}>Domain</Text>
-//           </View>
-
-//           {/* Vertically scrollable rows */}
-//           <ScrollView style={{maxHeight: 300}}>
-//             {acceptedMentees.map(item => (
-//               <View style={styles.row} key={item.id}>
-//                 <Text style={styles.cell}>{item.name}</Text>
-//                 <Text style={styles.cell}>{item.email}</Text>
-//                 <Text style={styles.cell}>{item.role}</Text>
-//                 <Text style={styles.cell}>{item.domain}</Text>
-//               </View>
-//             ))}
-//           </ScrollView>
-//         </View>
-//       </ScrollView>
-//     </View>
-//   );
-// };
-
-// const styles = StyleSheet.create({
-//   container: {flex: 1, backgroundColor: '#F5F5F5', padding: 20},
-//   header: {
-//     flexDirection: 'row',
-//     justifyContent: 'space-between',
-//     alignItems: 'center',
-//     marginBottom: 15,
-//   },
-//   headerText: {fontSize: 22, fontWeight: 'bold', color: '#333'},
-//   checkButton: {
-//     backgroundColor: 'green',
-//     padding: 10,
-//     borderRadius: 5,
-//     alignItems: 'center',
-//     marginBottom: 10,
-//   },
-//   checkButtonText: {color: '#FFF', fontWeight: 'bold'},
-//   headerRow: {
-//     flexDirection: 'row',
-//     backgroundColor: '#222',
-//     borderTopLeftRadius: 6,
-//     borderTopRightRadius: 6,
-//   },
-//   headerCell: {
-//     width: COLUMN_WIDTH,
-//     color: '#FFF',
-//     fontWeight: 'bold',
-//     padding: 10,
-//     textAlign: 'center',
-//     borderRightWidth: 1,
-//     borderColor: '#333',
-//   },
-//   row: {
-//     flexDirection: 'row',
-//     backgroundColor: '#FFF',
-//     borderBottomWidth: 1,
-//     borderColor: '#DDD',
-//   },
-//   cell: {
-//     width: COLUMN_WIDTH,
-//     padding: 10,
-//     textAlign: 'center',
-//     borderRightWidth: 1,
-//     borderColor: '#EEE',
-//     color: '#333',
-//   },
-// });
-
-// export default MentorDashboard;
 import React, {FC, useEffect} from 'react';
 import {
   View,
@@ -142,6 +6,7 @@ import {
   StyleSheet,
   TouchableOpacity,
   ScrollView,
+  Pressable,
 } from 'react-native';
 import {useDispatch, useSelector} from 'react-redux';
 import {fetchApprovedMentees} from '../../redux/slices/mentorSlice';
@@ -199,54 +64,71 @@ const MentorDashboardScreen = () => {
 
 
   // ---------------------------------
-  // const renderMenteeCard = ({ item }: { item: any }) => (
-  //   <View style={styles.card}>
-  //     <View style={styles.cardHeader}>
-  //       <Text style={styles.cardTitle}>{item.name}</Text>
-  //     </View>
-  //     <View style={styles.cardBody}>
-  //       <View style={styles.cardItem}>
-  //         <FontAwesomeIcon icon={faEnvelope} size={16} color="#777" style={styles.icon} />
-  //         <Text style={styles.cardText}>{item.email}</Text>
-  //       </View>
-  //       <View style={styles.cardItem}>
-  //         <FontAwesomeIcon icon={faUserTag} size={16} color="#777" style={styles.icon} />
-  //         <Text style={styles.cardText}>{item.designation??"Intern"}</Text>
-  //       </View>
-  //       <View style={styles.cardItem}>
-  //         <FontAwesomeIcon icon={faCodeBranch} size={16} color="#777" style={styles.icon} />
-  //         <Text style={styles.cardText}>{item.domain}</Text>
-  //       </View>
-  //       {/* <View style={styles.cardItem}>
-  //         <FontAwesomeIcon icon={faCommentDots} size={16} color="#777" style={styles.icon} />
-  //         <Text style={styles.cardText}>{item.comment || 'No comment'}</Text>
-  //       </View> */}
-  //     </View>
-  //   </View>
-  // );
+
+  const pressMoveToTopicList= (item: any)=>{
+    console.log("Button pressed");
+    navigation.navigate("MentorProgress", {roadmap_id: item.roadmap_id, mentee_id: item.id});
+    console.log(item)
+  }
+
+  const renderMenteeCard = ({ item }: { item: any }) => {
+    console.log(item);
+
+    return (
+      <Pressable
+        onPress={()=>pressMoveToTopicList(item)}
+      >
+  
+        <View style={styles.card}>
+          <View style={styles.cardHeader}>
+            <Text style={styles.cardTitle}>{item.name}</Text>
+          </View>
+          <View style={styles.cardBody}>
+            <View style={styles.cardItem}>
+              <FontAwesomeIcon icon={faEnvelope} size={16} color="#777" style={styles.icon} />
+              <Text style={styles.cardText}>{item.email}</Text>
+            </View>
+            <View style={styles.cardItem}>
+              <FontAwesomeIcon icon={faUserTag} size={16} color="#777" style={styles.icon} />
+              <Text style={styles.cardText}>{item.designation??"Intern"}</Text>
+            </View>
+            <View style={styles.cardItem}>
+              <FontAwesomeIcon icon={faCodeBranch} size={16} color="#777" style={styles.icon} />
+              <Text style={styles.cardText}>{item.domain}</Text>
+            </View>
+            {/* <View style={styles.cardItem}>
+              <FontAwesomeIcon icon={faCommentDots} size={16} color="#777" style={styles.icon} />
+              <Text style={styles.cardText}>{item.comment || 'No comment'}</Text>
+            </View> */}
+          </View>
+        </View>
+      </Pressable>
+            );
+
+          };
   // ----------------------------------------
 
-const renderMenteeCard = ({ item }: { item: any }) => (
-  <View style={styles.card}>
-    <View style={styles.cardHeader}>
-      <Text style={styles.cardTitle}>{item.name}</Text>
-    </View>
-    <View style={styles.cardBody}>
-      <View style={styles.cardItem}>
-        <Text style={styles.cardTextTitle}>Email: </Text>
-        <Text style={styles.cardText}>{item.email}</Text>
-      </View>
-      <View style={styles.cardItem}>
-        <Text style={styles.cardTextTitle}>Designation: </Text>
-        <Text style={styles.cardText}>{item.designation ?? 'Intern'}</Text>
-      </View>
-      <View style={styles.cardItem}>
-        <Text style={styles.cardTextTitle}>Domain: </Text>
-        <Text style={styles.cardText}>{item.domain}</Text>
-      </View>
-    </View>
-  </View>
-);
+// const renderMenteeCard = ({ item }: { item: any }) => (
+//   <View style={styles.card}>
+//     <View style={styles.cardHeader}>
+//       <Text style={styles.cardTitle}>{item.name}</Text>
+//     </View>
+//     <View style={styles.cardBody}>
+//       <View style={styles.cardItem}>
+//         <Text style={styles.cardTextTitle}>Email: </Text>
+//         <Text style={styles.cardText}>{item.email}</Text>
+//       </View>
+//       <View style={styles.cardItem}>
+//         <Text style={styles.cardTextTitle}>Designation: </Text>
+//         <Text style={styles.cardText}>{item.designation ?? 'Intern'}</Text>
+//       </View>
+//       <View style={styles.cardItem}>
+//         <Text style={styles.cardTextTitle}>Domain: </Text>
+//         <Text style={styles.cardText}>{item.domain}</Text>
+//       </View>
+//     </View>
+//   </View>
+// );
 
   return (
   

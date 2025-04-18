@@ -74,7 +74,7 @@ const MentorProfile: React.FC = () => {
 
       const authToken = accessToken.startsWith('Bearer') ? accessToken.split('Bearer ')[1] : accessToken;
 
-      const response = await axios.get('http://181.214.44.15:8080/users/mentor/profile', {
+      const response = await axios.get(`${import.meta.env.VITE_API_URL || 'https://mm-be.shaandewang.publicvm.com'}/users/mentor/profile`, {
         headers: {
           'Token': authToken
         }
@@ -262,7 +262,7 @@ const MentorProfile: React.FC = () => {
 
       // Update profile
       const profileResponse = await axios.put(
-        'http://181.214.44.15:8080/users/mentor/profile_creation',
+        `${import.meta.env.VITE_API_URL || 'https://mm-be.shaandewang.publicvm.com'}/mentor/mentor/profile_creation`,
         {
           name: tempProfile.name,
           contact: tempProfile.contact,
@@ -282,7 +282,7 @@ const MentorProfile: React.FC = () => {
         // Update skills
         const skillsToKeep = tempProfile.skills.filter(skill => skill.name);
         const skillsResponse = await axios.post(
-          'http://181.214.44.15:8080/users/mentor/skills',
+          `${import.meta.env.VITE_API_URL || 'https://mm-be.shaandewang.publicvm.com'}/users/mentor/skills`,
           {
             skills: skillsToKeep.map(skill => ({
               skill_name: skill.name,
@@ -297,7 +297,7 @@ const MentorProfile: React.FC = () => {
         if (skillsResponse.status === 200) {
           // Fetch updated profile
           const updatedProfileResponse = await axios.get(
-            'http://181.214.44.15:8080/users/mentor/profile',
+            `${import.meta.env.VITE_API_URL || 'https://mm-be.shaandewang.publicvm.com'}/users/mentor/profile`,
             {
               headers: { Token: accessToken }
             }

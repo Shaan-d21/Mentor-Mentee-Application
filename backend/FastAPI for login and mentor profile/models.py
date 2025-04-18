@@ -175,6 +175,7 @@ class Roadmap(Base):
     id = Column(Integer, primary_key=True, index=True)
     domain_id = Column(Integer, ForeignKey("domain.id", ondelete="CASCADE"), nullable=False)
     name = Column(Text, nullable=False)  # Added name field which was missing
+    description = Column(Text, nullable=True)  # Store roadmap explanation
     created_at = Column(DateTime, nullable=False, server_default=func.now())
     updated_at = Column(DateTime, nullable=False, server_default=func.now(), onupdate=func.now())
 
@@ -194,6 +195,9 @@ class Topic(Base):
     id = Column(Integer, primary_key=True, index=True)
     roadmap_id = Column(Integer, ForeignKey("roadmap.id", ondelete="CASCADE"), nullable=False)
     name = Column(String, nullable=False)
+    description = Column(Text, nullable=True)  # Ensure this field exists and is not commented out
+    subtopics = Column(Text, nullable=True)  # Store subtopics as comma-separated text
+    reasoning = Column(Text, nullable=True)  # Store importance/reasoning
     status = Column(Enum(TopicStatus), nullable=False, default=TopicStatus.assigned)
     created_at = Column(DateTime, nullable=False, server_default=func.now())
     updated_at = Column(DateTime, nullable=False, server_default=func.now(), onupdate=func.now())

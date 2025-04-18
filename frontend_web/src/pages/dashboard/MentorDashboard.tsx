@@ -25,7 +25,7 @@ const DashboardHome: React.FC = () => {
 
         const authToken = accessToken.startsWith('Bearer') ? accessToken.split('Bearer ')[1] : accessToken;
 
-        const response = await axios.get('http://181.214.44.15:8080/mentor/get-approved-mentee', {
+        const response = await axios.get(`${import.meta.env.VITE_API_URL || 'https://mm-be.shaandewang.publicvm.com'}/mentor/get-approved-mentee`, {
           headers: {
             'Token': authToken
           }

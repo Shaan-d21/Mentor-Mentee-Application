@@ -7,6 +7,7 @@ export interface ApprovedMentor {
   mentor_name: string;
   domain_id: number;
   domain_name: string;
+  roadmap_id: number;
 }
 
 // Redux State

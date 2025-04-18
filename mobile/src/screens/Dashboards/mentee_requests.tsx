@@ -10,10 +10,11 @@ import AppBar from '../../components/appbar_component';
 import axios from 'axios';
 import { MMKV } from 'react-native-mmkv';
 import { ScreenProps } from '../../navigation/types';
+import { apiGetRequests } from '../../services/apiGetRequests';
 // import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome'; // Removed import
 // import { faEnvelope, faBriefcase, faCode, faClock } from '@fortawesome/free-solid-svg-icons'; // Removed import
 
-interface Request {
+export interface Request {
   mentor_name: string;
   mentor_mail: string;
   mentor_designation: string;
@@ -30,26 +31,22 @@ const MenteeRequests: FC<ScreenProps<"MenteeRequests">> = ({navigation}) => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
+ useEffect(() => {
     const fetchRequests = async () => {
       try {
-        const token = storage.getString('token');
-        const response = await axios.get<Request[]>('http://181.214.44.15:8080/mentee/Requests', {
-          headers: {
-            'accept': 'application/json',
-            'Token': token,
-          }
-        });
-        setRequests(response.data);
-      } catch (err: any) {
-        setError(err.message);
-      } finally {
+        const response = await apiGetRequests();
+        setRequests(response);
+        setLoading(false);
+      } catch (err) {
+        setError('Failed to load requests');
         setLoading(false);
       }
     };
 
     fetchRequests();
-  }, []);
+  }
+  , []);
+   
 
   const renderItem = ({ item }: { item: Request }) => {
     let statusColor = '#000';

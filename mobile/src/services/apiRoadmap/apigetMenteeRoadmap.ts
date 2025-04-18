@@ -13,7 +13,7 @@ interface ApiResponse {
 export const getApprovedMentors = async (): Promise<ApiResponse[]> => {
   const storage= new MMKV();
   try {
-    const response = await axios.get<ApiResponse[]>(`http://181.214.44.15:8080/mentee/mentor-roadmap-details`, {
+    const response = await axios.get<ApiResponse[]>(`${process.env.API_URL}mentee/mentor-roadmap-details`, {
       headers: {
         'accept': 'application/json',
         'Token': storage.getString("token")       },
