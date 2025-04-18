@@ -200,10 +200,10 @@ const FindMentors: React.FC = () => {
       const trimmedDomain = compatibilityDomain.trim();
       
       console.log('Checking compatibility for domain:', trimmedDomain);
-      console.log('Using API URL:', import.meta.env.VITE_API_URL || 'https://mm-be.shaandewang.publicvm.com');
+      console.log('Using API URL:', import.meta.env.VITE_API_URL || 'https://mm-ai.shaandewang.publicvm.com');
       
       const response = await axios.get(
-        `${import.meta.env.VITE_AI_API_URL || 'https://mm-be.shaandewang.publicvm.com'}/predict`,
+        `${import.meta.env.VITE_AI_API_URL || 'https://mm-ai.shaandewang.publicvm.com'}/predict`,
         {
           params: {
             d: compatibilityDomain
