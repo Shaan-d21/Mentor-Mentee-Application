@@ -7,12 +7,10 @@ import { ChevronRightIcon, BookOpenIcon, DocumentTextIcon, CheckIcon, ArrowPathI
 interface Mentor {
   mentor_id: number;
   mentor_name: string;
-  email: string;
-  designation: string;
   domain: string;
   domain_id: number;
-  experience: string;
   has_roadmap: boolean;
+  roadmap_id: number | null;
 }
 
 interface Topic {
@@ -71,12 +69,10 @@ const MenteeRoadmap: React.FC = () => {
         const mappedMentors = response.data.object.map((mentor: any) => ({
           mentor_id: mentor.mentor_id,
           mentor_name: mentor.mentor_name,
-          email: mentor.email,
-          designation: mentor.designation,
-          experience: mentor.experience,
           domain: mentor.domain_name,
           domain_id: mentor.domain_id,
-          has_roadmap: mentor.has_roadmap || false
+          has_roadmap: mentor.roadmap_id !== null,
+          roadmap_id: mentor.roadmap_id
         }));
         setMentors(mappedMentors);
 
@@ -117,8 +113,15 @@ const MenteeRoadmap: React.FC = () => {
         return;
       }
 
+      // Get the roadmap_id from the mentor data
+      const mentorData = mentors.find(m => m.mentor_id === mentor.mentor_id);
+      if (!mentorData) {
+        toast.error('Mentor data not found');
+        return;
+      }
+
       const response = await axios.get(
-        `${import.meta.env.VITE_API_URL || 'https://mm-be.shaandewang.publicvm.com'}/mentee/roadmap-topics/${mentor.mentor_id}`,
+        `${import.meta.env.VITE_API_URL || 'https://mm-be.shaandewang.publicvm.com'}/mentee/roadmap-topics/${mentorData.roadmap_id}`,
         {
           headers: {
             'Token': accessToken,
@@ -128,26 +131,32 @@ const MenteeRoadmap: React.FC = () => {
         }
       );
 
-      if (response.data.status_code === 200) {
+      console.log('Roadmap response:', response.data);
+
+      if (response.data && response.data.status_code === 200) {
         setSelectedRoadmap(response.data);
         toast.success('Roadmap loaded successfully');
       } else {
-        toast.error('Failed to fetch roadmap topics');
+        toast.error('No roadmap has been assigned yet');
       }
     } catch (error) {
       console.error('Error fetching roadmap topics:', error);
-      if (axios.isAxiosError(error) && error.response?.status === 404) {
-        toast.error('No roadmap found for this mentor');
-        // Update the mentor's has_roadmap status
-        setMentors(prevMentors => 
-          prevMentors.map(m => 
-            m.mentor_id === mentor.mentor_id 
-              ? { ...m, has_roadmap: false }
-              : m
-          )
-        );
+      if (axios.isAxiosError(error)) {
+        if (error.response?.status === 404) {
+          toast.error('No roadmap found for this mentor');
+          // Update the mentor's has_roadmap status
+          setMentors(prevMentors => 
+            prevMentors.map(m => 
+              m.mentor_id === mentor.mentor_id 
+                ? { ...m, has_roadmap: false }
+                : m
+            )
+          );
+        } else {
+          toast.error(error.response?.data?.message || 'No roadmap has been assigned yet');
+        }
       } else {
-        toast.error('Failed to fetch roadmap topics');
+        toast.error('No roadmap has been assigned yet');
       }
     }
   };
@@ -167,7 +176,7 @@ const MenteeRoadmap: React.FC = () => {
         return;
       }
 
-      const response = await axios.post(
+      const response = await axios.put(
         `${import.meta.env.VITE_API_URL || 'https://mm-be.shaandewang.publicvm.com'}/progress/mark_done`,
         { topic_id: selectedTopic.topic_id },
         {
@@ -241,7 +250,7 @@ const MenteeRoadmap: React.FC = () => {
             </div>
 
             <div className="space-y-6">
-              {selectedRoadmap.topic.map((topic) => (
+              {selectedRoadmap?.topic?.map((topic) => (
                 <div key={topic.topic_id} className="bg-white border border-gray-200 rounded-lg p-6 shadow-sm">
                   <div className="flex items-start justify-between">
                     <div className="flex-1">
@@ -268,7 +277,7 @@ const MenteeRoadmap: React.FC = () => {
                       <div className="mb-4 ml-12">
                         <h4 className="text-sm font-medium text-gray-700 mb-2">Subtopics</h4>
                         <div className="flex flex-wrap gap-2">
-                          {topic.subtopics.map((subtopic, _) => (
+                          {topic.subtopics?.map((subtopic, _) => (
                             <span
                               key={_}
                               className="px-3 py-1 bg-gray-100 text-gray-700 rounded-full text-sm"
@@ -311,10 +320,7 @@ const MenteeRoadmap: React.FC = () => {
                       Mentor: <span className="font-medium">{mentor.mentor_name}</span>
                     </p>
                     <p className="text-gray-600">
-                      Designation: <span className="font-medium">{mentor.designation}</span>
-                    </p>
-                    <p className="text-gray-600">
-                      Experience: <span className="font-medium">{mentor.experience}</span>
+                      Domain: <span className="font-medium">{mentor.domain}</span>
                     </p>
                   </div>
                   <button
