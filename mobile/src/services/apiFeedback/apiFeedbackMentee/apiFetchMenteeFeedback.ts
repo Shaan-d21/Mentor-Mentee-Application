@@ -33,6 +33,7 @@ const storage = new MMKV();
 export const fetchMenteeFeedback = async (): Promise<Feedback[]> => {
   try {
     const token = storage.getString('token');
+    console.log(process.env.API_URL);
     const response = await axios.get<FeedbackResponse>(`${process.env.API_URL}feedbacks/view`, {
       headers: {
         'accept': 'application/json',
@@ -50,7 +51,7 @@ export const fetchMenteeFeedback = async (): Promise<Feedback[]> => {
 
 export const summarizeFeedbackAPI = async (feedback: string): Promise<string> => {
     try {
-      const response = await axios.post('http://181.214.44.15:8003/summarize',
+      const response = await axios.post('https://mm-ai.shaandewang.publicvm.com/summarize',
        { text:feedback }, 
        {
         headers: {
@@ -69,7 +70,7 @@ export const summarizeFeedbackAPI = async (feedback: string): Promise<string> =>
 export const analyzeFeedbackAPI = async (menteeId: number, feedbackId: number): Promise<AnalysisResponse> => {
     try {
       const response = await axios.get<AnalysisResponse>(
-        `http://181.214.44.15:8003/mentee/feedback/${menteeId}/${feedbackId}`,
+        `https://mm-ai.shaandewang.publicvm.com/mentee/feedback/${menteeId}/${feedbackId}`,
         {
           headers: {
             'accept': 'application/json',

@@ -363,7 +363,7 @@
 
 // export default MenteeFeedbackScreen;
 import React, { useState, useEffect } from 'react';
-import { summarizeFeedbackAPI, fetchMenteeFeedback, analyzeFeedbackAPI } from '../../services/apiFeedback/apiFetchMenteeFeedback';
+import { summarizeFeedbackAPI, fetchMenteeFeedback, analyzeFeedbackAPI } from '../../services/apiFeedback/apiFeedbackMentee/apiFetchMenteeFeedback';
 import {
   View,
   Text,
