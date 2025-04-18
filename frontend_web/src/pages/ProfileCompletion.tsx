@@ -442,7 +442,7 @@ const ProfileCompletion = () => {
       console.log('Token header format:', authToken);
       
       // Use deployed API URL
-      const apiUrl = import.meta.env.VITE_API_URL;
+      const apiUrl = import.meta.env.VITE_API_URL || 'https://mm-be.shaandewang.publicvm.com';
       
       // Create role-specific profile
       const userRole = localStorage.getItem('role');

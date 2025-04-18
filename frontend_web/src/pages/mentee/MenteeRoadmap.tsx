@@ -57,7 +57,7 @@ const MenteeRoadmap: React.FC = () => {
       }
       
       const response = await axios.get(
-        `${import.meta.env.VITE_API_URL}/mentee/mentor-roadmap-details`,
+        `${import.meta.env.VITE_API_URL || 'https://mm-be.shaandewang.publicvm.com'}/mentee/mentor-roadmap-details`,
         {
           headers: {
             'Token': accessToken,
@@ -106,7 +106,7 @@ const MenteeRoadmap: React.FC = () => {
       }
 
       const response = await axios.get(
-        `${import.meta.env.VITE_API_URL}/mentee/roadmap-topics/${mentor.mentor_id}`,
+        `${import.meta.env.VITE_API_URL || 'https://mm-be.shaandewang.publicvm.com'}/mentee/roadmap-topics/${mentor.mentor_id}`,
         {
           headers: {
             'Token': accessToken,
@@ -145,7 +145,7 @@ const MenteeRoadmap: React.FC = () => {
       }
 
       const response = await axios.post(
-        `${import.meta.env.VITE_API_URL}/progress/mark_done`,
+        `${import.meta.env.VITE_API_URL || 'https://mm-be.shaandewang.publicvm.com'}/progress/mark_done`,
         { topic_id: selectedTopic.topic_id },
         {
           headers: {

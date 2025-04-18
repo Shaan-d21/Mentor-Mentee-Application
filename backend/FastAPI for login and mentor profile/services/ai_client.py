@@ -3,7 +3,7 @@
 import httpx
 from fastapi import HTTPException
 
-AI_SERVER_URL = "http://181.214.44.15:8003"
+AI_SERVER_URL = "https://mm-ai.shaandewang.publicvm.com"
 
 async def fetch_predictions(domain: str) -> str:
     async with httpx.AsyncClient(timeout=100.0) as client:
