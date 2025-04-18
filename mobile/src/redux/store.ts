@@ -11,7 +11,7 @@ import sliceRoadmapTopics from './slices/sliceRoadmapTopics';
 import mentorProgressSlice from './slices/sliceMentorProgress';
 import { useDispatch } from 'react-redux';
 
-
+import checkReportSlice from './slices/SliceCheckReport';
 export const store = configureStore({
   reducer: {
     login: loginReducer,
@@ -22,9 +22,10 @@ export const store = configureStore({
     mentorProfile: mentorProfileReducer,
     mentorDashboard: menteeRequestsSlice,
     menteeRoadmap: MenteeRoadmapSlice,
-    mentorRoadmap:MentorRoadmapSlice,
+    mentorRoadmap: MentorRoadmapSlice,
     viewRoadmap: sliceRoadmapTopics,
     mentorProgress: mentorProgressSlice,
+    checkReport: checkReportSlice,
   },
   middleware: getDefaultMiddleware => getDefaultMiddleware(),
 });
