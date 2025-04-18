@@ -8,6 +8,7 @@ import menteeRequestsSlice from './slices/mentorSlice';
 import MenteeRoadmapSlice from './slices/sliceMenteeRoadmap';
 import MentorRoadmapSlice from './slices/sliceMentorRoadmap';
 import  roadmapSlice from './slices/sliceRoadmapTopics';
+import mentorProgressSlice from './slices/sliceMentorProgress';
 
 export const store = configureStore({
   reducer: {
@@ -20,7 +21,8 @@ export const store = configureStore({
     mentorDashboard: menteeRequestsSlice,
     menteeRoadmap: MenteeRoadmapSlice,
     mentorRoadmap:MentorRoadmapSlice,
-    roadmap: roadmapSlice
+    roadmap: roadmapSlice,
+    mentorProgress: mentorProgressSlice,
   },
   middleware: getDefaultMiddleware => getDefaultMiddleware(),
 });
