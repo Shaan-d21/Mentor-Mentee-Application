@@ -12,6 +12,7 @@ interface State {
   markedTopics: RoadmapTopic[];
   completedTopics: RoadmapTopic[];
   status: currentStatus;
+  refersh: boolean;
 }
 
 const initialState: State = {
@@ -20,6 +21,7 @@ const initialState: State = {
   assignedTopics: [],
   markedTopics: [],
   completedTopics: [],
+  refersh: false,
   status: currentStatus.idle,
 };
 
@@ -95,14 +97,22 @@ const sliceRoadmapTopics = createSlice({
         // Update the state after successfully marking the topic as done
         const topicId = action.payload;
         console.log("Successfully marked topic as done:", topicId);
-        state.assignedTopics = state.assignedTopics.filter(topic => topic.topic_id !== topicId);
-
-        state.markedTopics.push(state.assignedTopics.find(topic => topic.topic_id === topicId)!);
-        console.log("Updated assigned topics:", state.assignedTopics);
-        console.log("Updated marked topics:", state.markedTopics);
-        // state.markedTopics = state.markedTopics.filter(topic => topic.topic_id !== topicId);
-        // state.completedTopics.push(state.markedTopics.find(topic => topic.topic_id === topicId)!);
-      })
+        state.refersh = !state.refersh;
+        // Find the topic before filtering it out
+        const topicToMove = state.assignedTopics.find(topic => topic.topic_id === topicId);
+        
+        if (topicToMove) {
+          // Update the topic status
+          topicToMove.topic_status = "marked";
+          
+          // Remove from assigned and add to marked
+          state.assignedTopics = state.assignedTopics.filter(topic => topic.topic_id !== topicId);
+          state.markedTopics.push(topicToMove);
+          
+          console.log("Updated assigned topics:", state.assignedTopics);
+          console.log("Updated marked topics:", state.markedTopics);
+        }
+    })
       .addCase(markTopicAsDone.rejected, (state, action) => {
         // If marking as done failed, revert the optimistic update
         const topicId = action.meta.arg.topicId;

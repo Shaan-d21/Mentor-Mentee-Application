@@ -63,7 +63,14 @@ export const ListRoadmapItems = (props: { roadmap: RoadmapResponse | null }) => 
     const isMarkedOrMarking = (topic: RoadmapTopic): boolean => {
         return markingAsDone.includes(topic.topic_id) || topic.topic_status === 'marked';
     };
-
+    const getTopicStatusIndicator = (topic: RoadmapTopic) => {
+        if (topic.topic_status === 'completed') {
+          return <View style={styles.statusIndicator}><Text style={styles.statusText}>Completed</Text></View>;
+        } else if (topic.topic_status === 'marked' || markingAsDone.includes(topic.topic_id)) {
+          return <></>
+        }
+        return null;
+      };
     return (
         (roadmap && roadmap.topic.length > 0) ? (
             <View style={styles.container}>
@@ -79,9 +86,9 @@ export const ListRoadmapItems = (props: { roadmap: RoadmapResponse | null }) => 
                                 <Text style={styles.statLabel}>Topics</Text>
                             </View>
                             <View style={styles.statItem}>
-                                <Text style={styles.statValue}>
-                                    {roadmap.topic.filter(topic => topic.topic_status === 'completed').length}%
-                                </Text>
+                            <Text style={styles.statValue}>
+    {Math.round((roadmap.topic.filter(topic => topic.topic_status === 'completed').length / roadmap.topic.length) * 100)}%
+</Text>
                                 <Text style={styles.statLabel}>Complete</Text>
                             </View>
                         </View>
@@ -111,14 +118,19 @@ export const ListRoadmapItems = (props: { roadmap: RoadmapResponse | null }) => 
                                         <View style={styles.topicNumber}>
                                             <Text style={styles.topicNumberText}>{index + 1}</Text>
                                         </View>
-                                        <Text style={styles.topicTitle}>{topic.name}</Text>
+                                        <View style={styles.topicTitleContainer}>
+    {/* <View style={styles.topicNumber}>
+        <Text style={styles.topicNumberText}>{index + 1}</Text>
+    </View> */}
+    <View style={{flex: 1}}>
+        <Text style={styles.topicTitle}>{topic.name}</Text>
+        {getTopicStatusIndicator(topic)}
+    </View>
+</View>
                                     </View>
 
                                     <View style={styles.topicActions}>
-                                        <TouchableOpacity
-                                            style={styles.actionButton}
-                                        >
-                                        </TouchableOpacity>
+                                       
                                         <FontAwesomeIcon
                                             icon={isExpanded ? faChevronUp : faChevronDown}
                                             size={16}
@@ -142,18 +154,21 @@ export const ListRoadmapItems = (props: { roadmap: RoadmapResponse | null }) => 
                                                             <Text style={styles.subtopicText}>{subtopic}</Text>
                                                         </View>
                                                     ))}
-                                                    <TouchableOpacity
-                                                        style={[
-                                                            styles.doneButton,
-                                                            isTopicMarked && styles.disabledButton
-                                                        ]}
-                                                        onPress={() => handleMarkAsDone(topic.topic_id)}
-                                                        disabled={isTopicMarked}
-                                                    >
-                                                        <Text style={{ color: 'white' }}>
-                                                            {isTopicMarked ? "Requested..." : "Mark as Done"}
-                                                        </Text>
-                                                    </TouchableOpacity>
+                                                    
+                                                    {topic.topic_status !== 'completed' && (
+                <TouchableOpacity
+                    style={[
+                        styles.doneButton,
+                        isTopicMarked && styles.disabledButton
+                    ]}
+                    onPress={() => handleMarkAsDone(topic.topic_id)}
+                    disabled={isTopicMarked}
+                >
+                    <Text style={{ color: 'white' }}>
+                        {isTopicMarked ? "Requested..." : "Mark as Done"}
+                    </Text>
+                </TouchableOpacity>
+            )}
                                                 </View>
                                             </>
                                         )}
@@ -195,6 +210,23 @@ const styles = StyleSheet.create({
         flex: 1,
         backgroundColor: '#F3F4F6',
     },
+    // Add to the styles object
+statusIndicator: {
+    paddingHorizontal: 8,
+    paddingVertical: 2,
+    backgroundColor: '#10B981',
+    borderRadius: 4,
+    alignSelf: 'flex-start',
+    marginTop: 4,
+},
+markedIndicator: {
+    backgroundColor: '#FBBF24',
+},
+statusText: {
+    color: 'white',
+    fontSize: 10,
+    fontWeight: 'bold',
+},
     scrollView: {
         flex: 1,
         padding: 16,

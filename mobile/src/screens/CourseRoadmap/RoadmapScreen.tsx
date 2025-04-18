@@ -8,6 +8,7 @@ import { fetchRoadmap } from '../../redux/slices/sliceRoadmapTopics';
 import { ListRoadmapItems } from '../../components/roadmap/viewRoadmap';
 import { RoadmapResponse } from '../../types/ViewRoadmapTypes';
 import AppBar from '../../components/appbar_component';
+import { useIsFocused } from '@react-navigation/native';
 
 interface RoadmapScreenProps {
   route: {
@@ -30,23 +31,25 @@ const RoadmapScreen: React.FC<RoadmapScreenProps> = ({ navigation,route }) => {
     assignedTopics,
     completedTopics,
     markedTopics,
+    refersh
   } = useSelector((state: RootState) => state.viewRoadmap);
+  const isFocused = useIsFocused();
 
   const [RoadmapItems, setRoadmapItems] = useState<RoadmapResponse | null>(null);
 
  
-  useEffect(() => {
-    dispatch(fetchRoadmap(roadmap_id)).then((response) => {
-      setRoadmapItems({
-        status_code: 200,
-        message: 'success',
-        roadmap_id: roadmap_id,
-        roadmap_explanation: roadmapExplanation,
-        topic:[...assignedTopics, ...completedTopics, ...markedTopics]
-    
-      })
+// Inside the component, add this useEffect dependency
+useEffect(() => {
+  dispatch(fetchRoadmap(roadmap_id)).then((response) => {
+    setRoadmapItems({
+      status_code: 200,
+      message: 'success',
+      roadmap_id: roadmap_id,
+      roadmap_explanation: roadmapExplanation,
+      topic:[...assignedTopics, ...completedTopics, ...markedTopics]
     });
-  }, [dispatch, roadmap_id]);
+  });
+}, [dispatch, refersh,roadmap_id,isFocused]);
 
   if (status === 'loading') {
     return (
