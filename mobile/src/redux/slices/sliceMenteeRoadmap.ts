@@ -1,89 +1,70 @@
-import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
-import { apiGetApprovedMentees, apiPostAssignRoadmap, apiPostGenerateRoadMap, apiModifyRoadmapTopic, apiAddRoadmapTopic } from "../../services/apiRoadmap/apiGenerateRoadmapMentor";
-import { RoadmapResponse, roadmapResponseFromJson, RoadmapTopic } from "../../types/RoadmapTypes";
+import { createSlice, createAsyncThunk, PayloadAction } from "@reduxjs/toolkit";
+import { getApprovedMentors } from "../../services/apiRoadmap/apigetMenteeRoadmap";
 
-enum currentStatus {
-  idle = "idle",
-  loading = "loading",
-  success = "success",
-  failed = "failed",
-}
-
-interface Mentee {
-  id: number;
-  name: string;
-  domain_id: string;
-  roadmapId?: string;
+// Mentor Interface
+export interface ApprovedMentor {
+  mentor_id: number;
+  mentor_name: string;
+  domain_id: number;
   domain_name: string;
+  roadmap_id: number;
 }
 
-interface MentorRoadmapState {
-  mentees: Mentee[];
-  roadmap: RoadmapResponse | null;
-  roadmapId: string | null;
-  status: currentStatus;
+// Redux State
+interface MentorState {
+  mentorsAndDomain: ApprovedMentor[];
+  loading: boolean;
   error: string | null;
-  assignStatus: 0|1 | null;
 }
 
-const initialState: MentorRoadmapState = {
-  mentees: [],
-  roadmap: null,
-  roadmapId: null,
-  status: currentStatus.idle,
+// Initial State
+const initialState: MentorState = {
+  mentorsAndDomain: [],
+  loading: false,
   error: null,
-  assignStatus: null,
 };
 
-// Async thunk to fetch approved mentees
-export const fetchApprovedMentees = createAsyncThunk("mentorRoadmap/fetchMentees", async () => {
-  try {
-    const response = await apiGetApprovedMentees();
-    if (response.error) {
-      throw new Error(response.error);
-    }
-    return response.object.map((item: any) => ({
-      id: item.id,
-      name: item.name,
-      domain_id: item.domain_id,
-      domain_name: item.domain_name,
-    }));
-  } catch (error: any) {
-    throw new Error(error.message || "Failed to fetch mentees");
-  }
-});
+// Async Thunk to Fetch Mentors
+export const fetchMentors = createAsyncThunk<ApprovedMentor[], void>(
+  "mentor/fetchMentors",
+  async (_, { rejectWithValue }) => {
+    try {
+      const response = await getApprovedMentors(); // Ensure this returns ApiResponse
+      // @ts-ignore
 
-const mentorRoadmapSlice = createSlice({
-  name: "mentorRoadmap",
-  initialState,
-  reducers: {
-    initialStateMentorRoadmap (state)  {
-      state.mentees = [];
-      state.roadmap = null;
-      state.roadmapId = null;
-      state.status = currentStatus.idle;
-      state.error = null;
-      state.assignStatus = null;
+      if (response && response.object) {
+      // @ts-ignore
+        return response.object; // Extract the array from response.data.object
+      } else {
+        return rejectWithValue('Failed to fetch mentors: Invalid response format');
+      }
+    } catch (error: any) {
+      return rejectWithValue(error.message || 'Failed to fetch mentors');
     }
-  },
+  }
+);
+
+// Redux Slice
+const menteeRoadmapSlice = createSlice({
+  name: "mentor",
+  initialState,
+  reducers: {}, // No synchronous reducers needed now
   extraReducers: (builder) => {
     builder
-      // Fetch approved mentees
-      .addCase(fetchApprovedMentees.pending, (state) => {
-        state.status = currentStatus.loading;
+      .addCase(fetchMentors.pending, (state) => {
+        state.loading = true;
         state.error = null;
       })
-      .addCase(fetchApprovedMentees.fulfilled, (state, action) => {
-        state.status = currentStatus.success;
-        state.mentees = action.payload; // Store only id and name
+      .addCase(fetchMentors.fulfilled, (state, action: PayloadAction<ApprovedMentor[]>) => {
+        state.loading = false;
+        state.mentorsAndDomain = action.payload;
       })
-      .addCase(fetchApprovedMentees.rejected, (state, action) => {
-        state.status = currentStatus.failed;
-        state.error = action.error.message || "Failed to fetch mentees";
-      })
-
-   
+      .addCase(fetchMentors.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload as string;
+      });
   },
 });
-export const { initialStateMentorRoadmap } = mentorRoadmapSlice.actions;
-export default mentorRoadmapSlice.reducer;
+
+// Export reducer for store
+export default menteeRoadmapSlice.reducer;
