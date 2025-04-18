@@ -152,7 +152,7 @@ const apiService = {
     formData.append('username', username.trim().toLowerCase());
     formData.append('password', password);
     
-    const apiBaseUrl = import.meta.env.VITE_API_URL || 'http://localhost:8000';
+    const apiBaseUrl = import.meta.env.VITE_API_URL || 'https://mm-be.shaandewang.publicvm.com' || 'http://localhost:8000';
     
     return await axios.post(`${apiBaseUrl}/authentication/login`, formData, {
       headers: {
