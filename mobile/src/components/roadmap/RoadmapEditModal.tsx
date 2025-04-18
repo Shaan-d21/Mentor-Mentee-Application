@@ -7,7 +7,8 @@ import {
   TouchableOpacity, 
   ScrollView,
   Dimensions,
-  ActivityIndicator
+  ActivityIndicator,
+  Alert
 } from 'react-native';
 import { Text } from 'react-native-gesture-handler';
 import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome';
@@ -18,13 +19,14 @@ import {
   faTimes
 } from '@fortawesome/free-solid-svg-icons';
 import { RoadmapTopic } from '../../types/RoadmapTypes';
+import { apiDeleteTopic } from '../../services/apiRoadmap/apiGenerateRoadmapMentor';
 
 interface RoadmapEditModalProps {
   visible: boolean;
   editingTopic: RoadmapTopic | null;
   onCancel: () => void;
   onSave: (editedTopic: RoadmapTopic) => void;
-  onDelete: (topicId: string) => void;
+  onDelete: (topicId: number) => void;
   isAddingTopic?: boolean;
 }
 
@@ -130,6 +132,31 @@ const RoadmapEditModal: React.FC<RoadmapEditModalProps> = ({
     }
   };
 
+
+ 
+
+    // const handleDeleteTopic = async (topicId: number) => {
+    //   const result = await apiDeleteTopic(topicId);
+    //   if (result.success) {
+    //     // Remove it from the UI list
+    //     setTopics((prev) => prev.filter((t: { topic_id: number; }) => t.topic_id !== topicId));
+    //   } else {
+    //     console.log("Failed to delete topic", result);
+    //     Alert.alert("Error", "Could not delete topic.");
+    //   }
+    // };
+
+    useEffect(() => {
+      const hardcodedTopicId =  4743; // Replace with your topic ID
+      apiDeleteTopic(hardcodedTopicId)
+        .then(() => {
+          console.log("Topic deleted successfully");
+        })
+        .catch((error) => {
+          console.error("Failed to delete topic:", error);
+        });
+    }, []);
+    
   return (
     <Modal
       visible={visible}
@@ -209,7 +236,7 @@ const RoadmapEditModal: React.FC<RoadmapEditModalProps> = ({
             {!isAddingTopic && editingTopic && (
               <TouchableOpacity 
                 style={[styles.editModalButton, styles.deleteButton]} 
-                onPress={() => onDelete(editingTopic.topic_id.toString())}
+                onPress={() => onDelete(Number(editingTopic.topic_id))}
                 disabled={isSaving}
               >
                 <FontAwesomeIcon icon={faTrash} size={16} color="#FFF" />
@@ -383,3 +410,7 @@ const styles = StyleSheet.create({
 });
 
 export default RoadmapEditModal;
+
+function setTopics(arg0: (prev: any) => any) {
+  throw new Error('Function not implemented.');
+}

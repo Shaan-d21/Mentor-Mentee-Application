@@ -3,18 +3,23 @@
 import { createSlice, createAsyncThunk, PayloadAction } from "@reduxjs/toolkit";
 import { getRoadmapTopics } from "../../services/apiRoadmap/apiGetRoadmap";
 import { apiDeleteTopic } from "../../services/apiRoadmap/apiGenerateRoadmapMentor";
+import { RoadmapTopic } from "../../types/RoadmapTypes";
 
 
 interface RoadmapState {
   roadmapName: string;
+  topics: RoadmapTopic[];   
+
   loading: boolean;
   error: string | null;
 }
 
 const initialState: RoadmapState = {
   roadmapName: '',
+
   loading: false,
   error: null,
+  topics: []
 };
 
 export const fetchRoadmapTopics = createAsyncThunk(
@@ -69,7 +74,20 @@ const roadmapSlice = createSlice({
       .addCase(fetchRoadmapTopics.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload as string;
-      });
+      })
+      
+      .addCase(deleteRoadmapThunk.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(deleteRoadmapThunk.fulfilled, (state, action: PayloadAction<number>) => {
+        state.loading = false;
+        state.topics = state.topics.filter(topic => topic.topic_id !== action.payload);
+      })
+      .addCase(deleteRoadmapThunk.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload as string;
+      })
   },
 });
 

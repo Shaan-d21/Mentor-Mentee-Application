@@ -166,27 +166,56 @@ export const apiAddRoadmapTopic = async (
 
 // for delete
 
+// export const apiDeleteTopic = async (topicId: number) => {
+//   const api = axios.create({
+//     baseURL: process.env.API_URL,
+//     headers: {
+//       accept: "application/json",
+//       token: storage.getString("token"),
+//     },
+//   });
+
+//   try {
+//     const response = await api.delete(`/roadmap/delete-topic/${topicId}`);
+//     console.log("Response from delete-topic:", response);
+    
+//     if (response.status === 200) {
+//       return { success: true };
+//     } else {
+//       console.error("Unexpected response status:", response.status);
+//       return { success: false, status: response.status };
+//     }
+//   } catch (error: any) {
+//     console.error("Error deleting topic:", error);
+//     return { success: false, error };
+//   }
+// };
 export const apiDeleteTopic = async (topicId: number) => {
   const api = axios.create({
     baseURL: process.env.API_URL,
     headers: {
-      accept: "application/json",
-      token: storage.getString("token"),
+      accept: 'application/json',
+      'Content-Type': 'application/json', // Important for sending JSON body
+      Token: storage.getString('token') || '', // Ensure token is included
     },
   });
 
   try {
-    const response = await api.delete(`/roadmaps/delete-topic/${topicId}`);
-    console.log("Response from delete-topic:", response);
-    
+    const response = await api.delete(`/roadmap/delete_topic`, { // Corrected endpoint and using data option
+      data: {
+        topic_id: topicId,
+      },
+    });
+    console.log('Response from delete_topic:', response);
+
     if (response.status === 200) {
       return { success: true };
     } else {
-      console.error("Unexpected response status:", response.status);
+      console.error('Unexpected response status:', response.status);
       return { success: false, status: response.status };
     }
   } catch (error: any) {
-    console.error("Error deleting topic:", error);
+    console.error('Error deleting topic:', error);
     return { success: false, error };
   }
 };

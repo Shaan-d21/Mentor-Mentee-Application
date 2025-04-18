@@ -24,6 +24,9 @@ import RoadmapEditModal from './RoadmapEditModal';
 import { useDispatch } from 'react-redux';
 import { AppDispatch } from '../../redux/store';
 import { addRoadmapTopic, editRoadmapTopic } from '../../redux/slices/sliceMenteeRoadmap';
+import { deleteRoadmapThunk } from "../../redux/slices/sliceRoadmapTopics";
+import { apiDeleteTopic } from '../../services/apiRoadmap/apiGenerateRoadmapMentor';
+
 
 export const ListRoadmapItems = (props: { roadmap: RoadmapResponse }) => {
   const dispatch = useDispatch<AppDispatch>();
@@ -37,7 +40,6 @@ export const ListRoadmapItems = (props: { roadmap: RoadmapResponse }) => {
   // State for expanded/collapsed topics
   const [expandedTopics, setExpandedTopics] = useState<number[]>([]);
 
-  const dispatch = useAppDispatch();
 
    
   // State for editing
@@ -133,7 +135,10 @@ export const ListRoadmapItems = (props: { roadmap: RoadmapResponse }) => {
     setEditMode(true);
   };
 
-  const handleDeleteTopic = (topicId: number) => {
+  // useEffect(()=>{
+  //   apiDeleteTopic(4719)
+  // },[])
+  const handleDeleteTopic = (topic_id: number) => {
     Alert.alert(
       "Delete Topic",
       "Are you sure you want to delete this topic?",
@@ -142,8 +147,29 @@ export const ListRoadmapItems = (props: { roadmap: RoadmapResponse }) => {
         {
           text: "Delete",
           style: "destructive",
-          onPress: () => {
-     
+          onPress: async () => {
+            try {
+              console.log("Attempting to delete topic with ID:", topic_id);
+              console.log(localRoadmap.topics);
+              const result = await dispatch(deleteRoadmapThunk(topic_id)).unwrap();
+              console.log("Deleted topic successfully:", result);
+              
+              // Update the local state after deletion
+              const updatedTopics = localRoadmap.topics.filter((topic) => topic.topic_id !== topic_id);
+              setLocalRoadmap({
+                ...localRoadmap,
+                topics: updatedTopics,
+              });
+
+              console.log(localRoadmap.topics); // Log the updated topics
+
+      setEditMode(false);
+    setEditingTopic(null);
+    setIsAddingTopic(false);
+              Alert.alert("Deleted", "Topic deleted successfully.");
+            } catch (error: any) {
+              Alert.alert("Error", error.message || "Failed to delete the topic.");
+            }
           },
         },
       ]
@@ -224,7 +250,7 @@ export const ListRoadmapItems = (props: { roadmap: RoadmapResponse }) => {
                       <View style={styles.subtopicsContainer}>
                         {topic.subtopics.map((subtopic, subIdx) => (
                           <View key={subIdx} style={styles.subtopicItem}>
-                            <FontAwesomeIcon icon={faCheckCircle} size={14} color="#10B981" style={styles.bulletIcon} />
+                        {/* //    <FontAwesomeIcon icon={faCheckCircle} size={14} color="#10B981" style={styles.bulletIcon} /> */}
                             <Text style={styles.subtopicText}>{subtopic}</Text>
                           </View>
                         ))}
@@ -267,7 +293,7 @@ export const ListRoadmapItems = (props: { roadmap: RoadmapResponse }) => {
         editingTopic={editingTopic}
         onCancel={handleCancelEdit}
         onSave={handleSaveEdit}
-        onDelete={(topicId: string) => handleDeleteTopic(Number(topicId))}
+        onDelete={(topicId: number) => handleDeleteTopic(Number(topicId))}
         isAddingTopic={isAddingTopic}
       />
     </View>
