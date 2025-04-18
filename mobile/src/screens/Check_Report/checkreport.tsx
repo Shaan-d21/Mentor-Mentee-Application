@@ -97,10 +97,6 @@ const CheckReport = ({route}: any) => {
             </View>
           </>
         ) : (
-          <Text style={styles.noSkillsText}>No skills are matched</Text>
-        )}
-
-        {data.existingSkills.length == 0 && (
           <>
             <Text style={styles.subSection}>Missing Skills</Text>
             <View style={styles.skillContainer}>

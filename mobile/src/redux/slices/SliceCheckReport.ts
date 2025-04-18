@@ -30,8 +30,19 @@ export const fetchCheckReport = createAsyncThunk(
     {rejectWithValue},
   ) => {
     try {
-      const response = await apiFetchReport({mentorId, domain, score}); // Call the API function
-      return response; // Assuming the API returns the report data
+      const response: {
+        existingSkills?: string[];
+        missingSkills?: string[];
+        summary?: string;
+      } = await apiFetchReport({mentorId, domain, score}); // Call the API function
+
+      //console.log('API Response:', response); // Debugging log to verify API response
+
+      return {
+        existingSkills: response.existingSkills || [], // Map `existingSkills`
+        missingSkills: response.missingSkills || [], // Map `missingSkills`
+        summary: response.summary || '', // Map `summary`
+      };
     } catch (error: any) {
       return rejectWithValue(error.response?.data || error.message);
     }
@@ -55,7 +66,8 @@ const checkReportSlice = createSlice({
       })
       .addCase(fetchCheckReport.fulfilled, (state, action) => {
         state.status = 'succeeded';
-        //state.data = action.payload;
+        state.data = action.payload;
+        //console.log('Redux State Updated:', state.data); // Debugging log for Redux state
       })
       .addCase(fetchCheckReport.rejected, (state, action) => {
         state.status = 'failed';
