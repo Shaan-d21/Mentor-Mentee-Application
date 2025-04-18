@@ -1,5 +1,6 @@
 import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
 import { apiGetApprovedMentees, apiPostAssignRoadmap, apiPostGenerateRoadMap } from "../../services/apiRoadmap/apiGenerateRoadmapMentor";
+import { RoadmapResponse, roadmapResponseFromJson } from "../../types/RoadmapTypes";
 
 enum currentStatus {
   idle = "idle",
@@ -18,7 +19,7 @@ interface Mentee {
 
 interface MentorRoadmapState {
   mentees: Mentee[];
-  roadmap: string[] | null;
+  roadmap: RoadmapResponse | null;
   roadmapId: string | null;
   status: currentStatus;
   error: string | null;
@@ -52,19 +53,20 @@ export const fetchApprovedMentees = createAsyncThunk("mentorRoadmap/fetchMentees
   }
 });
 
-function splitByNewLine(input: string): string[] {
-  return input.split('\n').map(item => item.trim()).filter(item => item.length > 0);
-}
+
 
 // Async thunk to generate a roadmap
 export const generateRoadmap = createAsyncThunk(
   "mentorRoadmap/generateRoadmap", async ({domainId,id}:{domainId: string,id:string}) => {
     try {
       const roadmaps =await apiPostGenerateRoadMap(domainId,id); 
-      
+      console.log("generateRoadmap", roadmaps);
+      if(roadmaps.status!== 200){
+        throw new Error(roadmaps.toString() || "Failed to generate roadmap");
+      }
       return roadmaps;
     } catch (error: any) {
-      throw new Error(error.message || "Failed to generate roadmap");
+      throw new Error(error.message.toString() || "Failed to generate roadmap");
     }
   }
 );
@@ -127,15 +129,21 @@ initialStateMentorRoadmap (state)  {
         state.error = null;
       })
       .addCase(generateRoadmap.fulfilled, (state, action) => {
+        console.log("Roadmap data:", action.payload);
+        // @ts-ignore
+        const roadmapData = action.payload.data;
+        console.log("Roadmap data:", roadmapData);
         state.status = currentStatus.success;
         state.error = null;
         console.log("Roadmap generated:", action.payload);
-        state.roadmapId = action.payload.roadmap_id; 
-    //     state.roadmap = action.payload.topics
-    // .split('\n')
-    // .map((topic: string) => topic.trim())
-    // .filter(item => item.length > 0);
-    state.roadmap= splitByNewLine(action.payload.roadmap_name);
+        // state.roadmapId = action.payload.roadmap_id;
+        state.roadmapId = roadmapData.roadmap_id;
+
+      // state.roadmap= splitByNewLine(action.payload.roadmap_name);
+        state.roadmap= roadmapResponseFromJson(roadmapData);
+        console.log("Roadmap ID:", state.roadmapId);
+        console.log("Roadmap name:", roadmapData.roadmap_name);
+        
     console.log("Roadmap topics:", state.roadmap);
       })
       .addCase(generateRoadmap.rejected, (state, action) => {

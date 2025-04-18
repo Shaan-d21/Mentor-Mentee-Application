@@ -8,6 +8,7 @@ import menteeRequestsSlice from './slices/mentorSlice';
 import MenteeRoadmapSlice from './slices/sliceMenteeRoadmap';
 import MentorRoadmapSlice from './slices/sliceMentorRoadmap';
 import sliceRoadmapTopics from './slices/sliceRoadmapTopics';
+import mentorProgressSlice from './slices/sliceMentorProgress';
 import { useDispatch } from 'react-redux';
 
 
@@ -23,9 +24,7 @@ export const store = configureStore({
     menteeRoadmap: MenteeRoadmapSlice,
     mentorRoadmap:MentorRoadmapSlice,
     viewRoadmap: sliceRoadmapTopics,
-
-    
-    
+    mentorProgress: mentorProgressSlice,
   },
   middleware: getDefaultMiddleware => getDefaultMiddleware(),
 });

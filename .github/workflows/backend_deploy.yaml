@@ -8,7 +8,7 @@ on:
       - '.github/workflows/backend_deploy.yaml'
 
 jobs:
-  backend-eploy:
+  backend-deploy:
     runs-on: ubuntu-latest
 
     steps:

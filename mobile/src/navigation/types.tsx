@@ -15,6 +15,12 @@ export type RootStackParamList = {
   CheckRequestScreen: undefined;
   MenteeProfileScreen: undefined;
   CheckCompatibility:undefined;
+  MentorProgress: {
+    roadmap_id: number;
+    mentee_id: number;
+  };
+
+  // CustomDrawerContent: undefined;
   MentorRoadmapGeneration: undefined;
   temp: undefined;
   viewRoadmap: undefined;

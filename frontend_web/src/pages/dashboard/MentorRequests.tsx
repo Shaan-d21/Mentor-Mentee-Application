@@ -95,7 +95,7 @@ const MentorRequests: React.FC = () => {
         const authToken = accessToken.startsWith('Bearer ') ? accessToken : `Bearer ${accessToken}`;
 
         const response = await axios.get(
-          'http://181.214.44.15:8080/mentor/get-requests',
+          `${import.meta.env.VITE_API_URL}/mentor/get-requests`,
           {
             headers: {
               'Token': authToken,
@@ -137,7 +137,7 @@ const MentorRequests: React.FC = () => {
       const authToken = accessToken.startsWith('Bearer ') ? accessToken : `Bearer ${accessToken}`;
 
       await axios.put(
-        'http://181.214.44.15:8080/mentor-approval/approve-mentee',
+        `${import.meta.env.VITE_API_URL}/mentor-approval/approve-mentee`,
         {
           status: 'approved',
           mentee_id: request.id,
@@ -171,7 +171,7 @@ const MentorRequests: React.FC = () => {
       const authToken = accessToken.startsWith('Bearer ') ? accessToken : `Bearer ${accessToken}`;
 
       await axios.put(
-        'http://181.214.44.15:8080/mentor-approval/approve-mentee',
+        `${import.meta.env.VITE_API_URL}/mentor-approval/approve-mentee`,
         {
           status: 'not approved',
           mentee_id: request.id,

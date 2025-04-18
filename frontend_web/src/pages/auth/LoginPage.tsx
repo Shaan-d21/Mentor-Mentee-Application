@@ -30,11 +30,15 @@ const LoginPage: React.FC = () => {
       formData.append('username', email.trim().toLowerCase());
       formData.append('password', password);
 
-      const response = await axios.post('http://181.214.44.15:8080/authentication/login', formData, {
-        headers: {
-          'Content-Type': 'application/x-www-form-urlencoded'
+      const response = await axios.post(
+        `${import.meta.env.VITE_API_URL || 'https://mm-be.shaandewang.publicvm.com'}/authentication/login`,
+        formData,
+        {
+          headers: {
+            'Content-Type': 'application/x-www-form-urlencoded'
+          }
         }
-      });
+      );
       
       console.log('Login response:', response.data);
       const { access_token, role, user_name, profile_status } = response.data;
@@ -166,7 +170,7 @@ const LoginPage: React.FC = () => {
           </div>
         </div>
 
-        <div className="flex items-center justify-between">
+        {/* <div className="flex items-center justify-between">
           <div className="flex items-center">
             <input
               id="remember-me"
@@ -178,7 +182,7 @@ const LoginPage: React.FC = () => {
               Remember me
             </label>
           </div>
-        </div>
+        </div> */}
 
         <div>
           <button

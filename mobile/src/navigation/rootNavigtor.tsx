@@ -17,6 +17,7 @@ import { MentorRoadmapGeneration } from '../screens/CourseRoadmap/mentorRoadmapG
 import CheckCompatibility from '../screens/Dashboards/checkCompatibilty';
 import RoadmapScreen from '../screens/CourseRoadmap/RoadmapScreen';
 import MenteeRequests from '../screens/Dashboards/mentee_requests';
+import MentorProgress from '../screens/progress_screens/mentor_progress';
 import MenteeFeedback from '../screens/Feedback/menteeFeedback';
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
@@ -39,6 +40,7 @@ export const RootNavigator: FC = () => {
       <Stack.Screen name="CheckCompatibility" component={CheckCompatibility} />
       <Stack.Screen name="temp" component={temp} />
       <Stack.Screen name ="MenteeRequests" component={MenteeRequests} />
+      <Stack.Screen name="MentorProgress" component={MentorProgress} />
       <Stack.Screen name="MenteeFeedback" component={MenteeFeedback} />
 
       {/* <Stack.Screen name="CustomDrawerContent" component={CustomDrawerContent} /> */}
