@@ -9,6 +9,7 @@ import toast from 'react-hot-toast';
 import axios from 'axios';
 import { Loader2 } from 'lucide-react';
 import RoadmapGenerator from '../../components/RoadmapGenerator';
+import MenteeRoadmapView from '../mentor/MenteeRoadmapView';
 
 const DashboardHome: React.FC = () => {
   const [mentorName, setMentorName] = useState<string>('Mentor');
@@ -25,7 +26,7 @@ const DashboardHome: React.FC = () => {
 
         const authToken = accessToken.startsWith('Bearer') ? accessToken.split('Bearer ')[1] : accessToken;
 
-        const response = await axios.get(`${import.meta.env.VITE_API_URL || 'https://mm-be.shaandewang.publicvm.com'}/mentor/get-approved-mentee`, {
+        const response = await axios.get(`${import.meta.env.VITE_API_URL}/mentor/get-approved-mentee`, {
           headers: {
             'Token': authToken
           }
@@ -100,6 +101,7 @@ const MentorDashboard: React.FC = () => {
             <Route path="/requests" element={<MentorRequests />} />
             <Route path="/my-mentees" element={<MyMentees />} />
             <Route path="/generate-roadmap" element={<RoadmapGenerator />} />
+            <Route path="/mentee-roadmap" element={<MenteeRoadmapView />} />
           </Routes>
         </div>
       </div>

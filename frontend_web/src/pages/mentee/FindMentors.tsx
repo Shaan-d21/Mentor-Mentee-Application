@@ -80,10 +80,10 @@ const FindMentors: React.FC = () => {
         return;
       }
       
-      console.log('Fetching requests from:', `${import.meta.env.VITE_API_URL || 'https://mm-be.shaandewang.publicvm.com'}/mentee/Requests`);
+      console.log('Fetching requests from:', `${import.meta.env.VITE_API_URL}/mentee/Requests`);
       
       const response = await axios.get(
-        `${import.meta.env.VITE_API_URL || 'https://mm-be.shaandewang.publicvm.com'}/mentee/Requests`,
+        `${import.meta.env.VITE_API_URL}/mentee/Requests`,
         {
           headers: { 
             'Token': accessToken,
@@ -200,10 +200,10 @@ const FindMentors: React.FC = () => {
       const trimmedDomain = compatibilityDomain.trim();
       
       console.log('Checking compatibility for domain:', trimmedDomain);
-      console.log('Using API URL:', import.meta.env.VITE_API_URL || 'https://mm-ai.shaandewang.publicvm.com');
+      console.log('Using API URL:', import.meta.env.VITE_API_URL);
       
       const response = await axios.get(
-        `${import.meta.env.VITE_AI_API_URL || 'https://mm-ai.shaandewang.publicvm.com'}/predict/`,
+        `${import.meta.env.VITE_AI_API_URL}/predict/`,
         {
           params: {
             d: compatibilityDomain

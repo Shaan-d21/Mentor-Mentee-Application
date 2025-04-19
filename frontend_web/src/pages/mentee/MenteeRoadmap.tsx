@@ -55,7 +55,7 @@ const MenteeRoadmap: React.FC = () => {
       }
       
       const response = await axios.get(
-        `${import.meta.env.VITE_API_URL || 'https://mm-be.shaandewang.publicvm.com'}/mentee/mentor-roadmap-details`,
+        `${import.meta.env.VITE_API_URL}/mentee/mentor-roadmap-details`,
         {
           headers: {
             'Token': accessToken,
@@ -121,7 +121,7 @@ const MenteeRoadmap: React.FC = () => {
       }
 
       const response = await axios.get(
-        `${import.meta.env.VITE_API_URL || 'https://mm-be.shaandewang.publicvm.com'}/mentee/roadmap-topics/${mentorData.roadmap_id}`,
+        `${import.meta.env.VITE_API_URL}/mentee/roadmap-topics/${mentorData.roadmap_id}`,
         {
           headers: {
             'Token': accessToken,
@@ -177,7 +177,7 @@ const MenteeRoadmap: React.FC = () => {
       }
 
       const response = await axios.put(
-        `${import.meta.env.VITE_API_URL || 'https://mm-be.shaandewang.publicvm.com'}/progress/mark_done`,
+        `${import.meta.env.VITE_API_URL}/progress/mark_done`,
         { topic_id: selectedTopic.topic_id },
         {
           headers: {
@@ -249,6 +249,57 @@ const MenteeRoadmap: React.FC = () => {
               </div>
             </div>
 
+            {/* Progress Overview Section */}
+            {selectedRoadmap.topic && selectedRoadmap.topic.length > 0 && (
+              <div className="mb-8 bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+                <h2 className="text-xl font-semibold text-gray-800 mb-4">Progress Overview</h2>
+                
+                {/* Progress Bar */}
+                <div className="mb-6">
+                  <div className="flex justify-between mb-2">
+                    <span className="text-sm font-medium text-gray-700">Overall Progress</span>
+                    <span className="text-sm font-medium text-gray-700">
+                      {Math.round((selectedRoadmap.topic.filter(t => t.topic_status === 'complete' || t.topic_status === 'completed').length / selectedRoadmap.topic.length) * 100)}%
+                    </span>
+                  </div>
+                  <div className="w-full bg-gray-200 rounded-full h-2.5">
+                    <div 
+                      className="bg-blue-600 h-2.5 rounded-full transition-all duration-500"
+                      style={{ 
+                        width: `${(selectedRoadmap.topic.filter(t => t.topic_status === 'complete' || t.topic_status === 'completed').length / selectedRoadmap.topic.length) * 100}%` 
+                      }}
+                    ></div>
+                  </div>
+                </div>
+
+                {/* Status Distribution */}
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                  <div className="bg-purple-50 p-4 rounded-lg">
+                    <div className="text-2xl font-bold text-purple-700">{selectedRoadmap.topic.length}</div>
+                    <div className="text-sm text-purple-600">Total Topics</div>
+                  </div>
+                  <div className="bg-green-50 p-4 rounded-lg">
+                    <div className="text-2xl font-bold text-green-700">
+                      {selectedRoadmap.topic.filter(t => t.topic_status === 'complete' || t.topic_status === 'completed').length}
+                    </div>
+                    <div className="text-sm text-green-600">Completed</div>
+                  </div>
+                  <div className="bg-yellow-50 p-4 rounded-lg">
+                    <div className="text-2xl font-bold text-yellow-700">
+                      {selectedRoadmap.topic.filter(t => t.topic_status === 'marked').length}
+                    </div>
+                    <div className="text-sm text-yellow-600">Marked</div>
+                  </div>
+                  <div className="bg-blue-50 p-4 rounded-lg">
+                    <div className="text-2xl font-bold text-blue-700">
+                      {selectedRoadmap.topic.filter(t => t.topic_status === 'in_progress' || t.topic_status === 'assigned').length}
+                    </div>
+                    <div className="text-sm text-blue-600">In Progress</div>
+                  </div>
+                </div>
+              </div>
+            )}
+
             <div className="space-y-6">
               {selectedRoadmap?.topic?.map((topic) => (
                 <div key={topic.topic_id} className="bg-white border border-gray-200 rounded-lg p-6 shadow-sm">
@@ -259,12 +310,17 @@ const MenteeRoadmap: React.FC = () => {
                           onClick={() => handleMarkComplete(topic)}
                           className={`flex-shrink-0 w-8 h-8 rounded-full border-2 flex items-center justify-center transition-colors duration-200 ${
                             topic.topic_status === 'marked'
+                              ? 'bg-yellow-500 border-yellow-500 text-white'
+                              : topic.topic_status === 'complete' || topic.topic_status === 'completed'
                               ? 'bg-green-500 border-green-500 text-white'
                               : 'border-gray-300 hover:border-blue-500'
                           }`}
-                          disabled={topic.topic_status === 'marked'}
+                          disabled={topic.topic_status === 'marked' || topic.topic_status === 'complete' || topic.topic_status === 'completed'}
                         >
                           {topic.topic_status === 'marked' && (
+                            <CheckIcon className="h-5 w-5" />
+                          )}
+                          {topic.topic_status === 'complete' || topic.topic_status === 'completed' && (
                             <CheckIcon className="h-5 w-5" />
                           )}
                         </button>
