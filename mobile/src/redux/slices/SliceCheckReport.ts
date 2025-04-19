@@ -30,11 +30,14 @@ export const fetchCheckReport = createAsyncThunk(
     {rejectWithValue},
   ) => {
     try {
-      console.log('Domain Passed to Thunk:', domain); // Debugging log to verify the domain
-
-      const response: {
-        existingSkills?: string[];
-        missingSkills?: string[];
+      // Correctly pass the parameters to the apiFetchReport function
+      const response = (await apiFetchReport({
+        domain: domain,
+        mentor_id: mentorId,
+        score: score,
+      })) as {
+        e_skills?: string[];
+        m_skills?: string[];
         summary?: string;
       } = await apiFetchReport({mentorId, domain, score}); // Call the API function
 
