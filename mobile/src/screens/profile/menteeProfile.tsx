@@ -342,7 +342,6 @@ const MenteeProfileScreen: FC<ScreenProps<"MenteeProfileScreen">> = ({
           )}
         </View>
       </View>
-
       {!!userType?.skillSet?.length && (
         <View style={profileStyles.domainsContainer}>
           <View style={profileStyles.sectionHeaderRow}>
@@ -358,10 +357,11 @@ const MenteeProfileScreen: FC<ScreenProps<"MenteeProfileScreen">> = ({
           </View>
         </View>
       )}
-
       {/* Button to open modal for selecting new skills */}
       {!isEditing && (
-        <TouchableOpacity style={profileStyles.button} onPress={openSkillModal}>
+        <TouchableOpacity style={profileStyles.button} onPress={
+          getAvailableSkills().length > 0 ? openSkillModal : () => Alert.alert("No new skills available")
+          }>
           <FontAwesomeIcon icon={faCode} size={16} color="#fff" style={profileStyles.buttonIcon} />
           <Text style={profileStyles.buttonText}>Add New Skill</Text>
         </TouchableOpacity>
