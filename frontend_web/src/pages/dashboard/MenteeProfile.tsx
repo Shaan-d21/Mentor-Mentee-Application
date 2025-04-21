@@ -212,7 +212,7 @@ const MenteeProfileContent: React.FC = () => {
 
       console.log("Fetching profile for user:", email);
       
-      const apiBaseUrl = import.meta.env.VITE_API_URL || 'http://localhost:8000';
+      const apiBaseUrl = import.meta.env.VITE_API_URL;
       
       // Try the mentee profile endpoint with proper token format
       try {

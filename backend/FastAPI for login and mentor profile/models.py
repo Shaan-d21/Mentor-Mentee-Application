@@ -23,6 +23,7 @@ class TopicStatus(enum.Enum):
     assigned = "assigned"
     marked = "marked"
     completed = "completed"
+    reassigned = "reassigned"
 
 class MentorMenteeStatus(enum.Enum):
     approved = "approved"
@@ -121,6 +122,7 @@ class MenteeSkill(Base):
 
     mentee_id = Column(Integer, ForeignKey("user.id", ondelete="CASCADE"), primary_key=True)
     skill_id = Column(Integer, ForeignKey("skill.id", ondelete="CASCADE"), primary_key=True)
+    proficiency = Column(Enum(ProficiencyLevel), nullable=True)
     created_at = Column(DateTime, nullable=False, server_default=func.now())
     updated_at = Column(DateTime, nullable=False, server_default=func.now(), onupdate=func.now())
 
@@ -197,6 +199,8 @@ class Topic(Base):
     name = Column(String, nullable=False)
     description = Column(Text, nullable=True)  # Ensure this field exists and is not commented out
     subtopics = Column(Text, nullable=True)  # Store subtopics as comma-separated text
+    subtopic_durations = Column(Text, nullable=True)  # NEW FIELD - stores the duration hours as comma-separated values
+    topic_duration_days = Column(Integer, nullable=True, default=7)  # Add this field for topic duration in days
     reasoning = Column(Text, nullable=True)  # Store importance/reasoning
     status = Column(Enum(TopicStatus), nullable=False, default=TopicStatus.assigned)
     created_at = Column(DateTime, nullable=False, server_default=func.now())
@@ -236,6 +240,7 @@ class Feedback(Base):
     __tablename__ = "feedback"
 
     id = Column(Integer, primary_key=True, index=True)
+    topic_id = Column(Integer, ForeignKey("topic.id", ondelete="CASCADE"), nullable=True)
     sender_id = Column(Integer, ForeignKey("user.id", ondelete="CASCADE"), nullable=False)
     receiver_id = Column(Integer, ForeignKey("user.id", ondelete="CASCADE"), nullable=False)
     feedback = Column(Text, nullable=False)

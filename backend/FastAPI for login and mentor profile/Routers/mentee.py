@@ -153,6 +153,24 @@ async def request_mentorship(user: user_dependency, db : db_dependency, req: Req
     db.commit()
     return { 'status_code': 200, "Message":'Request Sent'}
 
+class Cancel_Request(BaseModel):
+    mentor_id : int
+
+@router.delete('/cancel_request')
+async def cancel_request(user: user_dependency, db : db_dependency, req: Cancel_Request):
+    if user is None or user.get('role')!='mentee':
+        raise HTTPException(status_code=401, detail='User not Authorised')
+    request_model = db.query(MentorMentee).filter(MentorMentee.mentee_id == user.get('user_id'), MentorMentee.mentor_id == req.mentor_id).first()
+    if request_model is None:
+        raise HTTPException(status_code=404, detail='Request not found')
+    
+    if request_model.status.value != 'pending':
+        raise HTTPException(status_code=400, detail='Request is already accepted or rejected')
+    db.query(MentorMentee).filter(MentorMentee.mentee_id == user.get('user_id'), MentorMentee.mentor_id == req.mentor_id).delete()
+    db.commit()
+    return {'status_code': 200, 'Message': 'Request Deleted'}
+
+
 @router.get('/Requests', status_code=200)
 async def show_sent_requests(user: user_dependency, db: db_dependency):
     if user is None or user.get('role') != 'mentee':

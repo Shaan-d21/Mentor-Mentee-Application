@@ -262,7 +262,7 @@ const MentorProfile: React.FC = () => {
 
       // Update profile
       const profileResponse = await axios.put(
-        `${import.meta.env.VITE_API_URL}/mentor/mentor/profile_creation`,
+        `${import.meta.env.VITE_API_URL}/users/mentor/profile_creation`,
         {
           name: tempProfile.name,
           contact: tempProfile.contact,

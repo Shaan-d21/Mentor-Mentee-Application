@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
+import { Plus, Trash2, Edit2, ChevronDown, ChevronRight, GripVertical } from 'lucide-react';
 
 interface Mentee {
     id: number;
@@ -18,10 +19,27 @@ interface Mentee {
     has_roadmap?: boolean;
 }
 
-interface Topic {
+interface Subtopic {
     id: number;
     name: string;
-    status: string;
+}
+
+interface Topic {
+    topic_id: number;
+    name: string;
+    description: string;
+    subtopics: string[];
+    importance: string;
+    topic_status: string;
+    isExpanded?: boolean;
+}
+
+interface RoadmapResponse {
+    status_code: number;
+    message: string;
+    roadmap_id: number;
+    roadmap_explanation: string;
+    topics: Topic[];
 }
 
 const RoadmapGenerator: React.FC = () => {
@@ -32,6 +50,26 @@ const RoadmapGenerator: React.FC = () => {
     const [topics, setTopics] = useState<Topic[]>([]);
     const [isAssigned, setIsAssigned] = useState(false);
     const [currentRoadmapId, setCurrentRoadmapId] = useState<number | null>(null);
+    const [editingTopic, setEditingTopic] = useState<Topic | null>(null);
+    const [editingSubtopic, setEditingSubtopic] = useState<{ topicId: number; subtopic: Subtopic } | null>(null);
+    const [showAddTopicModal, setShowAddTopicModal] = useState(false);
+    const [showAddSubtopicModal, setShowAddSubtopicModal] = useState(false);
+    const [selectedTopicForSubtopic, setSelectedTopicForSubtopic] = useState<number | null>(null);
+    const [roadmapDescription, setRoadmapDescription] = useState<string>('');
+    const [selectedMenteeData, setSelectedMenteeData] = useState<Mentee | null>(null);
+    const [viewingAssignedRoadmap, setViewingAssignedRoadmap] = useState(false);
+
+    // New topic form state
+    const [newTopic, setNewTopic] = useState({
+        name: '',
+        description: '',
+        importance: ''
+    });
+
+    // New subtopic form state
+    const [newSubtopic, setNewSubtopic] = useState({
+        name: ''
+    });
 
     const fetchMentees = async () => {
         try {
@@ -41,7 +79,7 @@ const RoadmapGenerator: React.FC = () => {
                 return;
             }
 
-            const response = await axios.get(`${import.meta.env.VITE_API_URL}/mentor/get-approved-mentee`, {
+            const response = await axios.get( `${import.meta.env.VITE_API_URL}/mentor/get-approved-mentee`, {
                 headers: {
                     'Token': token,
                     'Content-Type': 'application/json',
@@ -53,11 +91,33 @@ const RoadmapGenerator: React.FC = () => {
             if (response.data && response.data.object) {
                 const menteeList = response.data.object;
                 if (Array.isArray(menteeList) && menteeList.length > 0) {
-                    // Set mentees without checking roadmaps
-                    setMentees(menteeList.map(mentee => ({
-                        ...mentee,
-                        has_roadmap: false // Default to false since we're not checking
-                    })));
+                    // Check each mentee's roadmap status from the backend
+                    const menteesWithRoadmapStatus = await Promise.all(
+                        menteeList.map(async (mentee) => {
+                            try {
+                                const roadmapResponse = await axios.get(
+                                    `${import.meta.env.VITE_API_URL}/mentor/get-mentee-roadmap/${mentee.id}`,
+                                    {
+                                        headers: {
+                                            'Token': token,
+                                            'Content-Type': 'application/json',
+                                            'Accept': 'application/json'
+                                        }
+                                    }
+                                );
+                                return {
+                                    ...mentee,
+                                    has_roadmap: roadmapResponse.data && roadmapResponse.data.topics && roadmapResponse.data.topics.length > 0
+                                };
+                            } catch (error) {
+                                return {
+                                    ...mentee,
+                                    has_roadmap: false
+                                };
+                            }
+                        })
+                    );
+                    setMentees(menteesWithRoadmapStatus);
                     setError(null);
                 } else {
                     console.error('Empty mentee list received');
@@ -70,19 +130,10 @@ const RoadmapGenerator: React.FC = () => {
         } catch (error) {
             console.error('Error fetching mentees:', error);
             if (axios.isAxiosError(error)) {
-                console.error('Error details:', {
-                    status: error.response?.status,
-                    data: error.response?.data,
-                    headers: error.response?.headers
-                });
                 if (error.response?.status === 401) {
                     setError('Session expired. Please log in again.');
                     localStorage.removeItem('accessToken');
                     window.location.href = '/login';
-                } else if (error.response?.status === 403) {
-                    setError('Access forbidden. Please check your permissions.');
-                } else if (error.response?.status === 404) {
-                    setError('API endpoint not found. Please contact support.');
                 } else {
                     setError(`Failed to fetch mentees: ${error.message}`);
                 }
@@ -92,9 +143,73 @@ const RoadmapGenerator: React.FC = () => {
         }
     };
 
+    const handleMenteeSelect = (e: React.ChangeEvent<HTMLSelectElement>) => {
+        const menteeId = e.target.value;
+        setSelectedMentee(menteeId);
+        
+        const mentee = mentees.find(m => m.id.toString() === menteeId);
+        setSelectedMenteeData(mentee || null);
+        
+        if (mentee?.has_roadmap) {
+            setViewingAssignedRoadmap(true);
+            // Fetch the assigned roadmap for this mentee
+            fetchAssignedRoadmap(mentee.id);
+        } else {
+            setViewingAssignedRoadmap(false);
+            setTopics([]);
+            setRoadmapDescription('');
+        }
+    };
+
+    const fetchAssignedRoadmap = async (menteeId: number) => {
+        try {
+            setLoading(true);
+            const token = localStorage.getItem('accessToken');
+            if (!token) return;
+
+            const response = await axios.get(
+                `${import.meta.env.VITE_API_URL}/mentor/get-mentee-roadmap/${menteeId}`,
+                {
+                    headers: {
+                        'Token': token,
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json'
+                    }
+                }
+            );
+
+            if (response.data) {
+                setRoadmapDescription(response.data.roadmap_explanation);
+                setTopics(response.data.topics.map((topic: Topic) => ({
+                    ...topic,
+                    isExpanded: false
+                })));
+                setCurrentRoadmapId(response.data.roadmap_id);
+                setIsAssigned(true);
+            }
+        } catch (error) {
+            console.error('Error fetching assigned roadmap:', error);
+            setError('Failed to fetch assigned roadmap');
+        } finally {
+            setLoading(false);
+        }
+    };
+
     const handleGenerateRoadmap = async () => {
         if (!selectedMentee) {
             setError('Please select a mentee first');
+            return;
+        }
+
+        const selectedMenteeData = mentees.find(m => m.id.toString() === selectedMentee);
+        if (!selectedMenteeData) {
+            setError('Selected mentee not found');
+            return;
+        }
+
+        // Check if roadmap is already assigned
+        if (selectedMenteeData.has_roadmap) {
+            setError('A roadmap has already been assigned to this mentee. Please select a different mentee.');
             return;
         }
 
@@ -107,13 +222,7 @@ const RoadmapGenerator: React.FC = () => {
                 return;
             }
 
-            const selectedMenteeData = mentees.find(m => m.id.toString() === selectedMentee);
-            if (!selectedMenteeData) {
-                setError('Selected mentee not found');
-                return;
-            }
-
-            const response = await axios.post('http://181.214.44.15:8080/roadmaps/generate', {
+            const response = await axios.post<RoadmapResponse>(`${import.meta.env.VITE_AI_API_URL}/roadmaps/generate/`, {
                 mentee_id: selectedMenteeData.id,
                 domain_id: selectedMenteeData.domain_id
             }, {
@@ -122,12 +231,18 @@ const RoadmapGenerator: React.FC = () => {
                     'Content-Type': 'application/json',
                     'Accept': 'application/json'
                 },
-                withCredentials: true
+                withCredentials: false
             });
 
             if (response.data) {
                 if (response.data.topics && Array.isArray(response.data.topics)) {
-                    setTopics(response.data.topics);
+                    setRoadmapDescription(response.data.roadmap_explanation);
+                    const transformedTopics = response.data.topics.map((topic: Topic) => ({
+                        ...topic,
+                        isExpanded: false
+                    }));
+                    
+                    setTopics(transformedTopics);
                     setCurrentRoadmapId(response.data.roadmap_id);
                 }
                 setError(null);
@@ -137,17 +252,7 @@ const RoadmapGenerator: React.FC = () => {
         } catch (error) {
             console.error('Error generating roadmap:', error);
             if (axios.isAxiosError(error)) {
-                if (error.response?.status === 401) {
-                    setError('Session expired. Please log in again.');
-                    localStorage.removeItem('accessToken');
-                    window.location.href = '/login';
-                } else if (error.response?.status === 403) {
-                    setError('Access forbidden. Please check your permissions.');
-                } else if (error.response?.status === 404) {
-                    setError('API endpoint not found. Please contact support.');
-                } else {
-                    setError(`Failed to generate roadmap: ${error.response?.data?.detail || error.message}`);
-                }
+                setError(`Failed to generate roadmap: ${error.response?.data?.detail || error.message}`);
             } else {
                 setError('An unexpected error occurred. Please try again later.');
             }
@@ -177,8 +282,31 @@ const RoadmapGenerator: React.FC = () => {
                 return;
             }
 
+            // Double check if roadmap is already assigned
+            try {
+                const roadmapResponse = await axios.get(
+                    `${import.meta.env.VITE_API_URL}/mentor/get-mentee-roadmap/${selectedMenteeData.id}`,
+                    {
+                        headers: {
+                            'Token': token,
+                            'Content-Type': 'application/json',
+                            'Accept': 'application/json'
+                        }
+                    }
+                );
+                if (roadmapResponse.data && roadmapResponse.data.topics && roadmapResponse.data.topics.length > 0) {
+                    setError('A roadmap has already been assigned to this mentee. Please select a different mentee.');
+                    return;
+                }
+            } catch (error) {
+                // If we get a 404, it means no roadmap exists, which is what we want
+                if (!axios.isAxiosError(error) || error.response?.status !== 404) {
+                    console.error('Error checking roadmap status:', error);
+                }
+            }
+
             const response = await axios.post(
-                'http://181.214.44.15:8080/mentor/assign-roadmap',
+                `${import.meta.env.VITE_API_URL}/mentor/assign-roadmap`,
                 {
                     mentee_id: selectedMenteeData.id,
                     domain_id: selectedMenteeData.domain_id,
@@ -198,6 +326,18 @@ const RoadmapGenerator: React.FC = () => {
                 console.log('Roadmap assigned:', response.data);
                 setIsAssigned(true);
                 setError(null);
+                
+                // Update the mentee's has_roadmap status
+                setMentees(mentees.map(mentee => 
+                    mentee.id === selectedMenteeData.id 
+                        ? { ...mentee, has_roadmap: true }
+                        : mentee
+                ));
+
+                // Clear the generated roadmap data
+                setTopics([]);
+                setRoadmapDescription('');
+                setCurrentRoadmapId(null);
             } else {
                 setError('Failed to assign roadmap');
             }
@@ -213,77 +353,522 @@ const RoadmapGenerator: React.FC = () => {
         }
     };
 
-    const isButtonDisabled = () => {
-        if (!selectedMentee || loading) return true;
-        const selectedMenteeData = mentees.find(m => m.id.toString() === selectedMentee);
-        return selectedMenteeData?.has_roadmap || false;
+    const handleAddTopic = () => {
+        if (!newTopic.name.trim()) {
+            setError('Topic name is required');
+            return;
+        }
+
+        const topic: Topic = {
+            topic_id: Date.now(), // Temporary ID
+            name: newTopic.name,
+            description: newTopic.description,
+            subtopics: [],
+            importance: newTopic.importance,
+            topic_status: 'pending',
+            isExpanded: false
+        };
+
+        setTopics([...topics, topic]);
+        setNewTopic({ name: '', description: '', importance: '' });
+        setShowAddTopicModal(false);
+    };
+
+    const handleAddSubtopic = () => {
+        if (!selectedTopicForSubtopic || !newSubtopic.name.trim()) {
+            setError('Subtopic name is required');
+            return;
+        }
+
+        const subtopic: Subtopic = {
+            id: Date.now(), // Temporary ID
+            name: newSubtopic.name,
+        };
+
+        setTopics(topics.map(topic => {
+            if (topic.topic_id === selectedTopicForSubtopic) {
+                return {
+                    ...topic,
+                    subtopics: [...topic.subtopics, subtopic.name]
+                };
+            }
+            return topic;
+        }));
+
+        setNewSubtopic({ name: '' });
+        setShowAddSubtopicModal(false);
+    };
+
+    const handleEditTopic = (topic: Topic) => {
+        setEditingTopic(topic);
+    };
+
+    const handleEditSubtopic = (topicId: number, subtopic: Subtopic) => {
+        setEditingSubtopic({ topicId, subtopic });
+    };
+
+    const handleDeleteTopic = (topicId: number) => {
+        setTopics(topics.filter(topic => topic.topic_id !== topicId));
+    };
+
+    const handleDeleteSubtopic = (topicId: number, subtopicId: number) => {
+        setTopics(topics.map(topic => {
+            if (topic.topic_id === topicId) {
+                return {
+                    ...topic,
+                    subtopics: topic.subtopics.filter((_, i) => i !== subtopicId)
+                };
+            }
+            return topic;
+        }));
+    };
+
+    const handleToggleTopic = (topicId: number) => {
+        setTopics(topics.map(topic => {
+            if (topic.topic_id === topicId) {
+                return {
+                    ...topic,
+                    isExpanded: !topic.isExpanded
+                };
+            }
+            return topic;
+        }));
+    };
+
+    const handleUpdateTopic = (updatedTopic: Topic) => {
+        setTopics(topics.map(topic => 
+            topic.topic_id === updatedTopic.topic_id ? updatedTopic : topic
+        ));
+        setEditingTopic(null);
+    };
+
+    const handleUpdateSubtopic = (topicId: number, updatedSubtopic: { id: number; name: string }) => {
+        setTopics(topics.map(topic => {
+            if (topic.topic_id === topicId) {
+                return {
+                    ...topic,
+                    subtopics: topic.subtopics.map((subtopic, index) => 
+                        index === updatedSubtopic.id ? updatedSubtopic.name : subtopic
+                    )
+                };
+            }
+            return topic;
+        }));
+        setEditingSubtopic(null);
     };
 
     useEffect(() => {
         fetchMentees();
+        
+        // Check if any mentee has a roadmap assigned
+        const checkAssignedRoadmaps = async () => {
+            try {
+                const token = localStorage.getItem('accessToken');
+                if (!token) return;
+
+                const response = await axios.get(`${import.meta.env.VITE_API_URL}/mentor/get-approved-mentee`, {
+                    headers: {
+                        'Token': token,
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json'
+                    },
+                    withCredentials: true
+                });
+
+                if (response.data && response.data.object) {
+                    const menteeList = response.data.object;
+                    if (Array.isArray(menteeList) && menteeList.length > 0) {
+                        setMentees(menteeList.map(mentee => ({
+                            ...mentee,
+                            has_roadmap: mentee.has_roadmap || false
+                        })));
+                    }
+                }
+            } catch (error) {
+                console.error('Error checking assigned roadmaps:', error);
+            }
+        };
+
+        checkAssignedRoadmaps();
     }, []);
 
     return (
         <div className="container mx-auto px-4 py-8">
-            <h1 className="text-3xl font-bold mb-8">Generate Learning Roadmap</h1>
-            <div className="bg-white rounded-lg shadow-lg">
+            <h1 className="text-3xl font-bold mb-8 text-indigo-800">Generate Learning Roadmap</h1>
+            <div className="bg-white rounded-lg shadow-xl border border-gray-200">
                 <div className="p-6">
-                    <div className="space-y-4">
-                        <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-2">Select Mentee</label>
+                    <div className="space-y-6">
+                        <div className="bg-indigo-50 p-4 rounded-lg">
+                            <label className="block text-sm font-medium text-indigo-700 mb-2">Select Mentee</label>
                             <select
                                 value={selectedMentee}
-                                onChange={(e) => setSelectedMentee(e.target.value)}
-                                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 p-2"
+                                onChange={handleMenteeSelect}
+                                className="mt-1 block w-full rounded-md border-indigo-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 p-2 bg-white"
                             >
                                 <option value="">Select a mentee</option>
                                 {mentees.map((mentee) => (
                                     <option key={mentee.id} value={mentee.id}>
                                         {mentee.name} - {mentee.domain_name}
-                                        {mentee.has_roadmap ? ' (Roadmap Assigned)' : ''}
                                     </option>
                                 ))}
                             </select>
                         </div>
 
-                        <button
-                            onClick={handleGenerateRoadmap}
-                            disabled={isButtonDisabled()}
-                            className={`w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white ${
-                                isButtonDisabled()
-                                    ? 'bg-gray-400 cursor-not-allowed'
-                                    : 'bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500'
-                            }`}
-                        >
-                            {loading ? 'Generating...' : 'Generate Roadmap'}
-                        </button>
+                        {selectedMenteeData?.has_roadmap && (
+                            <div className="bg-yellow-50 border-l-4 border-yellow-400 p-4">
+                                <div className="flex">
+                                    <div className="flex-shrink-0">
+                                        <svg className="h-5 w-5 text-yellow-400" viewBox="0 0 20 20" fill="currentColor">
+                                            <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+                                        </svg>
+                                    </div>
+                                    <div className="ml-3">
+                                        <p className="text-sm text-yellow-700">
+                                            A roadmap has already been assigned to this mentee. You can view it below.
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+                        )}
+
+                        {!selectedMenteeData?.has_roadmap && !viewingAssignedRoadmap && (
+                            <button
+                                onClick={handleGenerateRoadmap}
+                                disabled={loading || !selectedMentee}
+                                className={`w-full flex justify-center py-3 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white ${
+                                    loading || !selectedMentee
+                                        ? 'bg-gray-400 cursor-not-allowed'
+                                        : 'bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transform hover:scale-105 transition-transform duration-200'
+                                }`}
+                            >
+                                {loading ? (
+                                    <div className="flex items-center">
+                                        <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                                            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                        </svg>
+                                        Generating...
+                                    </div>
+                                ) : 'Generate Roadmap'}
+                            </button>
+                        )}
 
                         {error && (
-                            <div className="text-red-500 text-sm mt-2">{error}</div>
+                            <div className="bg-red-50 border-l-4 border-red-400 p-4">
+                                <div className="flex">
+                                    <div className="flex-shrink-0">
+                                        <svg className="h-5 w-5 text-red-400" viewBox="0 0 20 20" fill="currentColor">
+                                            <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
+                                        </svg>
+                                    </div>
+                                    <div className="ml-3">
+                                        <p className="text-sm text-red-700">{error}</p>
+                                    </div>
+                                </div>
+                            </div>
                         )}
 
                         {topics.length > 0 && (
-                            <div className="mt-6">
-                                <h3 className="text-lg font-semibold mb-4">Generated Roadmap</h3>
-                                <ol className="list-decimal pl-6 space-y-2">
-                                    {topics.map((topic, index) => (
-                                        <li key={index} className="text-gray-700">
-                                            {topic.name}
-                                        </li>
+                            <div className="mt-8">
+                                {roadmapDescription && (
+                                    <div className="mb-8 p-6 bg-indigo-50 rounded-lg border border-indigo-100">
+                                        <h3 className="text-xl font-semibold text-indigo-800 mb-4">Roadmap Overview</h3>
+                                        <p className="text-gray-700 leading-relaxed">{roadmapDescription}</p>
+                                    </div>
+                                )}
+
+                                <div className="flex justify-between items-center mb-6">
+                                    <h3 className="text-xl font-semibold text-indigo-800">Learning Topics</h3>
+                                    <button
+                                        onClick={() => setShowAddTopicModal(true)}
+                                        className="flex items-center px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 transform hover:scale-105 transition-transform duration-200"
+                                    >
+                                        <Plus className="h-4 w-4 mr-2" />
+                                        Add Topic
+                                    </button>
+                                </div>
+
+                                <div className="space-y-6">
+                                    {topics.map((topic) => (
+                                        <div 
+                                            key={topic.topic_id} 
+                                            className={`border rounded-lg p-6 bg-white shadow-md hover:shadow-lg transition-shadow duration-200`}
+                                        >
+                                            <div className="flex justify-between items-center">
+                                                <div className="flex items-center space-x-3">
+                                                    <GripVertical className="h-5 w-5 text-gray-400 cursor-move" />
+                                                    <button
+                                                        onClick={() => handleToggleTopic(topic.topic_id)}
+                                                        className="text-indigo-600 hover:text-indigo-800 transform hover:scale-110 transition-transform duration-200"
+                                                    >
+                                                        {topic.isExpanded ? <ChevronDown className="h-5 w-5" /> : <ChevronRight className="h-5 w-5" />}
+                                                    </button>
+                                                    <span className="font-medium text-lg text-gray-900">{topic.name}</span>
+                                                </div>
+                                                <div className="flex space-x-3">
+                                                    <button
+                                                        onClick={() => handleEditTopic(topic)}
+                                                        className="text-indigo-600 hover:text-indigo-800 transform hover:scale-110 transition-transform duration-200"
+                                                    >
+                                                        <Edit2 className="h-5 w-5" />
+                                                    </button>
+                                                    <button
+                                                        onClick={() => handleDeleteTopic(topic.topic_id)}
+                                                        className="text-red-600 hover:text-red-800 transform hover:scale-110 transition-transform duration-200"
+                                                    >
+                                                        <Trash2 className="h-5 w-5" />
+                                                    </button>
+                                                    <div className="relative group">
+                                                        <button
+                                                            onClick={() => {
+                                                                setSelectedTopicForSubtopic(topic.topic_id);
+                                                                setShowAddSubtopicModal(true);
+                                                            }}
+                                                            className="text-green-600 hover:text-green-800 transform hover:scale-110 transition-transform duration-200"
+                                                        >
+                                                            <Plus className="h-5 w-5" />
+                                                        </button>
+                                                        <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-2 py-1 bg-gray-800 text-white text-xs rounded opacity-0 group-hover:opacity-100 transition-opacity duration-200 whitespace-nowrap">
+                                                            Add Subtopic
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <p className="text-sm text-gray-600 mt-3 pl-8">{topic.description}</p>
+                                            
+                                            {topic.isExpanded && topic.subtopics.length > 0 && (
+                                                <div className="mt-6 pl-8 space-y-4">
+                                                    {topic.subtopics.map((subtopic, index) => (
+                                                        <div key={index} className="border-l-2 border-indigo-300 pl-4 py-3 bg-indigo-50 rounded-r-lg">
+                                                            <div className="flex justify-between items-center">
+                                                                <div>
+                                                                    <span className="font-medium text-gray-900">{subtopic}</span>
+                                                                </div>
+                                                                <div className="flex space-x-3">
+                                                                    <button
+                                                                        onClick={() => handleEditSubtopic(topic.topic_id, { id: index, name: subtopic })}
+                                                                        className="text-indigo-600 hover:text-indigo-800 transform hover:scale-110 transition-transform duration-200"
+                                                                    >
+                                                                        <Edit2 className="h-4 w-4" />
+                                                                    </button>
+                                                                    <button
+                                                                        onClick={() => handleDeleteSubtopic(topic.topic_id, index)}
+                                                                        className="text-red-600 hover:text-red-800 transform hover:scale-110 transition-transform duration-200"
+                                                                    >
+                                                                        <Trash2 className="h-4 w-4" />
+                                                                    </button>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    ))}
+                                                </div>
+                                            )}
+
+                                            <div className="mt-4 pl-8">
+                                                <div className="bg-indigo-50/50 p-4 rounded-lg border border-indigo-100/50">
+                                                    <h4 className="text-sm font-medium text-indigo-700 mb-2">Importance</h4>
+                                                    <p className="text-sm text-gray-700 leading-relaxed">{topic.importance}</p>
+                                                </div>
+                                            </div>
+                                        </div>
                                     ))}
-                                </ol>
+                                </div>
+
                                 <button
                                     onClick={handleAssignRoadmap}
                                     disabled={loading || isAssigned}
-                                    className="mt-4 w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 disabled:opacity-50"
+                                    className="mt-6 w-full flex justify-center py-3 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 disabled:opacity-50 transform hover:scale-105 transition-transform duration-200"
                                 >
-                                    {loading ? 'Assigning...' : isAssigned ? 'Roadmap Assigned' : 'Assign Roadmap'}
+                                    {loading ? (
+                                        <div className="flex items-center">
+                                            <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                                                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                            </svg>
+                                            Assigning...
+                                        </div>
+                                    ) : isAssigned ? 'Roadmap Assigned' : 'Assign Roadmap'}
                                 </button>
                             </div>
                         )}
                     </div>
                 </div>
             </div>
+
+            {/* Add Topic Modal */}
+            {showAddTopicModal && (
+                <div className="fixed inset-0 bg-gray-500 bg-opacity-75 flex items-center justify-center">
+                    <div className="bg-white rounded-lg p-6 max-w-md w-full">
+                        <h3 className="text-lg font-medium mb-4">Add New Topic</h3>
+                        <div className="space-y-4">
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700">Topic Name</label>
+                                <input
+                                    type="text"
+                                    value={newTopic.name}
+                                    onChange={(e) => setNewTopic({ ...newTopic, name: e.target.value })}
+                                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                                />
+                            </div>
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700">Description</label>
+                                <textarea
+                                    value={newTopic.description}
+                                    onChange={(e) => setNewTopic({ ...newTopic, description: e.target.value })}
+                                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                                    rows={3}
+                                />
+                            </div>
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700">Importance</label>
+                                <textarea
+                                    value={newTopic.importance}
+                                    onChange={(e) => setNewTopic({ ...newTopic, importance: e.target.value })}
+                                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                                    rows={3}
+                                />
+                            </div>
+                            <div className="flex justify-end space-x-3">
+                                <button
+                                    onClick={() => setShowAddTopicModal(false)}
+                                    className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-md hover:bg-gray-200"
+                                >
+                                    Cancel
+                                </button>
+                                <button
+                                    onClick={handleAddTopic}
+                                    className="px-4 py-2 text-sm font-medium text-white bg-indigo-600 rounded-md hover:bg-indigo-700"
+                                >
+                                    Add Topic
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* Add Subtopic Modal */}
+            {showAddSubtopicModal && (
+                <div className="fixed inset-0 bg-gray-500 bg-opacity-75 flex items-center justify-center">
+                    <div className="bg-white rounded-lg p-6 max-w-md w-full">
+                        <h3 className="text-lg font-medium mb-4">Add New Subtopic</h3>
+                        <div className="space-y-4">
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700">Subtopic Name</label>
+                                <input
+                                    type="text"
+                                    value={newSubtopic.name}
+                                    onChange={(e) => setNewSubtopic({ name: e.target.value })}
+                                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                                />
+                            </div>
+                            <div className="flex justify-end space-x-3">
+                                <button
+                                    onClick={() => setShowAddSubtopicModal(false)}
+                                    className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-md hover:bg-gray-200"
+                                >
+                                    Cancel
+                                </button>
+                                <button
+                                    onClick={handleAddSubtopic}
+                                    className="px-4 py-2 text-sm font-medium text-white bg-indigo-600 rounded-md hover:bg-indigo-700"
+                                >
+                                    Add Subtopic
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* Edit Topic Modal */}
+            {editingTopic && (
+                <div className="fixed inset-0 bg-gray-500 bg-opacity-75 flex items-center justify-center">
+                    <div className="bg-white rounded-lg p-8 max-w-2xl w-full">
+                        <h3 className="text-lg font-medium mb-6">Edit Topic</h3>
+                        <div className="space-y-6">
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-2">Topic Name</label>
+                                <input
+                                    type="text"
+                                    value={editingTopic.name}
+                                    onChange={(e) => setEditingTopic({ ...editingTopic, name: e.target.value })}
+                                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 p-3"
+                                />
+                            </div>
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-2">Description</label>
+                                <textarea
+                                    value={editingTopic.description}
+                                    onChange={(e) => setEditingTopic({ ...editingTopic, description: e.target.value })}
+                                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 p-3"
+                                    rows={4}
+                                />
+                            </div>
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-2">Importance</label>
+                                <textarea
+                                    value={editingTopic.importance}
+                                    onChange={(e) => setEditingTopic({ ...editingTopic, importance: e.target.value })}
+                                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 p-3"
+                                    rows={4}
+                                />
+                            </div>
+                            <div className="flex justify-end space-x-3">
+                                <button
+                                    onClick={() => setEditingTopic(null)}
+                                    className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-md hover:bg-gray-200"
+                                >
+                                    Cancel
+                                </button>
+                                <button
+                                    onClick={() => handleUpdateTopic(editingTopic)}
+                                    className="px-4 py-2 text-sm font-medium text-white bg-indigo-600 rounded-md hover:bg-indigo-700"
+                                >
+                                    Save Changes
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* Edit Subtopic Modal */}
+            {editingSubtopic && (
+                <div className="fixed inset-0 bg-gray-500 bg-opacity-75 flex items-center justify-center">
+                    <div className="bg-white rounded-lg p-6 max-w-md w-full">
+                        <h3 className="text-lg font-medium mb-4">Edit Subtopic</h3>
+                        <div className="space-y-4">
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700">Subtopic Name</label>
+                                <input
+                                    type="text"
+                                    value={editingSubtopic.subtopic.name}
+                                    onChange={(e) => setEditingSubtopic({
+                                        ...editingSubtopic,
+                                        subtopic: { ...editingSubtopic.subtopic, name: e.target.value }
+                                    })}
+                                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                                />
+                            </div>
+                            <div className="flex justify-end space-x-3">
+                                <button
+                                    onClick={() => setEditingSubtopic(null)}
+                                    className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-md hover:bg-gray-200"
+                                >
+                                    Cancel
+                                </button>
+                                <button
+                                    onClick={() => handleUpdateSubtopic(editingSubtopic.topicId, editingSubtopic.subtopic)}
+                                    className="px-4 py-2 text-sm font-medium text-white bg-indigo-600 rounded-md hover:bg-indigo-700"
+                                >
+                                    Save Changes
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 };

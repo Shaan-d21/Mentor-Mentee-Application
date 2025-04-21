@@ -38,8 +38,8 @@ interface MentorshipRequest {
 }
 
 // Add these constants at the top of the file
-const API_URL = import.meta.env.VITE_API_URL ;
-const AI_API_URL = import.meta.env.VITE_AI_API_URL;
+// const API_URL = import.meta.env.VITE_API_URL ;
+// const AI_API_URL = import.meta.env.VITE_AI_API_URL;
 
 const FindMentors: React.FC = () => {
   const navigate = useNavigate();
@@ -80,10 +80,10 @@ const FindMentors: React.FC = () => {
         return;
       }
       
-      console.log('Fetching requests from:', `${API_URL}/mentee/Requests`);
+      console.log('Fetching requests from:', `${import.meta.env.VITE_API_URL}/mentee/Requests`);
       
       const response = await axios.get(
-        `${API_URL}/mentee/Requests`,
+        `${import.meta.env.VITE_API_URL}/mentee/Requests`,
         {
           headers: { 
             'Token': accessToken,
@@ -200,10 +200,10 @@ const FindMentors: React.FC = () => {
       const trimmedDomain = compatibilityDomain.trim();
       
       console.log('Checking compatibility for domain:', trimmedDomain);
-      console.log('Using API URL:', AI_API_URL);
+      console.log('Using API URL:', import.meta.env.VITE_API_URL);
       
       const response = await axios.get(
-        `${AI_API_URL}/predict`,
+        `${import.meta.env.VITE_AI_API_URL}/predict/`,
         {
           params: {
             d: compatibilityDomain
@@ -474,12 +474,12 @@ const FindMentors: React.FC = () => {
             {isCheckingCompatibility ? (
               <>
                 <div className="animate-spin mr-2 h-4 w-4 border-2 border-white border-t-transparent rounded-full"></div>
-                Checking...
+                Finding Mentors...
               </>
             ) : (
               <>
                 <Check size={18} className="mr-2" />
-                Check Compatibility
+                Find
               </>
             )}
           </button>

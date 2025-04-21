@@ -31,7 +31,7 @@ const LoginPage: React.FC = () => {
       formData.append('password', password);
 
       const response = await axios.post(
-        `${import.meta.env.VITE_API_URL || 'https://mm-be.shaandewang.publicvm.com'}/authentication/login`,
+        `${import.meta.env.VITE_API_URL}/authentication/login`,
         formData,
         {
           headers: {

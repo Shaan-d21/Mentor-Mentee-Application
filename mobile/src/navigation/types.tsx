@@ -14,7 +14,8 @@ export type RootStackParamList = {
   MenteeRoadmap: undefined;
   CheckRequestScreen: undefined;
   MenteeProfileScreen: undefined;
-  CheckCompatibility:undefined;
+  CheckCompatibility: undefined;
+  CheckReport: {mentorId: number; score: number; domain: string}; // Define the parameters
   MentorProgress: {
     roadmap_id: number;
     mentee_id: number;
@@ -25,12 +26,12 @@ export type RootStackParamList = {
   temp: undefined;
   viewRoadmap: undefined;
   generateRoadmap: undefined;
+  MenteeFeedback: undefined;
 
   RoadmapScreen: {
-    mentor_id: number;
-    domain_name: string;
-    domain_id: number;
+    roadmap_id: number;
   };
+
 };
 
 export type ScreenProps<T extends keyof RootStackParamList> =

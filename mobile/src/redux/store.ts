@@ -7,9 +7,11 @@ import sliceMenteeDashboard from './slices/sliceMenteeDashboard';
 import menteeRequestsSlice from './slices/mentorSlice';
 import MenteeRoadmapSlice from './slices/sliceMenteeRoadmap';
 import MentorRoadmapSlice from './slices/sliceMentorRoadmap';
-import  roadmapSlice from './slices/sliceRoadmapTopics';
+import sliceRoadmapTopics from './slices/sliceRoadmapTopics';
 import mentorProgressSlice from './slices/sliceMentorProgress';
+import { useDispatch } from 'react-redux';
 
+import checkReportSlice from './slices/SliceCheckReport';
 export const store = configureStore({
   reducer: {
     login: loginReducer,
@@ -20,12 +22,14 @@ export const store = configureStore({
     mentorProfile: mentorProfileReducer,
     mentorDashboard: menteeRequestsSlice,
     menteeRoadmap: MenteeRoadmapSlice,
-    mentorRoadmap:MentorRoadmapSlice,
-    roadmap: roadmapSlice,
+    mentorRoadmap: MentorRoadmapSlice,
+    viewRoadmap: sliceRoadmapTopics,
     mentorProgress: mentorProgressSlice,
+    checkReport: checkReportSlice,
   },
   middleware: getDefaultMiddleware => getDefaultMiddleware(),
 });
 
 export type RootState = ReturnType<typeof store.getState>;
 export type AppDispatch = typeof store.dispatch;
+export const useAppDispatch = () => useDispatch<AppDispatch>();
