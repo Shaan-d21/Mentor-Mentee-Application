@@ -2,13 +2,13 @@ import axios from 'axios';
 import {MMKV} from 'react-native-mmkv';
 
 const storage = new MMKV();
-const api = axios.create({
-  // baseURL: process.env.API_URL,
-  headers: {
-    'Content-Type': 'application/json',
-    token: storage.getString('token'),
-  },
-});
+// const api = axios.create({
+//   // baseURL: process.env.API_URL,
+//   headers: {
+//     'Content-Type': 'application/json',
+//     token: storage.getString('token'),
+//   },
+// });
 
 export const apiFetchReport = async (credentials: {
   mentorId: number;
@@ -23,8 +23,8 @@ export const apiFetchReport = async (credentials: {
     };
     console.log('Request Data:', data); // Debugging log to verify request data
 
-    const response = await api.post(
-      'https://mm-ai.shaandewang.publicvm.com/matching_report',
+    const response = await axios.post(
+      `${process.env.AI_SERVER}matching_report`,
       JSON.stringify(data),
       {
         headers: {

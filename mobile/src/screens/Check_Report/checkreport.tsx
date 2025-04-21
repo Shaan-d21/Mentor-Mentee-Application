@@ -110,8 +110,19 @@ const CheckReport = ({route}: any) => {
           </>
         )}
 
-        <Text style={styles.section}>Summary of the Report</Text>
-        <Text style={styles.summary}>{data.summary}</Text>
+<Text style={styles.section}>Summary of the Report</Text>
+<View style={styles.summaryContainer}>
+  {Array.isArray(data.summary) ? (
+    data.summary.map((point, index) => (
+      <View key={index} style={styles.bulletPoint}>
+        <Text style={styles.bullet}>•</Text>
+        <Text style={styles.summaryText}>{point}</Text>
+      </View>
+    ))
+  ) : (
+    <Text style={styles.summary}>{data.summary}</Text>
+  )}
+</View>
       </ScrollView>
     </View>
   );
@@ -214,6 +225,51 @@ const styles = StyleSheet.create({
     color: 'red',
     marginTop: 50,
   },
+  // section: {
+  //   fontSize: 22,
+  //   fontWeight: '700',
+  //   marginTop: 30,
+  //   color: '#1A237E', // Deep blue color for heading
+  // },
+  
+  summaryContainer: {
+    marginTop: 14,
+    backgroundColor: '#E3F2FD', // Light blue background
+    borderRadius: 12,
+    padding: 16,
+    elevation: 2,
+  },
+  
+  bulletPoint: {
+    flexDirection: 'row',
+    marginBottom: 8,
+    alignItems: 'flex-start',
+  },
+  
+  bullet: {
+    fontSize: 15,
+    color: '#000000', // Black color for bullets
+    marginRight: 8,
+    fontWeight: '600',
+    lineHeight: 22,
+  },
+  
+  summaryText: {
+    flex: 1,
+    fontSize: 15,
+    color: '#000000', // Black color for text
+    fontWeight: '500',
+    lineHeight: 22,
+  },
+  
+  // summary: {
+  //   fontSize: 15,
+  //   color: '#000000', // Black color for non-array summary
+  //   lineHeight: 22,
+  //   fontWeight: '500',
+  // },
+  
+
 });
 
 export default CheckReport;
