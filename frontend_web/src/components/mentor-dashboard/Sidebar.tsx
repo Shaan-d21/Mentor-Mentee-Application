@@ -8,12 +8,7 @@ import {
   ChevronRight,
   Menu,
   Map,
-  Home,
-  User,
-  Search,
   FileText,
-  Bell,
-  BookOpen
 } from 'lucide-react';
 
 interface SidebarProps {
