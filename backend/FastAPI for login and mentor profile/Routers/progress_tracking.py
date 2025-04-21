@@ -66,7 +66,8 @@ async def mark_complete(user: user_dependency, db: db_dependency, req: Feedback_
         sender_id = user.get('user_id'),
         receiver_id = req.mentee_id,
         feedback = req.feedback,
-        sender_role = 'mentor'
+        sender_role = 'mentor',
+        topic_id = req.topic_id
     )
     db.add(topic_model)
     db.add(feedback_model)
@@ -89,7 +90,8 @@ async def reassign_topic(user: user_dependency, db: db_dependency, req: Feedback
         sender_id = user.get('user_id'),
         receiver_id = req.mentee_id,
         feedback = req.feedback,
-        sender_role = 'mentor'
+        sender_role = 'mentor',
+        topic_id = req.topic_id
     )
     db.add(feedback_model)
     topic_model.status = 'assigned'
