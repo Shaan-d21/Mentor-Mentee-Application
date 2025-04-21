@@ -35,7 +35,7 @@ services:
   frontend:
     build: ./frontend_web
     env_file:
-      - .env
+      - ./frontend_web/.env
     container_name: mentor_mentee_frontend
     restart: always
     ports:
