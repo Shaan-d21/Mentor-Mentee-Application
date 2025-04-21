@@ -183,7 +183,7 @@ const RegisterPage: React.FC = () => {
           Create Account
         </h2>
         <select
-          className="w-full p-3 mb-4 border border-gray-300 rounded-lg bg-white focus:ring-2 focus:ring-blue-500"
+          className="w-full p-3 mb-4 border border-gray-300 rounded-lg bg-white focus:ring-2 focus:ring-blue-500 cursor-pointer"
           onChange={(e) => setUserType(e.target.value)}
           value={userType}
           disabled={isSubmitting}
@@ -197,7 +197,7 @@ const RegisterPage: React.FC = () => {
             placeholder="Full Name"
             className={`w-full p-3 border ${
               nameError ? "border-red-500" : "border-gray-300"
-            } rounded-lg bg-white focus:ring-2 focus:ring-blue-500`}
+            } rounded-lg bg-white focus:ring-2 focus:ring-blue-500 cursor-pointer`}
             value={name}
             onChange={handleNameChange}
             disabled={isSubmitting}
@@ -212,7 +212,7 @@ const RegisterPage: React.FC = () => {
             placeholder="Email"
             className={`w-full p-3 border ${
               emailError ? "border-red-500" : "border-gray-300"
-            } rounded-lg bg-white focus:ring-2 focus:ring-blue-500`}
+            } rounded-lg bg-white focus:ring-2 focus:ring-blue-500 cursor-pointer`}
             value={email}
             onChange={handleEmailChange}
             disabled={isSubmitting}
@@ -227,7 +227,7 @@ const RegisterPage: React.FC = () => {
               placeholder="Password"
               className={`w-full p-3 border ${
                 passwordError ? "border-red-500" : "border-gray-300"
-              } rounded-lg bg-white focus:ring-2 focus:ring-blue-500`}
+              } rounded-lg bg-white focus:ring-2 focus:ring-blue-500 cursor-pointer`}
               value={password}
               onChange={handlePasswordChange}
               disabled={isSubmitting}
@@ -236,7 +236,7 @@ const RegisterPage: React.FC = () => {
             />
             <button
               type="button"
-              className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-600 hover:text-gray-800"
+              className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-600 hover:text-gray-800 cursor-pointer"
               onClick={() => setShowPassword(!showPassword)}
               aria-label={showPassword ? "Hide password" : "Show password"}
             >
@@ -254,7 +254,7 @@ const RegisterPage: React.FC = () => {
           className={`w-full p-3 mt-6 text-white rounded-lg transition-colors duration-200 ${
             isSubmitting || emailError || passwordError || nameError
               ? "bg-blue-400 cursor-not-allowed"
-              : "bg-blue-600 hover:bg-blue-700"
+              : "bg-blue-600 hover:bg-blue-700 cursor-pointer"
           }`}
           disabled={isSubmitting || !!emailError || !!passwordError || !!nameError}
         >
@@ -262,7 +262,7 @@ const RegisterPage: React.FC = () => {
         </button>
         <p className="mt-4 text-center text-gray-600">
           Already have an account?{" "}
-          <a href="/auth/login" className="text-blue-500 hover:underline">
+          <a href="/auth/login" className="text-blue-500 hover:underline cursor-pointer">
             Log In
           </a>
         </p>

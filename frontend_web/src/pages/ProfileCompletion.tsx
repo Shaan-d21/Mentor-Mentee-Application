@@ -626,7 +626,7 @@ const ProfileCompletion = () => {
             onChange={handleChange}
             className={`w-full p-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-500 ${
               errors.full_name ? 'border-red-500' : ''
-            }`} 
+            } cursor-pointer`} 
             required 
             placeholder="Enter your full name"
           />
@@ -640,7 +640,7 @@ const ProfileCompletion = () => {
             type="email" 
             name="email" 
             value={profile.email} 
-            className="w-full p-2 border rounded bg-gray-50" 
+            className="w-full p-2 border rounded bg-gray-50 cursor-pointer" 
             readOnly 
           />
           <p className="text-xs text-gray-500 mt-1">Email cannot be changed (tied to your account)</p>
@@ -657,7 +657,7 @@ const ProfileCompletion = () => {
             name="contact_number" 
             className={`w-full p-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-500 ${
               errors.contact_number ? 'border-red-500' : ''
-            }`}
+            } cursor-pointer`}
             value={profile.contact_number}
             onChange={handleChange} 
             placeholder="10-digit phone number"
@@ -678,7 +678,7 @@ const ProfileCompletion = () => {
             name="designation" 
             value={profile.designation} 
             onChange={handleChange}
-            className="w-full p-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="w-full p-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-500 cursor-pointer"
             required 
             placeholder={role === 'mentor' ? "Your job title (e.g. Senior Developer)" : "Your current designation (e.g., Intern, Developer)"}
           />
@@ -698,7 +698,7 @@ const ProfileCompletion = () => {
               onChange={handleChange}
               className={`w-full p-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-500 ${
                 errors.experience ? 'border-red-500' : ''
-              }`}
+              } cursor-pointer`}
               min="1"
               max="50"
               required 
@@ -722,7 +722,7 @@ const ProfileCompletion = () => {
               onChange={handleChange}
               className={`w-full p-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-500 ${
                 errors.domain ? 'border-red-500' : ''
-              }`}
+              } cursor-pointer`}
               required
             >
               <option value="">Select a domain</option>
@@ -789,7 +789,7 @@ const ProfileCompletion = () => {
                   ) && (
                     <div className="mt-1 ml-6 px-3 py-1">
                       <select
-                        className="text-sm border rounded p-1"
+                        className="text-sm border rounded p-1 cursor-pointer"
                         value={(profile.skills.find(s => 
                           typeof s !== 'string' && s.name === skill && isMentorSkill(s)
                         ) as MentorSkill)?.proficiency || 2}
@@ -812,7 +812,7 @@ const ProfileCompletion = () => {
 
         <button 
           type="submit" 
-          className="w-full bg-blue-600 text-white py-2 px-4 rounded hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors"
+          className="w-full bg-blue-600 text-white py-2 px-4 rounded hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors cursor-pointer"
           disabled={submitting}
         >
           {submitting ? "Submitting..." : "Complete Profile"}

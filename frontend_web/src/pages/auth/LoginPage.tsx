@@ -145,7 +145,7 @@ const LoginPage: React.FC = () => {
               onChange={handleEmailChange}
               className={`appearance-none block w-full px-3 py-2 border ${
                 emailError ? "border-red-300" : "border-gray-300"
-              } rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-blue-700 focus:border-blue-700 sm:text-sm`}
+              } rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-blue-700 focus:border-blue-700 sm:text-sm cursor-pointer`}
               placeholder="Enter your email"
             />
             {emailError && <p className="mt-1 text-sm text-red-600">{emailError}</p>}
@@ -166,12 +166,12 @@ const LoginPage: React.FC = () => {
               onChange={handlePasswordChange}
               className={`appearance-none block w-full px-3 py-2 border ${
                 passwordError ? "border-red-300" : "border-gray-300"
-              } rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-blue-700 focus:border-blue-700 sm:text-sm pr-10`}
+              } rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-blue-700 focus:border-blue-700 sm:text-sm pr-10 cursor-pointer`}
               placeholder="Enter your password"
             />
             <button
               type="button"
-              className="absolute inset-y-0 right-0 pr-3 flex items-center"
+              className="absolute inset-y-0 right-0 pr-3 flex items-center cursor-pointer"
               onClick={() => setShowPassword(!showPassword)}
             >
               {showPassword ? (
@@ -211,7 +211,7 @@ const LoginPage: React.FC = () => {
             type="submit"
             disabled={loading}
             className={`w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-700 hover:bg-blue-700-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-700 ${
-              loading ? "opacity-70 cursor-not-allowed" : ""
+              loading ? "opacity-70 cursor-not-allowed" : "cursor-pointer"
             }`}
           >
             {loading ? "Logging in..." : "Login"}
@@ -221,7 +221,7 @@ const LoginPage: React.FC = () => {
         <div className="text-center mt-4">
           <p className="text-sm text-gray-600">
             Don't have an account?{" "}
-            <a href="/auth/register" className="font-medium text-blue-700 hover:text-blue-700">
+            <a href="/auth/register" className="font-medium text-blue-700 hover:text-blue-700 cursor-pointer">
               Register here
             </a>
           </p>

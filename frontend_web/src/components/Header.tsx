@@ -82,7 +82,7 @@ const Header: React.FC<HeaderProps> = ({ userRole }) => {
               toast.dismiss(t.id);
               setIsLoggingOut(false);
             }}
-            className="px-3 py-1 text-sm text-gray-600 hover:text-gray-800"
+            className="px-3 py-1 text-sm text-gray-600 hover:text-gray-800 cursor-pointer"
           >
             Cancel
           </button>
@@ -102,7 +102,7 @@ const Header: React.FC<HeaderProps> = ({ userRole }) => {
               toast.success("Logged out successfully!");
               navigate("/auth/login");
             }}
-            className="px-3 py-1 text-sm text-white bg-red-600 hover:bg-red-700 rounded"
+            className="px-3 py-1 text-sm text-white bg-red-600 hover:bg-red-700 rounded cursor-pointer"
           >
             Logout
           </button>

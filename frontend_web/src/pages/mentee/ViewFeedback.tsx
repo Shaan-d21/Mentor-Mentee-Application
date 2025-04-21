@@ -9,6 +9,14 @@ interface Domain {
   status: string;
 }
 
+interface Topic {
+  id: number;
+  name: string;
+  feedback: string;
+  mentor_name: string;
+  mentee_id: number;
+}
+
 interface Feedback {
   feedback_id: number;
   mentee_id: number;
@@ -17,6 +25,7 @@ interface Feedback {
   feedback: string;
   mentor_name: string;
   domain_name: string;
+  topic_name: string;
 }
 
 interface FeedbackResponse {
@@ -39,13 +48,15 @@ interface AnalysisResponse {
 const ViewFeedback: React.FC = () => {
   const [domains, setDomains] = useState<Domain[]>([]);
   const [selectedDomain, setSelectedDomain] = useState<Domain | null>(null);
-  const [feedbacks, setFeedbacks] = useState<Feedback[]>([]);
+  const [topics, setTopics] = useState<Topic[]>([]);
+  const [selectedTopic, setSelectedTopic] = useState<Topic | null>(null);
   const [loading, setLoading] = useState(true);
   const [analyzingFeedbackId, setAnalyzingFeedbackId] = useState<number | null>(null);
   const [summarizingFeedbackId, setSummarizingFeedbackId] = useState<number | null>(null);
   const [activeResult, setActiveResult] = useState<{id: number, type: 'analysis' | 'summary'} | null>(null);
   const [analysisResults, setAnalysisResults] = useState<Record<number, AnalysisResponse['data']>>({});
   const [summaryResults, setSummaryResults] = useState<Record<number, string>>({});
+  const [feedbacks, setFeedbacks] = useState<Feedback[]>([]);
 
   useEffect(() => {
     fetchDomains();
@@ -111,7 +122,8 @@ const ViewFeedback: React.FC = () => {
 
   const handleDomainSelect = async (domain: Domain) => {
     setSelectedDomain(domain);
-    setFeedbacks([]);
+    setTopics([]);
+    setSelectedTopic(null);
     
     try {
       const accessToken = localStorage.getItem('accessToken');
@@ -131,11 +143,28 @@ const ViewFeedback: React.FC = () => {
       );
 
       if (response.data && response.data["Feedback List"]) {
-        // Filter feedbacks for the selected domain
+        // Filter feedbacks for the selected domain and group by topic
         const domainFeedbacks = response.data["Feedback List"].filter(
           fb => fb.domain_name === domain.name
         );
-        setFeedbacks(domainFeedbacks);
+
+        // Create unique topics with their feedback
+        const uniqueTopics = domainFeedbacks.reduce((acc: Topic[], feedback) => {
+          const existingTopic = acc.find(t => t.name === feedback.topic_name);
+          if (!existingTopic) {
+            acc.push({
+              id: feedback.feedback_id,
+              name: feedback.topic_name,
+              feedback: feedback.feedback,
+              mentor_name: feedback.mentor_name,
+              mentee_id: feedback.mentee_id
+            });
+          }
+          return acc;
+        }, []);
+
+        setTopics(uniqueTopics);
+        setFeedbacks(response.data["Feedback List"]);
       }
     } catch (error) {
       console.error('Error fetching feedbacks:', error);
@@ -143,7 +172,7 @@ const ViewFeedback: React.FC = () => {
     }
   };
 
-  const handleAnalyze = async (feedbackId: number, menteeId: number) => {
+  const handleAnalyze = async (feedbackId: number) => {
     setAnalyzingFeedbackId(feedbackId);
     setActiveResult(null);
     try {
@@ -152,8 +181,14 @@ const ViewFeedback: React.FC = () => {
         throw new Error('No access token found');
       }
 
+      // Get the feedback data to ensure we have the correct mentee_id
+      const feedback = feedbacks.find(fb => fb.feedback_id === feedbackId);
+      if (!feedback) {
+        throw new Error('Feedback not found');
+      }
+
       const response = await axios.get<AnalysisResponse>(
-        `${import.meta.env.VITE_AI_API_URL}/mentee/feedback/${menteeId}/${feedbackId}`,
+        `${import.meta.env.VITE_AI_API_URL}/mentee/feedback/${feedback.mentee_id}/${feedbackId}`,
         {
           headers: { 
             'Token': accessToken,
@@ -234,6 +269,7 @@ const ViewFeedback: React.FC = () => {
       <h2 className="text-2xl font-bold mb-8">View Feedback</h2>
       
       <div className="bg-white rounded-lg shadow-md p-6">
+        {/* Domain Selection */}
         <div className="mb-6">
           <label className="block text-sm font-medium text-gray-700 mb-2">
             Select Domain
@@ -258,138 +294,163 @@ const ViewFeedback: React.FC = () => {
           </div>
         </div>
 
+        {/* Topics List */}
         {selectedDomain && (
           <div className="mt-6">
-            {feedbacks.length > 0 ? (
-              <div className="space-y-6">
-                {/* Mentor Name Header */}
-                <div className="text-center mb-6">
-                  <h3 className="text-xl font-semibold text-gray-800">
-                    Feedback from {feedbacks[0].mentor_name}
-                  </h3>
-                </div>
-
-                {/* Feedback Cards */}
-                <div className="grid gap-4">
-                  {feedbacks.map((feedback) => (
-                    <div 
-                      key={feedback.feedback_id} 
-                      className="bg-white p-4 rounded-lg border border-gray-200 hover:border-blue-300 hover:shadow-md transition-all duration-200"
-                    >
-                      <p className="text-gray-700 leading-relaxed mb-4">{feedback.feedback}</p>
-                      
-                      {/* Action Buttons */}
-                      <div className="flex justify-end space-x-4">
-                        <button
-                          onClick={() => handleAnalyze(feedback.feedback_id, feedback.mentee_id)}
-                          disabled={analyzingFeedbackId === feedback.feedback_id || summarizingFeedbackId === feedback.feedback_id}
-                          className="flex items-center px-4 py-2 bg-pink-100 text-pink-700 rounded-md hover:bg-pink-200 transition-colors cursor-pointer disabled:opacity-50"
-                        >
-                          {analyzingFeedbackId === feedback.feedback_id ? (
-                            <>
-                              <Loader2 className="w-5 h-5 mr-2 animate-spin" />
-                              Analyzing...
-                            </>
-                          ) : (
-                            <>
-                              <Brain className="w-5 h-5 mr-2" />
-                              Analyze
-                            </>
-                          )}
-                        </button>
-                        <button
-                          onClick={() => handleSummarize(feedback.feedback_id, feedback.feedback)}
-                          disabled={summarizingFeedbackId === feedback.feedback_id || analyzingFeedbackId === feedback.feedback_id}
-                          className="flex items-center px-4 py-2 bg-indigo-100 text-indigo-700 rounded-md hover:bg-indigo-200 transition-colors cursor-pointer disabled:opacity-50"
-                        >
-                          {summarizingFeedbackId === feedback.feedback_id ? (
-                            <>
-                              <Loader2 className="w-5 h-5 mr-2 animate-spin" />
-                              Summarizing...
-                            </>
-                          ) : (
-                            <>
-                              <FileText className="w-5 h-5 mr-2" />
-                              Summarize
-                            </>
-                          )}
-                        </button>
+            {topics.length > 0 ? (
+              <div className="space-y-4">
+                <h3 className="text-lg font-semibold text-gray-800 mb-4">
+                  Topics in {selectedDomain.name}
+                </h3>
+                {topics.map((topic) => (
+                  <div
+                    key={topic.id}
+                    className={`p-4 rounded-lg border transition-all duration-200 cursor-pointer ${
+                      selectedTopic?.id === topic.id
+                        ? 'border-blue-500 bg-blue-50'
+                        : 'border-gray-200 hover:border-blue-300 hover:bg-gray-50'
+                    }`}
+                    onClick={() => setSelectedTopic(selectedTopic?.id === topic.id ? null : topic)}
+                  >
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <h4 className="font-medium text-gray-800">{topic.name}</h4>
+                        <span className="text-base font-medium text-gray-600">by {topic.mentor_name}</span>
                       </div>
-
-                      {/* Analysis Results */}
-                      {!analyzingFeedbackId && activeResult?.id === feedback.feedback_id && activeResult.type === 'analysis' && analysisResults[feedback.feedback_id] && (
-                        <div className="mt-4 space-y-4">
-                          {/* Key Takeaways Section */}
-                          <div className="bg-green-50 rounded-lg p-4 border border-green-100">
-                            <div className="flex items-center mb-3">
-                              <div className="bg-green-100 p-2 rounded-full mr-3">
-                                <CheckCircle className="w-5 h-5 text-green-600" />
-                              </div>
-                              <h4 className="text-lg font-semibold text-green-800">Key Takeaways</h4>
-                            </div>
-                            <ul className="space-y-2 pl-6">
-                              {analysisResults[feedback.feedback_id]["key takeaways"].map((item, index) => (
-                                <li key={index} className="text-green-700 flex items-start">
-                                  <span className="text-green-500 mr-2">•</span>
-                                  {item}
-                                </li>
-                              ))}
-                            </ul>
-                          </div>
-
-                          {/* Improvement Areas Section */}
-                          <div className="bg-yellow-50 rounded-lg p-4 border border-yellow-100">
-                            <div className="flex items-center mb-3">
-                              <div className="bg-yellow-100 p-2 rounded-full mr-3">
-                                <AlertCircle className="w-5 h-5 text-yellow-600" />
-                              </div>
-                              <h4 className="text-lg font-semibold text-yellow-800">Improvement Areas</h4>
-                            </div>
-                            <ul className="space-y-2 pl-6">
-                              {analysisResults[feedback.feedback_id]["improvement areas"].map((item, index) => (
-                                <li key={index} className="text-yellow-700 flex items-start">
-                                  <span className="text-yellow-500 mr-2">•</span>
-                                  {item}
-                                </li>
-                              ))}
-                            </ul>
-                          </div>
-
-                          {/* Action Items Section */}
-                          <div className="bg-blue-50 rounded-lg p-4 border border-blue-100">
-                            <div className="flex items-center mb-3">
-                              <div className="bg-blue-100 p-2 rounded-full mr-3">
-                                <ClipboardList className="w-5 h-5 text-blue-600" />
-                              </div>
-                              <h4 className="text-lg font-semibold text-blue-800">Action Items</h4>
-                            </div>
-                            <ul className="space-y-2 pl-6">
-                              {analysisResults[feedback.feedback_id]["action items"].map((item, index) => (
-                                <li key={index} className="text-blue-700 flex items-start">
-                                  <span className="text-blue-500 mr-2">•</span>
-                                  {item}
-                                </li>
-                              ))}
-                            </ul>
-                          </div>
-                        </div>
-                      )}
-
-                      {/* Summary Results */}
-                      {!summarizingFeedbackId && activeResult?.id === feedback.feedback_id && activeResult.type === 'summary' && summaryResults[feedback.feedback_id] && (
-                        <div className="mt-4 p-4 bg-gray-50 rounded-lg border border-gray-200">
-                          <div className="flex items-center mb-3">
-                            <div className="bg-gray-100 p-2 rounded-full mr-3">
-                              <FileText className="w-5 h-5 text-gray-600" />
-                            </div>
-                            <h4 className="text-lg font-semibold text-gray-800">Summary</h4>
-                          </div>
-                          <p className="text-gray-700 leading-relaxed">{summaryResults[feedback.feedback_id]}</p>
-                        </div>
-                      )}
+                      <div className="flex items-center space-x-2">
+                        <ChevronDown
+                          className={`w-4 h-4 text-gray-400 transform transition-transform ${
+                            selectedTopic?.id === topic.id ? 'rotate-180' : ''
+                          }`}
+                        />
+                      </div>
                     </div>
-                  ))}
-                </div>
+                    {selectedTopic?.id === topic.id && (
+                      <div className="mt-4 pt-4 border-t border-gray-200">
+                        <p className="text-gray-700 leading-relaxed mb-4">{topic.feedback}</p>
+                        
+                        {/* Action Buttons */}
+                        <div className="flex justify-end space-x-4">
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              const feedback = feedbacks.find(fb => fb.feedback_id === topic.id);
+                              if (feedback) {
+                                handleAnalyze(topic.id);
+                              }
+                            }}
+                            disabled={analyzingFeedbackId === topic.id || summarizingFeedbackId === topic.id}
+                            className="flex items-center px-4 py-2 bg-pink-100 text-pink-700 rounded-md hover:bg-pink-200 transition-colors cursor-pointer disabled:opacity-50"
+                          >
+                            {analyzingFeedbackId === topic.id ? (
+                              <>
+                                <Loader2 className="w-5 h-5 mr-2 animate-spin" />
+                                Analyzing...
+                              </>
+                            ) : (
+                              <>
+                                <Brain className="w-5 h-5 mr-2" />
+                                Analyze
+                              </>
+                            )}
+                          </button>
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleSummarize(topic.id, topic.feedback);
+                            }}
+                            disabled={summarizingFeedbackId === topic.id || analyzingFeedbackId === topic.id}
+                            className="flex items-center px-4 py-2 bg-indigo-100 text-indigo-700 rounded-md hover:bg-indigo-200 transition-colors cursor-pointer disabled:opacity-50"
+                          >
+                            {summarizingFeedbackId === topic.id ? (
+                              <>
+                                <Loader2 className="w-5 h-5 mr-2 animate-spin" />
+                                Summarizing...
+                              </>
+                            ) : (
+                              <>
+                                <FileText className="w-5 h-5 mr-2" />
+                                Summarize
+                              </>
+                            )}
+                          </button>
+                        </div>
+
+                        {/* Analysis Results */}
+                        {!analyzingFeedbackId && activeResult?.id === topic.id && activeResult.type === 'analysis' && analysisResults[topic.id] && (
+                          <div className="mt-4 space-y-4">
+                            {/* Key Takeaways Section */}
+                            <div className="bg-green-50 rounded-lg p-4 border border-green-100">
+                              <div className="flex items-center mb-3">
+                                <div className="bg-green-100 p-2 rounded-full mr-3">
+                                  <CheckCircle className="w-5 h-5 text-green-600" />
+                                </div>
+                                <h4 className="text-lg font-semibold text-green-800">Key Takeaways</h4>
+                              </div>
+                              <ul className="space-y-2 pl-6">
+                                {analysisResults[topic.id]["key takeaways"].map((item, index) => (
+                                  <li key={index} className="text-green-700 flex items-start">
+                                    <span className="text-green-500 mr-2">•</span>
+                                    {item}
+                                  </li>
+                                ))}
+                              </ul>
+                            </div>
+
+                            {/* Improvement Areas Section */}
+                            <div className="bg-yellow-50 rounded-lg p-4 border border-yellow-100">
+                              <div className="flex items-center mb-3">
+                                <div className="bg-yellow-100 p-2 rounded-full mr-3">
+                                  <AlertCircle className="w-5 h-5 text-yellow-600" />
+                                </div>
+                                <h4 className="text-lg font-semibold text-yellow-800">Improvement Areas</h4>
+                              </div>
+                              <ul className="space-y-2 pl-6">
+                                {analysisResults[topic.id]["improvement areas"].map((item, index) => (
+                                  <li key={index} className="text-yellow-700 flex items-start">
+                                    <span className="text-yellow-500 mr-2">•</span>
+                                    {item}
+                                  </li>
+                                ))}
+                              </ul>
+                            </div>
+
+                            {/* Action Items Section */}
+                            <div className="bg-blue-50 rounded-lg p-4 border border-blue-100">
+                              <div className="flex items-center mb-3">
+                                <div className="bg-blue-100 p-2 rounded-full mr-3">
+                                  <ClipboardList className="w-5 h-5 text-blue-600" />
+                                </div>
+                                <h4 className="text-lg font-semibold text-blue-800">Action Items</h4>
+                              </div>
+                              <ul className="space-y-2 pl-6">
+                                {analysisResults[topic.id]["action items"].map((item, index) => (
+                                  <li key={index} className="text-blue-700 flex items-start">
+                                    <span className="text-blue-500 mr-2">•</span>
+                                    {item}
+                                  </li>
+                                ))}
+                              </ul>
+                            </div>
+                          </div>
+                        )}
+
+                        {/* Summary Results */}
+                        {!summarizingFeedbackId && activeResult?.id === topic.id && activeResult.type === 'summary' && summaryResults[topic.id] && (
+                          <div className="mt-4 p-4 bg-gray-50 rounded-lg border border-gray-200">
+                            <div className="flex items-center mb-3">
+                              <div className="bg-gray-100 p-2 rounded-full mr-3">
+                                <FileText className="w-5 h-5 text-gray-600" />
+                              </div>
+                              <h4 className="text-lg font-semibold text-gray-800">Summary</h4>
+                            </div>
+                            <p className="text-gray-700 leading-relaxed">{summaryResults[topic.id]}</p>
+                          </div>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                ))}
               </div>
             ) : (
               <div className="text-center py-8 bg-gray-50 rounded-lg">

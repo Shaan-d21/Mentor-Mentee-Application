@@ -15,6 +15,7 @@ interface CompatibleMentor {
   id?: string; // Changed to string to match the response format
   domain?: string; // Added domain field
   experience?: number;
+  request_status?: 'pending' | 'accepted' | 'rejected';
 }
 
 // Hardcoded domains list - updated to match the FastAPI Domains enum
@@ -233,11 +234,6 @@ const FindMentors: React.FC = () => {
       // If we have a selected domain and it's in the pending domains, hide the results
       if (compatibilityDomain && (pendingDomains.has(compatibilityDomain) || approvedDomains.has(compatibilityDomain))) {
         setShowCompatibilityResults(false);
-        if (pendingDomains.has(compatibilityDomain)) {
-          showErrorToast(`You already have a pending request for ${compatibilityDomain}`);
-        } else {
-          showErrorToast(`You already have an approved mentorship for ${compatibilityDomain}`);
-        }
       }
     } catch (err) {
       console.error('Error fetching active requests:', err);
@@ -266,14 +262,12 @@ const FindMentors: React.FC = () => {
 
     // Check if there's already a pending request for this domain
     if (pendingRequestDomains.has(compatibilityDomain)) {
-      showErrorToast(`You already have a pending request for ${compatibilityDomain}`);
       setShowCompatibilityResults(false);
       return;
     }
     
     // Check if there's already an approved mentorship for this domain
     if (approvedRequestDomains.has(compatibilityDomain)) {
-      showErrorToast(`You already have an approved mentorship for ${compatibilityDomain}`);
       setShowCompatibilityResults(false);
       return;
     }
@@ -328,7 +322,8 @@ const FindMentors: React.FC = () => {
             reason: mentor.reason || 'No reason provided',
             id: mentor.id?.toString() || '',
             domain: mentor.domain || trimmedDomain,
-            experience: mentor.exp || 0
+            experience: mentor.exp || 0,
+            request_status: undefined
           });
         });
         
@@ -342,7 +337,8 @@ const FindMentors: React.FC = () => {
             reason: mentor.reason || 'No reason provided',
             id: mentor.id?.toString() || '',
             domain: mentor.domain || 'Other',
-            experience: mentor.exp || 0
+            experience: mentor.exp || 0,
+            request_status: undefined
           });
         });
         
@@ -371,25 +367,22 @@ const FindMentors: React.FC = () => {
     if (!selectedMentor) return;
 
     try {
-      const response = await axios.post(
-        `${import.meta.env.VITE_API_URL}/mentee/mentorship`,
-        { 
+      const response = await axios({
+        method: 'post',
+        url: `${import.meta.env.VITE_API_URL}/mentee/mentorship`,
+        headers: {
+          'Token': `${localStorage.getItem('accessToken')}`,
+          'Content-Type': 'application/json',
+          'Accept': 'application/json'
+        },
+        data: {
           mentor_id: selectedMentor.id,
           domain: compatibilityDomain
-        },
-        {
-          headers: {
-            'Token': `${localStorage.getItem('accessToken')}`,
-            'Content-Type': 'application/json',
-            'Accept': 'application/json'
-          },
-          withCredentials: true,
-          maxRedirects: 0
         }
-      );
+      });
       
       if (response.status === 200) {
-        toast.success('Mentorship request has been sent successfully');
+        toast.success(`Mentorship request has been sent successfully to ${selectedMentor.name}`);
         closeModal();
         // Refresh the requests list
         fetchActiveRequests();
@@ -761,8 +754,19 @@ const FindMentors: React.FC = () => {
                       <div className="bg-blue-500 px-6 py-3">
                         <h2 className="text-lg font-semibold text-white">Summary</h2>
                       </div>
-                      <div className="p-6">
-                        <p className="text-gray-700 leading-relaxed font-medium">{mentorData?.summary || 'No summary available'}</p>
+                      <div className="p-6 space-y-3">
+                        {Array.isArray(mentorData?.summary) ? (
+                          mentorData.summary.map((point, index) => (
+                            <div key={`summary-${index}`} className="flex items-start">
+                              <div className="flex-shrink-0 mt-1">
+                                <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
+                              </div>
+                              <p className="ml-3 text-gray-700">{point}</p>
+                            </div>
+                          ))
+                        ) : (
+                          <p className="text-gray-500">No summary available</p>
+                        )}
                       </div>
                     </div>
 
