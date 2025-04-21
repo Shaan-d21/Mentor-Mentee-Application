@@ -29,6 +29,7 @@ class Add_topic(BaseModel):
     roadmap_id : int
     description : str
     subtopics : list[str]
+    subtopics_duration : list[int]
     reasoning : str
 
 class Modify_topic(BaseModel):
@@ -37,6 +38,8 @@ class Modify_topic(BaseModel):
     description : str
     subtopics : list[str]
     reasoning : str
+    subtopics_duration : list[int]
+
 
 class Remove_topic(BaseModel):
     topic_id : int
@@ -46,15 +49,23 @@ async def add_topic(new_topic: Add_topic, db :  db_dependency, user : user_depen
     if user is None or user.get('role') != 'mentor':
         raise HTTPException(status_code = 401, detail = 'User Unauthorised')
     subtopic = ''
+    subtopic_duration = ''
     for i in new_topic.subtopics:
         subtopic += i+ ','
+    duration = 0
+    for i in new_topic.subtopics_duration:
+        duration += i
+        subtopic_duration += str(i)+ ','
     subtopic = subtopic[:-1]
+    subtopic_duration = subtopic_duration[:-1]
     topic_model = Topic(
         name = new_topic.topic_name,
         roadmap_id = new_topic.roadmap_id,
         description = new_topic.description,
         subtopics = subtopic,
         reasoning = new_topic.reasoning,
+        subtopic_durations = subtopic_duration,
+        topic_duration_days = duration,
         status = 'assigned'
     )
     db.add(topic_model)
@@ -71,13 +82,21 @@ async def modify_topic(new_topic: Modify_topic, db :  db_dependency, user : user
     if topic_model is None:
         raise HTTPException(status_code = 404, detail = 'Topic not found')
     subtopic = ''
+    duration = 0
     for i in new_topic.subtopics:
         subtopic += i+ ','
     subtopic = subtopic[:-1]
+    subtopic_duration = ''
+    for i in new_topic.subtopics_duration:
+        duration += i
+        subtopic_duration += str(i)+ ','
+    subtopic_duration = subtopic_duration[:-1]
     topic_model.name = new_topic.topic_name
     topic_model.description = new_topic.description
     topic_model.subtopics = subtopic
     topic_model.reasoning = new_topic.reasoning
+    topic_model.subtopic_durations = subtopic_duration,
+    topic_model.topic_duration_days = duration,
     db.add(topic_model)
     db.commit()
     return {'status_code' : 200, 'Message': 'Topic Modified successfully'}
