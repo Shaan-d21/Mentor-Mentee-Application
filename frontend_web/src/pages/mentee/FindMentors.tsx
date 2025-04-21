@@ -474,12 +474,12 @@ const FindMentors: React.FC = () => {
             {isCheckingCompatibility ? (
               <>
                 <div className="animate-spin mr-2 h-4 w-4 border-2 border-white border-t-transparent rounded-full"></div>
-                Checking...
+                Finding Mentors...
               </>
             ) : (
               <>
                 <Check size={18} className="mr-2" />
-                Check Compatibility
+                Find
               </>
             )}
           </button>

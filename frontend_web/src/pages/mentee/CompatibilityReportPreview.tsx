@@ -122,7 +122,7 @@ export default function CompatibilityReportPreview() {
       );
       
       if (response.status === 200) {
-        toast.success('Mentorship request sent successfully');
+        toast.success('Mentorship request has been sent successfully');
         navigate('/mentee/dashboard/find-mentors');
       }
     } catch (error) {
@@ -262,7 +262,7 @@ export default function CompatibilityReportPreview() {
         {/* Summary Section */}
         <div className="bg-blue-50 border-l-4 border-blue-500 rounded-lg shadow-md mb-6 overflow-hidden">
           <div className="bg-blue-500 px-6 py-3">
-            <h2 className="text-lg font-semibold text-white">Summary Assessment</h2>
+            <h2 className="text-lg font-semibold text-white">Summary</h2>
           </div>
           <div className="p-6">
             <p className="text-gray-700 leading-relaxed font-medium">{mentorData.summary || 'No summary available'}</p>

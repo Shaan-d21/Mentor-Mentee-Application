@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
-import toast from 'react-hot-toast';
+import axios from 'axios';
 import { ChevronRightIcon, BookOpenIcon, DocumentTextIcon, CheckIcon, ArrowPathIcon } from '@heroicons/react/24/outline';
+import toast from 'react-hot-toast';
 
 interface Mentor {
   mentor_id: number;
@@ -197,7 +197,7 @@ const MenteeRoadmap: React.FC = () => {
           );
           setSelectedRoadmap({ ...selectedRoadmap, topic: updatedTopics });
         }
-        toast.success('Topic marked as complete');
+        toast.success('Topic is marked as complete');
       } else {
         toast.error('Failed to mark topic as complete');
       }
@@ -236,21 +236,21 @@ const MenteeRoadmap: React.FC = () => {
           <div className="bg-white rounded-lg shadow-md p-6 mb-8">
             <button
               onClick={() => setSelectedRoadmap(null)}
-              className="mb-4 text-blue-600 hover:text-blue-800 flex items-center"
+              className="flex items-center text-gray-600 hover:text-gray-800 mb-6 transition-colors duration-200 cursor-pointer"
             >
-              <ChevronRightIcon className="h-5 w-5 transform rotate-180 mr-1" />
-              Back to Roadmaps
+              <ChevronRightIcon className="h-5 w-5 transform rotate-180 mr-2" />
+              Back
             </button>
 
             <div className="mb-8">
               <h2 className="text-2xl font-semibold text-gray-900 mb-4">Roadmap Overview</h2>
-              <div className="bg-blue-50 p-4 rounded-lg">
-                <p className="text-gray-700">{selectedRoadmap.roadmap_explanation}</p>
+              <div className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl p-6 shadow-sm border border-blue-100">
+                <p className="text-gray-700 leading-relaxed">{selectedRoadmap.roadmap_explanation}</p>
               </div>
             </div>
 
             {/* Progress Overview Section */}
-            {selectedRoadmap.topic && selectedRoadmap.topic.length > 0 && (
+            {selectedRoadmap?.topic && selectedRoadmap.topic.length > 0 && (
               <div className="mb-8 bg-white rounded-xl shadow-sm border border-gray-100 p-6">
                 <h2 className="text-xl font-semibold text-gray-800 mb-4">Progress Overview</h2>
                 
@@ -301,14 +301,17 @@ const MenteeRoadmap: React.FC = () => {
             )}
 
             <div className="space-y-6">
-              {selectedRoadmap?.topic?.map((topic) => (
-                <div key={topic.topic_id} className="bg-white border border-gray-200 rounded-lg p-6 shadow-sm">
+              {selectedRoadmap.topic?.map((topic) => (
+                <div 
+                  key={topic.topic_id} 
+                  className="group bg-white rounded-xl shadow-sm border border-gray-100 p-6 transition-all duration-300 hover:shadow-lg hover:border-blue-200 hover:scale-[1.02] hover:-translate-y-1"
+                >
                   <div className="flex items-start justify-between">
                     <div className="flex-1">
                       <div className="flex items-start gap-4">
                         <button
                           onClick={() => handleMarkComplete(topic)}
-                          className={`flex-shrink-0 w-8 h-8 rounded-full border-2 flex items-center justify-center transition-colors duration-200 ${
+                          className={`flex-shrink-0 w-8 h-8 rounded-full border-2 flex items-center justify-center transition-colors duration-200 cursor-pointer ${
                             topic.topic_status === 'marked'
                               ? 'bg-yellow-500 border-yellow-500 text-white'
                               : topic.topic_status === 'complete' || topic.topic_status === 'completed'
@@ -325,18 +328,18 @@ const MenteeRoadmap: React.FC = () => {
                           )}
                         </button>
                         <div>
-                          <h3 className="text-xl font-semibold text-gray-900 mb-2">{topic.name}</h3>
-                          <p className="text-gray-600 mb-4">{topic.description}</p>
+                          <h3 className="text-xl font-semibold text-gray-900 mb-2 group-hover:text-blue-700 transition-colors duration-300">{topic.name}</h3>
+                          <p className="text-gray-600 mb-4 group-hover:text-gray-700 transition-colors duration-300">{topic.description}</p>
                         </div>
                       </div>
-                      
+
                       <div className="mb-4 ml-12">
-                        <h4 className="text-sm font-medium text-gray-700 mb-2">Subtopics</h4>
+                        <h4 className="text-sm font-medium text-gray-700 mb-2 group-hover:text-blue-700 transition-colors duration-300">Subtopics</h4>
                         <div className="flex flex-wrap gap-2">
                           {topic.subtopics?.map((subtopic, _) => (
                             <span
                               key={_}
-                              className="px-3 py-1 bg-gray-100 text-gray-700 rounded-full text-sm"
+                              className="px-3 py-1 bg-gray-100 text-gray-700 rounded-full text-sm hover:bg-gray-200 hover:shadow-sm transition-all duration-200"
                             >
                               {subtopic}
                             </span>
@@ -345,9 +348,9 @@ const MenteeRoadmap: React.FC = () => {
                       </div>
 
                       <div className="ml-12">
-                        <div className="bg-indigo-50 p-3 rounded-lg">
-                          <p className="text-sm text-gray-700">
-                            <span className="font-medium text-indigo-700">Importance:</span> {topic.importance}
+                        <div className="bg-indigo-50 p-3 rounded-lg group-hover:bg-indigo-100 transition-colors duration-300">
+                          <p className="text-sm text-gray-700 group-hover:text-gray-800 transition-colors duration-300">
+                            <span className="font-medium text-indigo-700 group-hover:text-indigo-800 transition-colors duration-300">Importance:</span> {topic.importance}
                           </p>
                         </div>
                       </div>
@@ -381,7 +384,7 @@ const MenteeRoadmap: React.FC = () => {
                   </div>
                   <button
                     onClick={() => fetchRoadmapTopics(mentor)}
-                    className={`w-full py-2 px-4 rounded-md transition-colors duration-200 flex items-center justify-center ${
+                    className={`w-full py-2 px-4 rounded-md transition-colors duration-200 flex items-center justify-center cursor-pointer ${
                       mentor.has_roadmap
                         ? 'bg-blue-600 text-white hover:bg-blue-700'
                         : 'bg-gray-300 text-gray-500 cursor-not-allowed'
@@ -408,13 +411,13 @@ const MenteeRoadmap: React.FC = () => {
               <div className="flex justify-end space-x-4">
                 <button
                   onClick={() => setShowConfirmation(false)}
-                  className="px-4 py-2 text-gray-600 hover:text-gray-800"
+                  className="px-4 py-2 text-gray-600 hover:text-gray-800 cursor-pointer"
                 >
                   Cancel
                 </button>
                 <button
                   onClick={confirmMarkComplete}
-                  className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
+                  className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 cursor-pointer"
                 >
                   Confirm
                 </button>

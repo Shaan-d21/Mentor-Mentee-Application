@@ -12,37 +12,43 @@ import RoadmapGenerator from '../../components/RoadmapGenerator';
 import MenteeRoadmapView from '../mentor/MenteeRoadmapView';
 
 const DashboardHome: React.FC = () => {
-  const [mentorName, setMentorName] = useState<string>('Mentor');
+  const [userName, setMentorName] = useState<string>('Mentor');
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const fetchMentorProfile = async () => {
+    // Get user name from localStorage and extract first name
+    const fullName = localStorage.getItem('name') || 'Mentor';
+    const firstName = fullName.split(' ')[0];
+    setMentorName(firstName);
+
+    // Fetch approved mentees
+    const fetchApprovedMentees = async () => {
       try {
         const accessToken = localStorage.getItem('accessToken');
         if (!accessToken) {
-          console.error('No access token found');
-          return;
+          throw new Error('No access token found');
         }
 
-        const authToken = accessToken.startsWith('Bearer') ? accessToken.split('Bearer ')[1] : accessToken;
-
-        const response = await axios.get(`${import.meta.env.VITE_API_URL}/mentor/get-approved-mentee`, {
-          headers: {
-            'Token': authToken
+        const response = await axios.get(
+          `${import.meta.env.VITE_API_URL}/mentor/get-approved-mentee`,
+          {
+            headers: { 
+              'Token': accessToken,
+              'Content-Type': 'application/json',
+              'Accept': 'application/json'
+            }
           }
-        });
+        );
 
-        if (response.data && response.data.name) {
-          setMentorName(response.data.name);
-        }
-      } catch (error) {
-        console.error('Error fetching mentor profile:', error);
+        console.log('Approved mentees:', response.data);
+      } catch (err) {
+        console.error('Error fetching approved mentees:', err);
       } finally {
         setLoading(false);
       }
     };
 
-    fetchMentorProfile();
+    fetchApprovedMentees();
   }, []);
 
   if (loading) {
@@ -59,7 +65,7 @@ const DashboardHome: React.FC = () => {
   return (
     <div className="p-8">
       <div className="mb-8">
-        <h1 className="text-3xl font-bold text-gray-800">Welcome, {mentorName}!</h1>
+        <h1 className="text-3xl font-bold text-gray-800">Welcome, {userName}!</h1>
       </div>
 
       <div className="space-y-8">

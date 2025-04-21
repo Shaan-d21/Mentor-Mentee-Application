@@ -7,7 +7,13 @@ import {
   ChevronLeft,
   ChevronRight,
   Menu,
-  Map
+  Map,
+  Home,
+  User,
+  Search,
+  FileText,
+  Bell,
+  BookOpen
 } from 'lucide-react';
 
 interface SidebarProps {
@@ -33,6 +39,7 @@ const menteeNavItems: NavItem[] = [
   { name: 'My Requests', path: '/mentee/dashboard/requests', icon: <UserCheck size={20} /> },
   { name: 'My Mentors', path: '/mentee/dashboard/my-mentors', icon: <Users size={20} /> },
   { name: 'My Roadmaps', path: '/mentee/dashboard/roadmaps', icon: <Map size={20} /> },
+  { name: 'View Feedback', path: '/mentee/dashboard/view-feedback', icon: <FileText size={20} /> },
 ];
 
 const Sidebar: React.FC<SidebarProps> = ({ userRole }) => {

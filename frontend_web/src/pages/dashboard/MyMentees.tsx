@@ -140,7 +140,7 @@ const MyMentees: React.FC = () => {
                   <td className="px-6 py-4 whitespace-nowrap">
                     <button
                       onClick={() => handleNameClick(mentee)}
-                      className={`text-sm font-medium ${
+                      className={`text-sm font-medium cursor-pointer ${
                         mentee.roadmap_id 
                           ? 'text-blue-600 hover:text-blue-800 hover:underline' 
                           : 'text-gray-900 cursor-not-allowed'

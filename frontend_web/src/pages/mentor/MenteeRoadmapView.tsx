@@ -48,22 +48,27 @@ const ApprovalModal: React.FC<ApprovalModalProps> = ({ isOpen, onClose, onSubmit
         <h3 className="text-lg font-semibold mb-4">
           {isReassign ? 'Reassign Topic' : 'Approve Topic'}
         </h3>
-        <textarea
-          className="w-full p-2 border rounded mb-4"
-          placeholder="Please provide feedback"
-          value={feedback}
-          onChange={(e) => setFeedback(e.target.value)}
-          rows={3}
-        />
+        <div className="mb-4">
+          <label className="block text-sm font-medium text-gray-700 mb-1">
+            Comments <span className="text-red-500">*</span>
+          </label>
+          <textarea
+            className="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+            rows={3}
+            value={feedback}
+            onChange={(e) => setFeedback(e.target.value)}
+            placeholder="Enter your comments..."
+          />
+        </div>
         <div className="flex justify-end space-x-4">
           <button
-            className="px-4 py-2 bg-gray-200 rounded hover:bg-gray-300"
+            className="px-4 py-2 bg-gray-200 rounded hover:bg-gray-300 cursor-pointer"
             onClick={onClose}
           >
             Cancel
           </button>
           <button
-            className={`px-4 py-2 rounded ${
+            className={`px-4 py-2 rounded cursor-pointer ${
               isReassign ? 'bg-yellow-500 hover:bg-yellow-600' : 'bg-green-500 hover:bg-green-600'
             } text-white`}
             onClick={handleSubmit}
@@ -246,7 +251,7 @@ const MenteeRoadmapView: React.FC = () => {
           };
         });
 
-        toast.success('Topic approved successfully');
+        toast.success('Topic has been approved successfully');
       } else {
         throw new Error(response.data?.message || 'Failed to approve topic');
       }
@@ -298,7 +303,7 @@ const MenteeRoadmapView: React.FC = () => {
           };
         });
 
-        toast.success('Topic reassigned successfully');
+        toast.success('Topic has been reassigned successfully');
       } else {
         throw new Error(response.data?.message || 'Failed to reassign topic');
       }
@@ -323,7 +328,7 @@ const MenteeRoadmapView: React.FC = () => {
     <div className="max-w-6xl mx-auto p-8">
       <button
         onClick={() => navigate(-1)}
-        className="flex items-center text-gray-600 hover:text-gray-800 mb-6 transition-colors duration-200"
+        className="flex items-center text-gray-600 hover:text-gray-800 mb-6 transition-colors duration-200 cursor-pointer"
       >
         <ArrowLeft className="w-5 h-5 mr-2" />
         Back
@@ -363,10 +368,10 @@ const MenteeRoadmapView: React.FC = () => {
           </div>
 
           {/* Status Distribution */}
-          <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-            <div className="bg-blue-50 p-4 rounded-lg">
-              <div className="text-2xl font-bold text-blue-700">{roadmap.topic.length}</div>
-              <div className="text-sm text-blue-600">Total Topics</div>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <div className="bg-purple-50 p-4 rounded-lg">
+              <div className="text-2xl font-bold text-purple-700">{roadmap.topic.length}</div>
+              <div className="text-sm text-purple-600">Total Topics</div>
             </div>
             <div className="bg-green-50 p-4 rounded-lg">
               <div className="text-2xl font-bold text-green-700">
@@ -376,9 +381,15 @@ const MenteeRoadmapView: React.FC = () => {
             </div>
             <div className="bg-yellow-50 p-4 rounded-lg">
               <div className="text-2xl font-bold text-yellow-700">
-                {roadmap.topic.filter(t => t.topic_status === 'marked' || t.topic_status === 'in_progress' || t.topic_status === 'assigned').length}
+                {roadmap.topic.filter(t => t.topic_status === 'marked').length}
               </div>
-              <div className="text-sm text-yellow-600">In Progress</div>
+              <div className="text-sm text-yellow-600">Marked</div>
+            </div>
+            <div className="bg-blue-50 p-4 rounded-lg">
+              <div className="text-2xl font-bold text-blue-700">
+                {roadmap.topic.filter(t => t.topic_status === 'in_progress' || t.topic_status === 'assigned').length}
+              </div>
+              <div className="text-sm text-blue-600">In Progress</div>
             </div>
           </div>
         </div>
@@ -407,20 +418,20 @@ const MenteeRoadmapView: React.FC = () => {
                   </div>
                 </div>
                 {topic.topic_status === 'marked' && (
-                  <div className="flex gap-2">
+                  <div className="flex gap-3">
                     <button
                       onClick={() => openModal(topic, false)}
-                      className="p-2 text-green-500 hover:text-green-600 transition-colors duration-200 hover:scale-110"
+                      className="p-3 text-green-500 hover:text-green-600 transition-colors duration-200 hover:scale-110 cursor-pointer"
                       title="Approve"
                     >
-                      <CheckCircle className="w-5 h-5" />
+                      <CheckCircle className="w-6 h-6" />
                     </button>
                     <button
                       onClick={() => openModal(topic, true)}
-                      className="p-2 text-yellow-500 hover:text-yellow-600 transition-colors duration-200 hover:scale-110"
+                      className="p-3 text-yellow-500 hover:text-yellow-600 transition-colors duration-200 hover:scale-110 cursor-pointer"
                       title="Reassign"
                     >
-                      <RefreshCw className="w-5 h-5" />
+                      <RefreshCw className="w-6 h-6" />
                     </button>
                   </div>
                 )}
