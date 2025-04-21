@@ -57,16 +57,23 @@ export const profileStyles = StyleSheet.create({
   inputContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 12,
     backgroundColor: '#fff',
     borderRadius: 8,
-    paddingHorizontal: 12,
     paddingVertical: 8,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 1 },
     shadowOpacity: 0.1,
     shadowRadius: 1,
     elevation: 1,
+    
+    borderWidth: 1,
+    borderColor: '#ccc',
+    padding: 10,
+    marginBottom: 15,
+    height:50,
+    width:'100%',
+    paddingHorizontal: 15,
+    fontSize: 16,
   },
   inputIcon: {
     marginRight: 12,
@@ -75,8 +82,9 @@ export const profileStyles = StyleSheet.create({
     flex: 1,
     fontSize: 16,
     color: '#333',
-    padding: 0,
+    padding: 5,
   },
+  
   disabledInput: {
     color: '#666',
   },
