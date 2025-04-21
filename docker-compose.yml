@@ -33,7 +33,10 @@ services:
       - mentor_mentee_network
 
   frontend:
-    build: ./frontend_web
+    build:
+      context: ./frontend_web
+      args:
+        VITE_API_URL: ${VITE_API_URL}
     env_file:
       - ./frontend_web/.env
     container_name: mentor_mentee_frontend
