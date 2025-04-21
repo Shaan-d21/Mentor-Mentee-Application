@@ -5,7 +5,7 @@ export const apiGetMentorList = async (credentials: {domain: string}) => {
   const storage = new MMKV();
 
   const api = axios.create({
-    baseURL: process.env.API_URL,
+    baseURL: "https://mm-ai.krishnamonani.publicvm.com/",
     headers: {
       'Content-Type': 'application/json',
       token: storage.getString('token'),

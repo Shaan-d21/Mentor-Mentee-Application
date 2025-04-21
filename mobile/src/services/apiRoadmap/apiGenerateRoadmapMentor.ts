@@ -29,7 +29,7 @@ export const apiGetApprovedMentees = async () => {
 };
 export const apiPostGenerateRoadMap = async (domainId: string, menteeId: string) => {
   const api = axios.create({
-    baseURL: "https://mm-ai.shaandewang.publicvm.com/",
+    baseURL: "https://mm-ai.krishnamonani.publicvm.com/",
     headers: {
       accept: "application/json",
       'Content-Type': 'application/json',
@@ -90,6 +90,24 @@ export const apiModifyRoadmapTopic = async (
   subtopics: string[],
   reasoning: string
 ) => {
+  // Parse subtopics to extract text and durations
+  const parsedSubtopics: string[] = [];
+  const subtopics_duration: number[] = [];
+  
+  subtopics.forEach(subtopic => {
+    const match = subtopic.match(/(.*?)\s*\((\d+)\s*hours?\)/i);
+    if (match) {
+      parsedSubtopics.push(match[1].trim());
+      subtopics_duration.push(parseInt(match[2]));
+    } else {
+      parsedSubtopics.push(subtopic);
+      subtopics_duration.push(1); // Default to 1 hour
+    }
+  });
+
+  // Calculate total duration
+  const topic_duration_hours = subtopics_duration.reduce((sum, duration) => sum + duration, 0);
+
   const api = axios.create({
     baseURL: process.env.API_URL,
     headers: {
@@ -105,7 +123,9 @@ export const apiModifyRoadmapTopic = async (
       topic_name: topicName,
       description: description,
       subtopics: subtopics,
-      reasoning: reasoning
+      reasoning: reasoning,
+      subtopics_duration: subtopics_duration,
+      topic_duration_hours: topic_duration_hours // Add this line to include total duration
     });
     
     console.log("Response from modify topic:", response);
@@ -121,8 +141,6 @@ export const apiModifyRoadmapTopic = async (
     return { error: "Request failed", details: error };
   }
 };
-
-
 
 export const apiAddRoadmapTopic = async (
   roadmapId: number,
@@ -141,12 +159,31 @@ export const apiAddRoadmapTopic = async (
   });
 
   try {
+    const parsedSubtopics: string[] = [];
+    const subtopics_duration: number[] = [];
+    
+    subtopics.forEach(subtopic => {
+      const match = subtopic.match(/(.*?)\s*\((\d+)\s*hours?\)/i);
+      if (match) {
+        parsedSubtopics.push(match[1].trim());
+        subtopics_duration.push(parseInt(match[2]));
+      } else {
+        parsedSubtopics.push(subtopic);
+        subtopics_duration.push(1); // Default to 1 hour
+      }
+    });
+    
+    // Calculate total duration
+    const topic_duration_hours = subtopics_duration.reduce((sum, duration) => sum + duration, 0);
+  
     const response = await api.post("roadmap/add_topic", {
       roadmap_id: roadmapId,
       topic_name: topicName,
       description: description,
       subtopics: subtopics,
-      reasoning: reasoning
+      subtopics_duration: subtopics_duration,
+      reasoning: reasoning,
+      topic_duration_hours: topic_duration_hours // Add this line to include total duration
     });
     
     console.log("Response from add topic:", response);

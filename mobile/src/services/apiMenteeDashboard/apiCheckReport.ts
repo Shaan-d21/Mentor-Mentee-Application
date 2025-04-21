@@ -24,7 +24,7 @@ export const apiFetchReport = async (credentials: {
     console.log('Request Data:', data); // Debugging log to verify request data
 
     const response = await api.post(
-      'https://mm-ai.shaandewang.publicvm.com/matching_report',
+      '"https://mm-ai.krishnamonani.publicvm.com/matching_report',
       JSON.stringify(data),
       {
         headers: {

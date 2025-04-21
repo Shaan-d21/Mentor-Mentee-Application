@@ -1,6 +1,6 @@
 import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
 import { apiGetTopicsOnMenteeScreen, apiMarkTopicAsDone } from "../../services/apiRoadmap/apiGetRoadmap"; // Replace with your actual API functions
-import { RoadmapTopic,RoadmapResponse } from "../../types/ViewRoadmapTypes";
+import { RoadmapResponse, RoadmapTopic } from "../../types/RoadmapTypes";
 
 enum currentStatus { idle = "idle", loading = "loading", success = "success", failed = "failed" }
 
@@ -11,6 +11,7 @@ interface State {
   assignedTopics: RoadmapTopic[];
   markedTopics: RoadmapTopic[];
   completedTopics: RoadmapTopic[];
+  reassignedTopics: RoadmapTopic[];
   status: currentStatus;
   refersh: boolean;
 }
@@ -21,6 +22,7 @@ const initialState: State = {
   assignedTopics: [],
   markedTopics: [],
   completedTopics: [],
+  reassignedTopics: [],
   refersh: false,
   status: currentStatus.idle,
 };
@@ -39,11 +41,11 @@ export const fetchRoadmap = createAsyncThunk<RoadmapResponse, number, { rejectVa
     }
     console.log("Fetched roadmap data:", response.topic);
     return {
-      topic: response.topic,
+      topics: response.topics || [], // Map 'topic' to 'topics'
       roadmap_explanation: response.roadmap_explanation,
       roadmap_id: response.roadmap_id,
-      status_code: response.status_code, // make sure this exists
-      message: response.message,
+      status_code: response.status_code,
+      message: response.message
     };
   }
 );
@@ -76,9 +78,10 @@ const sliceRoadmapTopics = createSlice({
       .addCase(fetchRoadmap.fulfilled, (state, action) => {
         console.log("Roadmap data:", action.payload);
         state.status = currentStatus.success;
-        state.assignedTopics = action.payload.topic.filter(topic => topic.topic_status === "assigned");
-        state.completedTopics = action.payload.topic.filter(topic => topic.topic_status === "completed");
-        state.markedTopics = action.payload.topic.filter(topic => topic.topic_status === "marked");
+        state.assignedTopics = action.payload.topics.filter(topic => topic.topic_status === "assigned");
+        state.completedTopics = action.payload.topics.filter(topic => topic.topic_status === "completed");
+        state.markedTopics = action.payload.topics.filter(topic => topic.topic_status === "marked");
+        state.reassignedTopics = action.payload.topics.filter(topic => topic.topic_status === "reassigned");
         state.roadMapId = action.payload.roadmap_id;
         state.roadmapExplanation = action.payload.roadmap_explanation;
       })

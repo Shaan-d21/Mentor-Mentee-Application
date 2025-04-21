@@ -145,7 +145,7 @@ export const MentorRoadmapGeneration: FC<ScreenProps<'MentorRoadmapGeneration'>>
         )}
       </ScrollView>
 
-      {!roadmap && status !== 'loading' && mentees.length > 0 && (
+      {!roadmap && status !== 'loading' && mentees.length > 0 && selectedMentee!='' && (
         <View style={styles.bottomBar}>
           <TouchableOpacity style={styles.button} onPress={handleGenerateRoadmap}>
             <Text style={styles.buttonText}>Generate Roadmap</Text>
