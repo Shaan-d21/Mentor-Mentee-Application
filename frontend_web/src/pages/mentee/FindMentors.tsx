@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import { Check} from 'lucide-react';
+import { Check } from 'lucide-react';
 import toast from 'react-hot-toast';
-import { useLocation, useNavigate } from 'react-router-dom';
+import { useLocation } from 'react-router-dom';
 
 // Interface for compatibility results
 interface CompatibleMentor {
@@ -37,12 +37,99 @@ interface MentorshipRequest {
   mentor_id: string;
 }
 
+interface MentorData {
+  e_skills: string[];
+  m_skills: string[];
+  summary: string;
+}
+
 // Add these constants at the top of the file
 // const API_URL = import.meta.env.VITE_API_URL ;
 // const AI_API_URL = import.meta.env.VITE_AI_API_URL;
 
+// Add the AnimatedCircularProgress component
+const AnimatedCircularProgress: React.FC<{
+  size: number;
+  width: number;
+  fill: number;
+  tintColor: string;
+  backgroundColor?: string;
+  children?: (fill: number) => React.ReactNode;
+}> = ({ size, width, fill, tintColor, backgroundColor = '#E0E0E0', children }) => {
+  const [progress, setProgress] = useState(0);
+
+  useEffect(() => {
+    const duration = 2000; // 2 seconds
+    const startTime = Date.now();
+    const startValue = 0;
+    const endValue = fill;
+
+    const animate = () => {
+      const currentTime = Date.now();
+      const elapsed = currentTime - startTime;
+      const progress = Math.min(elapsed / duration, 1);
+      
+      // Ease out cubic function
+      const easedProgress = 1 - Math.pow(1 - progress, 3);
+      const currentValue = startValue + (endValue - startValue) * easedProgress;
+      
+      setProgress(currentValue);
+
+      if (progress < 1) {
+        requestAnimationFrame(animate);
+      }
+    };
+
+    requestAnimationFrame(animate);
+  }, [fill]);
+
+  const center = size / 2;
+  const radius = (size - width) / 2;
+  const circumference = 2 * Math.PI * radius;
+  const strokeDashoffset = circumference - (progress / 100) * circumference;
+
+  return (
+    <div style={{ position: 'relative', width: size, height: size }}>
+      <svg width={size} height={size}>
+        {/* Background Circle */}
+        <circle
+          cx={center}
+          cy={center}
+          r={radius}
+          fill="transparent"
+          stroke={backgroundColor}
+          strokeWidth={width}
+        />
+        {/* Progress Circle */}
+        <circle
+          cx={center}
+          cy={center}
+          r={radius}
+          fill="transparent"
+          stroke={tintColor}
+          strokeWidth={width}
+          strokeDasharray={circumference}
+          strokeDashoffset={strokeDashoffset}
+          strokeLinecap="round"
+          transform={`rotate(-90 ${center} ${center})`}
+        />
+      </svg>
+      {children && (
+        <div style={{
+          position: 'absolute',
+          top: '50%',
+          left: '50%',
+          transform: 'translate(-50%, -50%)',
+          textAlign: 'center'
+        }}>
+          {children(progress)}
+        </div>
+      )}
+    </div>
+  );
+};
+
 const FindMentors: React.FC = () => {
-  const navigate = useNavigate();
   // Track if we're on the dashboard home or dedicated page
   const location = useLocation();
   const isOnDashboardHome = location.pathname === '/mentee/dashboard' || location.pathname === '/mentee/dashboard/';
@@ -60,6 +147,10 @@ const FindMentors: React.FC = () => {
   // const [requestingMentorId, setRequestingMentorId] = useState<string | null>(null);
   const [isLoadingRequests, setIsLoadingRequests] = useState(true);
   const [requestedMentorIds, setRequestedMentorIds] = useState<Set<string>>(new Set());
+  const [selectedMentor, setSelectedMentor] = useState<CompatibleMentor | null>(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [mentorData, setMentorData] = useState<MentorData | null>(null);
+  const [loading, setLoading] = useState(false);
 
   const showErrorToast = (message: string) => {
     if (!toastCooldown) {
@@ -276,83 +367,38 @@ const FindMentors: React.FC = () => {
   };
 
   // Handle sending mentorship request
-  // const handleSendRequest = async (mentorId: string) => {
-  //   if (!compatibilityDomain) {
-  //     showErrorToast('Domain information missing');
-  //     return;
-  //   }
+  const handleSendRequest = async () => {
+    if (!selectedMentor) return;
 
-  //   // Check if there's already a pending request for this domain
-  //   if (pendingRequestDomains.has(compatibilityDomain)) {
-  //     showErrorToast(`You already have a pending request for ${compatibilityDomain}`);
-  //     return;
-  //   }
-    
-  //   // Check if there's already an approved mentorship for this domain
-  //   if (approvedRequestDomains.has(compatibilityDomain)) {
-  //     showErrorToast(`You already have an approved mentorship for ${compatibilityDomain}`);
-  //     return;
-  //   }
-
-  //   setRequestingMentorId(mentorId);
-
-  //   try {
-  //     const accessToken = localStorage.getItem('accessToken');
+    try {
+      const response = await axios.post(
+        `${import.meta.env.VITE_API_URL}/mentee/mentorship`,
+        { 
+          mentor_id: selectedMentor.id,
+          domain: compatibilityDomain
+        },
+        {
+          headers: {
+            'Token': `${localStorage.getItem('accessToken')}`,
+            'Content-Type': 'application/json',
+            'Accept': 'application/json'
+          },
+          withCredentials: true,
+          maxRedirects: 0
+        }
+      );
       
-  //     if (!accessToken) {
-  //       throw new Error('No access token found');
-  //     }
-      
-  //     const authToken = accessToken.startsWith('Bearer ') ? accessToken : `Bearer ${accessToken}`;
-      
-  //     console.log('Sending mentorship request for domain:', compatibilityDomain);
-      
-  //     await axios.post(
-  //       'http://181.214.44.15:8080/mentee/mentorship',
-  //       {
-  //         mentor_id: mentorId,
-  //         domain: compatibilityDomain
-  //       },
-  //       {
-  //         headers: { 
-  //           Token: authToken,
-  //           'Content-Type': 'application/json'
-  //         },
-  //         withCredentials: true
-  //       }
-  //     );
-      
-  //     // Add the mentor to requested mentors set
-  //     setRequestedMentorIds(prev => new Set([...prev, mentorId]));
-      
-  //     // Add the domain to pending domains
-  //     const updatedDomains = new Set(pendingRequestDomains);
-  //     updatedDomains.add(compatibilityDomain);
-  //     setPendingRequestDomains(updatedDomains);
-      
-  //     // Also fetch fresh data from server
-  //     await fetchActiveRequests();
-      
-  //     // Remove the pending request error message
-  //     toast.dismiss();
-  //     toast.success(`Mentorship request sent for ${compatibilityDomain}`);
-  //   } catch (err: any) {
-  //     console.error('Error sending mentorship request:', err);
-  //     if (err.response?.status === 409) {
-  //       showErrorToast('You already have a pending request for this domain');
-  //       // Update pending domains in case the local state is out of sync
-  //       const updatedDomains = new Set(pendingRequestDomains);
-  //       updatedDomains.add(compatibilityDomain);
-  //       setPendingRequestDomains(updatedDomains);
-  //     } else if (err.code === 'ERR_NETWORK') {
-  //       showErrorToast('Network error. Please check your connection and try again.');
-  //     } else {
-  //       showErrorToast('Failed to send request. Please try again.');
-  //     }
-  //   } finally {
-  //     setRequestingMentorId(null);
-  //   }
-  // };
+      if (response.status === 200) {
+        toast.success('Mentorship request has been sent successfully');
+        closeModal();
+        // Refresh the requests list
+        fetchActiveRequests();
+      }
+    } catch (error) {
+      console.error('Error sending mentorship request:', error);
+      toast.error('Failed to send mentorship request');
+    }
+  };
 
   // Check if a request is already pending for the current domain
   const isDomainPending = compatibilityDomain && pendingRequestDomains.has(compatibilityDomain);
@@ -411,14 +457,38 @@ const FindMentors: React.FC = () => {
   }, [compatibilityDomain]);
 
   // Replace the send request button with a compatibility report link
-  const handleViewCompatibilityReport = (mentorId: string, score: number) => {
-    navigate('/mentee/compatibility-report', {
-      state: { 
-        mentorId, 
-        score,
-        domain: compatibilityDomain // Pass the selected domain
-      }
-    });
+  const handleViewCompatibilityReport = async (mentor: CompatibleMentor) => {
+    setSelectedMentor(mentor);
+    setIsModalOpen(true);
+    setLoading(true);
+
+    try {
+      const response = await axios.post(
+        `${import.meta.env.VITE_AI_API_URL}/matching_report`,
+        {
+          mentor_id: parseInt(mentor.id || ''),
+          domain: compatibilityDomain,
+          score: mentor.score
+        },
+        {
+          headers: {
+            'Content-Type': 'application/json',
+            'Accept': 'application/json'
+          }
+        }
+      );
+      setMentorData(response.data);
+    } catch (error) {
+      console.error('Error fetching mentor data:', error);
+      toast.error('Failed to load mentor data');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const closeModal = () => {
+    setIsModalOpen(false);
+    setSelectedMentor(null);
   };
 
   return (
@@ -449,7 +519,7 @@ const FindMentors: React.FC = () => {
               Select Domain
             </label>
             <select
-              className="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 cursor-pointer"
               value={compatibilityDomain}
               onChange={(e) => {
                 handleDomainSelect(e.target.value);
@@ -465,7 +535,7 @@ const FindMentors: React.FC = () => {
           </div>
           
           <button
-            className="bg-blue-600 text-white px-6 py-2 rounded-md hover:bg-blue-700 transition-colors flex items-center justify-center disabled:bg-blue-300"
+            className="bg-blue-600 text-white px-6 py-2 rounded-md hover:bg-blue-700 transition-colors flex items-center justify-center disabled:bg-blue-300 cursor-pointer"
             onClick={handleCheckCompatibility}
             disabled={isCheckingCompatibility || !compatibilityDomain || 
               pendingRequestDomains.has(compatibilityDomain) || 
@@ -546,8 +616,8 @@ const FindMentors: React.FC = () => {
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap">
                           <button
-                            onClick={() => mentor.id && handleViewCompatibilityReport(mentor.id, mentor.score)}
-                            className={`px-4 py-2 rounded-full font-semibold text-sm transition-all duration-200 transform hover:scale-105 ${
+                            onClick={() => handleViewCompatibilityReport(mentor)}
+                            className={`px-4 py-2 rounded-full font-semibold text-sm transition-all duration-200 transform hover:scale-105 cursor-pointer ${
                               mentor.score >= 90 ? 'bg-green-100 text-green-800 hover:bg-green-200' :
                               mentor.score >= 70 ? 'bg-yellow-100 text-yellow-800 hover:bg-yellow-200' :
                               'bg-red-100 text-red-800 hover:bg-red-200'
@@ -569,8 +639,181 @@ const FindMentors: React.FC = () => {
           </div>
         </div>
       )}
+
+      {/* Compatibility Report Modal */}
+      {isModalOpen && selectedMentor && (
+        <div className="fixed inset-0 bg-gray-900/30 backdrop-blur-sm z-50 flex items-center justify-end">
+          {/* Backdrop with fade effect */}
+          <div 
+            className="fixed inset-0 transition-opacity duration-500 ease-in-out"
+            onClick={closeModal}
+          />
+          
+          {/* Modal with slide effect */}
+          <div 
+            className={`bg-gray-50 w-full max-w-4xl h-screen overflow-y-auto transform transition-all duration-500 ease-in-out ${
+              isModalOpen ? 'translate-x-0 opacity-100' : 'translate-x-full opacity-0'
+            }`}
+          >
+            <div className="p-6">
+              {/* Close Button */}
+              <div className="flex justify-end mb-4">
+                <button
+                  onClick={closeModal}
+                  className="p-3 rounded-full bg-gray-100 hover:bg-gray-200 transition-colors duration-200 flex items-center justify-center cursor-pointer"
+                  aria-label="Close"
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-gray-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
+              </div>
+
+              {loading ? (
+                <div className="flex justify-center items-center h-64">
+                  <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500"></div>
+                </div>
+              ) : (
+                <>
+                  {/* Content with fade-in effect */}
+                  <div className={`transform transition-all duration-500 ease-in-out ${
+                    loading ? 'opacity-0 translate-y-4' : 'opacity-100 translate-y-0'
+                  }`}>
+                    {/* Compatibility Score Section */}
+                    <div className="bg-white rounded-lg shadow-sm mb-6 p-4 flex flex-col md:flex-row items-center justify-between">
+                      <div className="flex items-center mb-4 md:mb-0">
+                        <div className="mr-6">
+                          <AnimatedCircularProgress
+                            size={140}
+                            width={15}
+                            fill={selectedMentor.score}
+                            tintColor={selectedMentor.score >= 90 ? "#22C55E" : selectedMentor.score >= 70 ? "#3b82f6" : "#f59e0b"}
+                            backgroundColor="#E0E0E0"
+                          >
+                            {(fill) => (
+                              <span className="text-2xl font-bold" style={{
+                                color: selectedMentor.score >= 90 ? "#22C55E" : selectedMentor.score >= 70 ? "#3b82f6" : "#f59e0b"
+                              }}>
+                                {Math.round(fill)}%
+                              </span>
+                            )}
+                          </AnimatedCircularProgress>
+                        </div>
+                        <div>
+                          <h2 className="text-xl font-bold text-gray-800">Compatibility Score</h2>
+                          <div className={`mt-2 px-3 py-1 rounded-full text-sm font-medium inline-block ${
+                            selectedMentor.score >= 90 ? "bg-green-100 text-green-800" :
+                            selectedMentor.score >= 70 ? "bg-blue-100 text-blue-800" :
+                            "bg-yellow-100 text-yellow-800"
+                          }`}>
+                            {selectedMentor.score >= 90 ? "Excellent Match" :
+                             selectedMentor.score >= 70 ? "Strong Match" :
+                             "Good Match"}
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Skills Match Section */}
+                    <div className="bg-white rounded-lg shadow-sm mb-6 p-6">
+                      <h2 className="text-lg font-semibold text-gray-800 mb-4 border-b pb-2">Skills Match</h2>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        {/* Existing Skills */}
+                        <div className="bg-green-50 rounded-lg p-4">
+                          <h3 className="text-green-800 font-medium mb-3 flex items-center">
+                            <svg className="w-5 h-5 mr-2" viewBox="0 0 20 20" fill="currentColor">
+                              <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                            </svg>
+                            Matching Skills
+                          </h3>
+                          <div className="flex flex-wrap gap-2">
+                            {mentorData?.e_skills.map((skill, index) => (
+                              <div key={index} className="bg-white text-green-700 px-3 py-1 rounded-full text-sm border border-green-200 shadow-sm">
+                                {skill}
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                        
+                        {/* Missing Skills */}
+                        {mentorData?.m_skills && mentorData.m_skills.length > 0 && (
+                          <div className="bg-amber-50 rounded-lg p-4">
+                            <h3 className="text-amber-800 font-medium mb-3 flex items-center">
+                              <svg className="w-5 h-5 mr-2" viewBox="0 0 20 20" fill="currentColor">
+                                <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
+                              </svg>
+                              Missing Skills
+                            </h3>
+                            <div className="flex flex-wrap gap-2">
+                              {mentorData.m_skills.map((skill, index) => (
+                                <div key={index} className="bg-white text-amber-700 px-3 py-1 rounded-full text-sm border border-amber-200 shadow-sm">
+                                  {skill}
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Summary Section */}
+                    <div className="bg-blue-50 border-l-4 border-blue-500 rounded-lg shadow-md mb-6 overflow-hidden">
+                      <div className="bg-blue-500 px-6 py-3">
+                        <h2 className="text-lg font-semibold text-white">Summary</h2>
+                      </div>
+                      <div className="p-6">
+                        <p className="text-gray-700 leading-relaxed font-medium">{mentorData?.summary || 'No summary available'}</p>
+                      </div>
+                    </div>
+
+                    {/* Action Button - Request Mentorship */}
+                    <div className="mt-6">
+                      <button 
+                        onClick={handleSendRequest}
+                        className="w-full bg-blue-500 hover:bg-blue-600 text-white py-3 rounded-md font-medium transition-colors duration-200 flex items-center justify-center cursor-pointer"
+                      >
+                        <svg className="w-5 h-5 mr-2" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                          <path d="M9 12L11 14L15 10" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                          <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="2"/>
+                        </svg>
+                        Request Mentorship
+                      </button>
+                    </div>
+                  </div>
+                </>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
+
+// Update the customScrollbarStyles
+const customScrollbarStyles = `
+  .custom-scrollbar::-webkit-scrollbar {
+    width: 6px;
+  }
+  
+  .custom-scrollbar::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 3px;
+  }
+  
+  .custom-scrollbar::-webkit-scrollbar-thumb {
+    background: #888;
+    border-radius: 3px;
+  }
+  
+  .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+    background: #555;
+  }
+`;
+
+// Add the styles to the document
+const styleSheet = document.createElement("style");
+styleSheet.textContent = customScrollbarStyles;
+document.head.appendChild(styleSheet);
 
 export default FindMentors; 

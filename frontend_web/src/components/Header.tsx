@@ -31,8 +31,9 @@ const Header: React.FC<HeaderProps> = ({ userRole }) => {
 
       try {
         const userInfo = JSON.parse(userInfoString);
+        const apiUrl = import.meta.env.VITE_API_URL;
         const response = await axios.get(
-          `http://181.214.44.15:8080/user?email=${userInfo.email}`,
+          `${apiUrl}/user?email=${userInfo.email}`,
           {
             headers: { Token: `Bearer ${accessToken}` },
           }
