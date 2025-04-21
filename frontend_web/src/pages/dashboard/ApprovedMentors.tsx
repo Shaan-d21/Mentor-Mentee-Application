@@ -26,7 +26,7 @@ const ApprovedMentors: React.FC = () => {
       try {
         setLoading(true);
         console.log('Debug: Fetching approved mentors...');
-        const response = await api.get(`${import.meta.env.VITE_API_URL || 'https://mm-be.shaandewang.publicvm.com'}/mentee/get-approved-mentors`);
+        const response = await api.get(`${import.meta.env.VITE_API_URL}/mentee/get-approved-mentors`);
         console.log('Debug: API Response:', response.data);
         
         if (response.data.status_code === 200) {

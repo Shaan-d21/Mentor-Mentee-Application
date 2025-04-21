@@ -79,7 +79,7 @@ const RoadmapGenerator: React.FC = () => {
                 return;
             }
 
-            const response = await axios.get( `${import.meta.env.VITE_API_URL || 'https://mm-be.shaandewang.publicvm.com'}/mentor/get-approved-mentee`, {
+            const response = await axios.get( `${import.meta.env.VITE_API_URL}/mentor/get-approved-mentee`, {
                 headers: {
                     'Token': token,
                     'Content-Type': 'application/json',
@@ -96,7 +96,7 @@ const RoadmapGenerator: React.FC = () => {
                         menteeList.map(async (mentee) => {
                             try {
                                 const roadmapResponse = await axios.get(
-                                    `${import.meta.env.VITE_API_URL || 'https://mm-be.shaandewang.publicvm.com'}/mentor/get-mentee-roadmap/${mentee.id}`,
+                                    `${import.meta.env.VITE_API_URL}/mentor/get-mentee-roadmap/${mentee.id}`,
                                     {
                                         headers: {
                                             'Token': token,
@@ -168,7 +168,7 @@ const RoadmapGenerator: React.FC = () => {
             if (!token) return;
 
             const response = await axios.get(
-                `${import.meta.env.VITE_API_URL || 'https://mm-be.shaandewang.publicvm.com'}/mentor/get-mentee-roadmap/${menteeId}`,
+                `${import.meta.env.VITE_API_URL}/mentor/get-mentee-roadmap/${menteeId}`,
                 {
                     headers: {
                         'Token': token,
@@ -222,7 +222,7 @@ const RoadmapGenerator: React.FC = () => {
                 return;
             }
 
-            const response = await axios.post<RoadmapResponse>('https://mm-ai.shaandewang.publicvm.com/roadmaps/generate/', {
+            const response = await axios.post<RoadmapResponse>(`${import.meta.env.VITE_AI_API_URL}/roadmaps/generate/`, {
                 mentee_id: selectedMenteeData.id,
                 domain_id: selectedMenteeData.domain_id
             }, {
@@ -285,7 +285,7 @@ const RoadmapGenerator: React.FC = () => {
             // Double check if roadmap is already assigned
             try {
                 const roadmapResponse = await axios.get(
-                    `${import.meta.env.VITE_API_URL || 'https://mm-be.shaandewang.publicvm.com'}/mentor/get-mentee-roadmap/${selectedMenteeData.id}`,
+                    `${import.meta.env.VITE_API_URL}/mentor/get-mentee-roadmap/${selectedMenteeData.id}`,
                     {
                         headers: {
                             'Token': token,
@@ -306,7 +306,7 @@ const RoadmapGenerator: React.FC = () => {
             }
 
             const response = await axios.post(
-                `${import.meta.env.VITE_API_URL || 'https://mm-be.shaandewang.publicvm.com'}/mentor/assign-roadmap`,
+                `${import.meta.env.VITE_API_URL}/mentor/assign-roadmap`,
                 {
                     mentee_id: selectedMenteeData.id,
                     domain_id: selectedMenteeData.domain_id,

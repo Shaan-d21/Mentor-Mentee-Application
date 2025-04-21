@@ -212,14 +212,14 @@ const MenteeProfileContent: React.FC = () => {
 
       console.log("Fetching profile for user:", email);
       
-      const apiBaseUrl = import.meta.env.VITE_API_URL || 'https://mm-be.shaandewang.publicvm.com' || 'http://localhost:8000';
+      const apiBaseUrl = import.meta.env.VITE_API_URL;
       
       // Try the mentee profile endpoint with proper token format
       try {
         console.log(`Calling API: GET ${apiBaseUrl}/mentee/mentee/profile`);
         console.log('Headers:', { 'Token': authToken.substring(0, 20) + '...' });
         
-        const profileResponse = await axios.get(`${import.meta.env.VITE_API_URL || 'https://mm-be.shaandewang.publicvm.com'}/mentee/mentee/profile`, {
+        const profileResponse = await axios.get(`${import.meta.env.VITE_API_URL}/mentee/mentee/profile`, {
           headers: {
             'Token': authToken
           }
@@ -349,7 +349,7 @@ const MenteeProfileContent: React.FC = () => {
       // First update the profile
       // const profileResponse = await axios.put(
       await axios.put(
-        `${import.meta.env.VITE_API_URL || 'https://mm-be.shaandewang.publicvm.com'}/mentee/mentee/profile_creation`,
+        `${import.meta.env.VITE_API_URL}/mentee/mentee/profile_creation`,
         profileData,
         {
           headers: {
@@ -373,7 +373,7 @@ const MenteeProfileContent: React.FC = () => {
             };
 
             await axios.post(
-              `${import.meta.env.VITE_API_URL || 'https://mm-be.shaandewang.publicvm.com'}/mentee/mentee/skills`,
+              `${import.meta.env.VITE_API_URL}/mentee/mentee/skills`,
               skillsPayload,
               {
                 headers: {

@@ -10,6 +10,7 @@ interface Mentee {
   email: string;
   designation: string;
   domain: string;
+  roadmap_id?: number;
 }
 
 // Mock data for development
@@ -50,7 +51,7 @@ const MyMentees: React.FC = () => {
         const authToken = accessToken.startsWith('Bearer ') ? accessToken.split('Bearer ')[1] : accessToken;
 
         try {
-          const response = await axios.get(`${import.meta.env.VITE_API_URL || 'https://mm-be.shaandewang.publicvm.com'}/mentor/get-approved-mentee`, {
+          const response = await axios.get(`${import.meta.env.VITE_API_URL}/mentor/get-approved-mentee`, {
             headers: {
               'Token': authToken
             }
@@ -63,7 +64,8 @@ const MyMentees: React.FC = () => {
               name: mentee.name,
               email: mentee.mail,
               designation: mentee.designation || "Not specified",
-              domain: mentee.domain_name || "Not specified"
+              domain: mentee.domain_name || "Not specified",
+              roadmap_id: mentee.roadmap_id
             }));
             setMentees(mappedMentees);
           } else {
@@ -73,7 +75,7 @@ const MyMentees: React.FC = () => {
           toast.error('Failed to fetch mentees. Using mock data.');
           setMentees(MOCK_MENTEES);
         }
-      } catch (error: any) {
+      } catch (error) {
         toast.error('An error occurred while fetching mentees.');
         setMentees(MOCK_MENTEES);
       } finally {
@@ -83,6 +85,20 @@ const MyMentees: React.FC = () => {
 
     fetchMentees();
   }, [navigate]);
+
+  const handleNameClick = (mentee: Mentee) => {
+    if (mentee.roadmap_id) {
+      navigate('/mentor/dashboard/mentee-roadmap', {
+        state: {
+          roadmap_id: mentee.roadmap_id,
+          mentee_name: mentee.name,
+          mentee_id: mentee.id
+        }
+      });
+    } else {
+      toast.error('No roadmap available for this mentee');
+    }
+  };
 
   if (loading) {
     return (
@@ -122,7 +138,16 @@ const MyMentees: React.FC = () => {
               {mentees.map((mentee) => (
                 <tr key={mentee.id} className="hover:bg-gray-50">
                   <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="text-sm font-medium text-gray-900">{mentee.name}</div>
+                    <button
+                      onClick={() => handleNameClick(mentee)}
+                      className={`text-sm font-medium cursor-pointer ${
+                        mentee.roadmap_id 
+                          ? 'text-blue-600 hover:text-blue-800 hover:underline' 
+                          : 'text-gray-900 cursor-not-allowed'
+                      }`}
+                    >
+                      {mentee.name}
+                    </button>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
                     <div className="text-sm text-gray-500">{mentee.email}</div>
