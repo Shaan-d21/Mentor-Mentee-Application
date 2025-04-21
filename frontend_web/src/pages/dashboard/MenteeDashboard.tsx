@@ -41,7 +41,8 @@ const DashboardHome: React.FC = () => {
       </div>
 
       <div className="space-y-8">
-        <FindMentors />
+        <MyMentors />
+        <MenteeRequests />
       </div>
     </div>
   );
