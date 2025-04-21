@@ -113,18 +113,35 @@ def get_roadmap_topics(
     topic_list = []
     for topic in topics:
         # print(topic)
-        topic_status = topic.status
-        topic_id = topic.id
-        name = topic.name
-        subtopics = [item.strip() for item in topic.subtopics.split(',')]
-        description = topic.description
-        importance = topic.reasoning
-        topic_list.append({'topic_id':topic_id, 'name':name, "description": description, "subtopics": subtopics, "importance": importance, "topic_status": topic_status})
+        topic_status = getattr(topic,'status',None)
+        topic_id = getattr(topic,'id',None)
+        name = getattr(topic,'name',None)
+        description = getattr(topic,'description',None)
+        topic_duration_days = getattr(topic,'topic_duration_days',None)
+        importance = getattr(topic,'reasoning',None)
+        subtopic_raw = getattr(topic,'subtopics',None)
+        subtopic_duration_raw = getattr(topic,'subtopic_durations',None)
+
+        if subtopic_raw is not None and subtopic_duration_raw is not None:
+            subtopic_name = [item.strip() for item in topic.subtopics.split(',')]
+            subtopic_days = [item.strip() for item in topic.subtopic_durations.split(',')]
+            subtopics = zip(subtopic_name, subtopic_days)
+            formated_subtopics = [f"{subtopic_name} ({subtopic_duration} hours)" for subtopic_name, subtopic_duration in subtopics]
+        else:
+            formated_subtopics = None
+
+        topic_list.append({"topic_id":topic_id,
+                            "name":name,
+                            "description": description,
+                              "subtopics": formated_subtopics,
+                                "topic_duration_days": topic_duration_days,
+                                  "importance": importance,
+                                    "topic_status": topic_status})
 
     return {
         "status_code": status.HTTP_200_OK,
         "message": "success",
         "roadmap_id": mentee_roadmap[0],
         "roadmap_explanation": roadmap.description,
-        "topic": topic_list
+        "topics": topic_list
     }
