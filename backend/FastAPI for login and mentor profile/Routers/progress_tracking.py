@@ -3,7 +3,7 @@ from fastapi import APIRouter, Depends, HTTPException, Path
 from pydantic import BaseModel, Field
 from database import SessionLocal
 from sqlalchemy.orm import Session
-from models import User,Skill, MentorSkill, MentorMentee, Domain, MenteeSkill, Topic, TopicStatus, Feedback
+from models import  Topic, Feedback
 from .auth import get_current_user
 from starlette import status
 
@@ -66,7 +66,8 @@ async def mark_complete(user: user_dependency, db: db_dependency, req: Feedback_
         sender_id = user.get('user_id'),
         receiver_id = req.mentee_id,
         feedback = req.feedback,
-        sender_role = 'mentor'
+        sender_role = 'mentor',
+        topic_id = req.topic_id
     )
     db.add(topic_model)
     db.add(feedback_model)
@@ -89,7 +90,8 @@ async def reassign_topic(user: user_dependency, db: db_dependency, req: Feedback
         sender_id = user.get('user_id'),
         receiver_id = req.mentee_id,
         feedback = req.feedback,
-        sender_role = 'mentor'
+        sender_role = 'mentor',
+        topic_id = req.topic_id
     )
     db.add(feedback_model)
     topic_model.status = 'assigned'
