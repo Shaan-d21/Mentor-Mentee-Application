@@ -3,7 +3,7 @@ from fastapi import APIRouter, Depends, HTTPException, Path
 from pydantic import BaseModel, Field
 from database import SessionLocal
 from sqlalchemy.orm import Session
-from models import User, Domain, Feedback, MentorMentee
+from models import User, Domain, Feedback, MentorMentee,Topic
 from .auth import get_current_user
 from starlette import status
 
@@ -38,7 +38,7 @@ async def view_all_feedbacks(user: user_dependency, db: db_dependency):
         mentor_name = mentor_model.name
         domain_model = db.query(Domain).filter(Domain.id == domain_id).first()
         domain_name = domain_model.name
-
+        topic_model = db.query(Topic).filter(Topic.id == feedback.topic_id).first()
         object = {
             'feedback_id': feedback.id,
             "mentee_id" : mentee_id,
@@ -46,7 +46,9 @@ async def view_all_feedbacks(user: user_dependency, db: db_dependency):
             "domain_id" : domain_id,
             "feedback" : feedback.feedback,
             "mentor_name" : mentor_name,
-            "domain_name" : domain_name
-        }
+            "domain_name" : domain_name,
+            'topic_id': topic_model.id,
+            'topic_name' : topic_model.name
+        }   
         feedback_list.append(object)
     return { 'status_code':200, 'Message': 'Success', 'Feedback List':   feedback_list }
