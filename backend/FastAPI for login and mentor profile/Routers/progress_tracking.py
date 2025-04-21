@@ -94,7 +94,7 @@ async def reassign_topic(user: user_dependency, db: db_dependency, req: Feedback
         topic_id = req.topic_id
     )
     db.add(feedback_model)
-    topic_model.status = 'assigned'
+    topic_model.status = 'reassigned'
     db.add(topic_model)
     db.commit()
     return { 'status_code': 200, 'Message': 'Topic Reassigned'}

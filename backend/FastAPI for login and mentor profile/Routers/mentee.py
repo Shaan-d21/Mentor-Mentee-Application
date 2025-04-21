@@ -194,6 +194,7 @@ async def show_sent_requests(user: user_dependency, db: db_dependency):
             MentorMentee.comment,
             User.name.label("mentor_name"),
             User.mail.label("mentor_mail"),
+            User.id.label('mentor_id'),
             User.designation.label("mentor_designation"),
             Domain.name.label("domain_name")
         )
@@ -206,6 +207,7 @@ async def show_sent_requests(user: user_dependency, db: db_dependency):
     result = [
         {
             "mentor_name": r.mentor_name,
+            'mentor_id': r.mentor_id,
             "mentor_mail": r.mentor_mail,
             "mentor_designation": r.mentor_designation,
             "domain_name": r.domain_name,
