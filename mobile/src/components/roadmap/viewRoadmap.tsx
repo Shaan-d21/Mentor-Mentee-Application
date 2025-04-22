@@ -64,14 +64,14 @@ export const ViewListRoadmapItems = (props: { roadmap: RoadmapResponse | null })
     };
     const getTopicStatusIndicator = (topic: RoadmapTopic) => {
         if (topic.topic_status === 'completed') {
-          return <View style={styles.statusIndicator}><Text style={styles.statusText}>Completed</Text></View>;
+            return <View style={styles.statusIndicator}><Text style={styles.statusText}>Completed</Text></View>;
         } else if (topic.topic_status === 'marked' || markingAsDone.includes(topic.topic_id)) {
-          return <></>
+            return <></>
         } else if (topic.topic_status === 'reassigned') {
-          return <View style={[styles.statusIndicator, styles.markedIndicator,{backgroundColor:"#EF4444"}]}><Text style={styles.statusText}>Reassigned</Text></View>;
+            return <View style={[styles.statusIndicator, styles.markedIndicator, { backgroundColor: "#EF4444" }]}><Text style={styles.statusText}>Reassigned</Text></View>;
         }
         return null;
-      };
+    };
     return (
         (roadmap && roadmap.topics.length > 0) ? (
             <View style={styles.container}>
@@ -87,9 +87,9 @@ export const ViewListRoadmapItems = (props: { roadmap: RoadmapResponse | null })
                                 <Text style={styles.statLabel}>Topics</Text>
                             </View>
                             <View style={styles.statItem}>
-                            <Text style={styles.statValue}>
-    {Math.round((roadmap.topics.filter(topic => topic.topic_status === 'completed').length / roadmap.topics.length) * 100)}%
-</Text>
+                                <Text style={styles.statValue}>
+                                    {Math.round((roadmap.topics.filter(topic => topic.topic_status === 'completed').length / roadmap.topics.length) * 100)}%
+                                </Text>
                                 <Text style={styles.statLabel}>Complete</Text>
                             </View>
                         </View>
@@ -120,18 +120,18 @@ export const ViewListRoadmapItems = (props: { roadmap: RoadmapResponse | null })
                                             <Text style={styles.topicNumberText}>{index + 1}</Text>
                                         </View>
                                         <View style={styles.topicTitleContainer}>
-    {/* <View style={styles.topicNumber}>
+                                            {/* <View style={styles.topicNumber}>
         <Text style={styles.topicNumberText}>{index + 1}</Text>
     </View> */}
-    <View style={{flex: 1}}>
-        <Text style={styles.topicTitle}>{topic.name}</Text>
-        {getTopicStatusIndicator(topic)}
-    </View>
-</View>
+                                            <View style={{ flex: 1 }}>
+                                                <Text style={styles.topicTitle}>{topic.name}</Text>
+                                                {getTopicStatusIndicator(topic)}
+                                            </View>
+                                        </View>
                                     </View>
 
                                     <View style={styles.topicActions}>
-                                       
+
                                         <FontAwesomeIcon
                                             icon={isExpanded ? faChevronUp : faChevronDown}
                                             size={16}
@@ -144,6 +144,10 @@ export const ViewListRoadmapItems = (props: { roadmap: RoadmapResponse | null })
                                     <View style={styles.topicContent}>
                                         <Text style={styles.contentLabel}>Description:</Text>
                                         <Text style={styles.topicDescription}>{topic.description}</Text>
+                                        <Text style={styles.durationText}>
+                                            <Text style={styles.contentLabel}>Duration: </Text>
+                                            <Text style={styles.topicDescription}>{topic.topic_duration_hours} Hours</Text>
+                                        </Text>
 
                                         {topic.subtopics.length > 0 && (
                                             <>
@@ -155,25 +159,25 @@ export const ViewListRoadmapItems = (props: { roadmap: RoadmapResponse | null })
                                                             <Text style={styles.subtopicText}>{subtopic}</Text>
                                                         </View>
                                                     ))}
-                                                    
-                                  
+
+
                                                 </View>
                                             </>
                                         )}
-                                                          {topic.topic_status !== 'completed' && (
-                <TouchableOpacity
-                    style={[
-                        styles.doneButton,
-                        isTopicMarked && styles.disabledButton
-                    ]}
-                    onPress={() => handleMarkAsDone(topic.topic_id)}
-                    disabled={isTopicMarked}
-                >
-                    <Text style={{ color: 'white' }}>
-                        {isTopicMarked ? "Requested..." : "Mark as Done"}
-                    </Text>
-                </TouchableOpacity>
-            )}
+                                        {topic.topic_status !== 'completed' && (
+                                            <TouchableOpacity
+                                                style={[
+                                                    styles.doneButton,
+                                                    isTopicMarked && styles.disabledButton
+                                                ]}
+                                                onPress={() => handleMarkAsDone(topic.topic_id)}
+                                                disabled={isTopicMarked}
+                                            >
+                                                <Text style={{ color: 'white' }}>
+                                                    {isTopicMarked ? "Requested..." : "Mark as Done"}
+                                                </Text>
+                                            </TouchableOpacity>
+                                        )}
 
                                         {!isImportanceExpanded ? (
                                             <TouchableOpacity
@@ -213,22 +217,22 @@ const styles = StyleSheet.create({
         backgroundColor: '#F3F4F6',
     },
     // Add to the styles object
-statusIndicator: {
-    paddingHorizontal: 8,
-    paddingVertical: 2,
-    backgroundColor: '#10B981',
-    borderRadius: 4,
-    alignSelf: 'flex-start',
-    marginTop: 4,
-},
-markedIndicator: {
-    backgroundColor: '#FBBF24',
-},
-statusText: {
-    color: 'white',
-    fontSize: 10,
-    fontWeight: 'bold',
-},
+    statusIndicator: {
+        paddingHorizontal: 8,
+        paddingVertical: 2,
+        backgroundColor: '#10B981',
+        borderRadius: 4,
+        alignSelf: 'flex-start',
+        marginTop: 4,
+    },
+    markedIndicator: {
+        backgroundColor: '#FBBF24',
+    },
+    statusText: {
+        color: 'white',
+        fontSize: 10,
+        fontWeight: 'bold',
+    },
     scrollView: {
         flex: 1,
         padding: 16,
@@ -341,6 +345,12 @@ statusText: {
         paddingTop: 0,
         borderTopWidth: 1,
         borderTopColor: '#E5E7EB',
+    },
+
+    durationText: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        marginTop: 12,
     },
     contentLabel: {
         fontSize: 14,
