@@ -15,6 +15,7 @@ const Navbar = () => {
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [userInfo, setUserInfo] = useState<UserInfo | null>(null);
   const [isLoggingOut, setIsLoggingOut] = useState(false);
+  const [showLogoutModal, setShowLogoutModal] = useState(false);
   const navigate = useNavigate();
   const location = useLocation();
   const dropdownRef = useRef<HTMLDivElement>(null);
@@ -58,53 +59,30 @@ const Navbar = () => {
 
   const handleLogout = () => {
     if (isLoggingOut) return;
-    
+    setShowLogoutModal(true);
+  };
+
+  const handleLogoutConfirm = () => {
     setIsLoggingOut(true);
+    // Clear all items from localStorage
+    localStorage.removeItem("accessToken");
+    localStorage.removeItem("token");
+    localStorage.removeItem("role");
+    localStorage.removeItem("name");
+    localStorage.removeItem("email");
+    localStorage.removeItem("profile_status");
+    localStorage.removeItem("userInfo");
     
-    toast((t) => (
-      <div className="p-4">
-        <p className="text-sm font-medium text-gray-800">
-          Are you sure you want to logout?
-        </p>
-        <div className="mt-3 flex justify-end space-x-2">
-          <button
-            onClick={() => {
-              toast.dismiss(t.id);
-              setIsLoggingOut(false);
-            }}
-            className="px-3 py-1 text-sm text-gray-600 hover:text-gray-800"
-          >
-            Cancel
-          </button>
-          <button
-            onClick={() => {
-              // Clear all items from localStorage
-              localStorage.removeItem("accessToken");
-              localStorage.removeItem("token");
-              localStorage.removeItem("role");
-              localStorage.removeItem("name");
-              localStorage.removeItem("email");
-              localStorage.removeItem("profile_status");
-              localStorage.removeItem("userInfo"); // For backward compatibility
-              
-              setIsAuthenticated(false);
-              setIsMenuOpen(false);
-              setIsLoggingOut(false);
-              toast.dismiss(t.id);
-              toast.success("Logged out successfully!");
-              navigate("/");
-            }}
-            className="px-3 py-1 text-sm text-white bg-red-600 hover:bg-red-700 rounded"
-          >
-            Logout
-          </button>
-        </div>
-      </div>
-    ), {
-      duration: Infinity,
-      position: "top-center",
-      id: "logout-confirmation",
-    });
+    setIsAuthenticated(false);
+    setIsMenuOpen(false);
+    setIsLoggingOut(false);
+    setShowLogoutModal(false);
+    toast.success("Logged out successfully!");
+    navigate("/");
+  };
+
+  const handleLogoutCancel = () => {
+    setShowLogoutModal(false);
   };
 
   const handleViewProfile = () => {
@@ -350,6 +328,50 @@ const Navbar = () => {
           )}
         </div>
       </div>
+
+      {/* Logout Confirmation Modal */}
+      {showLogoutModal && (
+        <div className="fixed inset-0 z-50 overflow-y-auto">
+          {/* Backdrop with blur effect - no click handler */}
+          <div 
+            className="fixed inset-0 bg-black/50 backdrop-blur-sm transition-opacity"
+          />
+          
+          {/* Modal */}
+          <div className="flex min-h-full items-end justify-center p-4 text-center sm:items-center sm:p-0">
+            <div className="relative transform overflow-hidden rounded-lg bg-white px-4 pb-4 pt-5 text-left shadow-xl transition-all sm:my-8 sm:w-full sm:max-w-lg sm:p-6">
+              <div className="sm:flex sm:items-start">
+                <div className="mt-3 text-center sm:mt-0 sm:text-left">
+                  <h3 className="text-lg font-semibold leading-6 text-gray-900">
+                    Confirm Logout
+                  </h3>
+                  <div className="mt-2">
+                    <p className="text-sm text-gray-500">
+                      Are you sure you want to logout?
+                    </p>
+                  </div>
+                </div>
+              </div>
+              <div className="mt-5 sm:mt-4 sm:flex sm:flex-row-reverse">
+                <button
+                  type="button"
+                  className="inline-flex w-full justify-center rounded-md bg-red-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-red-500 sm:ml-3 sm:w-auto"
+                  onClick={handleLogoutConfirm}
+                >
+                  Logout
+                </button>
+                <button
+                  type="button"
+                  className="mt-3 inline-flex w-full justify-center rounded-md bg-white px-3 py-2 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50 sm:mt-0 sm:w-auto"
+                  onClick={handleLogoutCancel}
+                >
+                  Cancel
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </nav>
   );
 };
