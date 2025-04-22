@@ -17,7 +17,8 @@ export interface RoadmapTopic {
 
 }
 
-// Helper functions (optional)
+
+
 export function roadmapResponseFromJson(json: any): RoadmapResponse {
     return { ...json };
 }

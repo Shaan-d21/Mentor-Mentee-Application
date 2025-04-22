@@ -122,7 +122,7 @@ export const apiModifyRoadmapTopic = async (
       topic_id: topicId,
       topic_name: topicName,
       description: description,
-      subtopics: subtopics,
+      subtopics: parsedSubtopics,
       reasoning: reasoning,
       subtopics_duration: subtopics_duration,
       topic_duration_hours: topic_duration_hours // Add this line to include total duration
@@ -180,7 +180,7 @@ export const apiAddRoadmapTopic = async (
       roadmap_id: roadmapId,
       topic_name: topicName,
       description: description,
-      subtopics: subtopics,
+      subtopics: parsedSubtopics,
       subtopics_duration: subtopics_duration,
       reasoning: reasoning,
       topic_duration_hours: topic_duration_hours // Add this line to include total duration

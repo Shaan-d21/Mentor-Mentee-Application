@@ -28,12 +28,10 @@ const RoadmapScreen: React.FC<RoadmapScreenProps> = ({ navigation,route }) => {
 
   const {
     status,
-    roadmapExplanation,
-    assignedTopics,
-    completedTopics,
-    reassignedTopics,
-    markedTopics,
-    refersh
+   refresh,
+   roadmap
+
+
   } = useSelector((state: RootState) => state.viewRoadmap);
   const isFocused = useIsFocused();
 
@@ -44,20 +42,20 @@ useEffect(() => {
   dispatch(fetchRoadmap(roadmap_id)).then((response) => {
 
   });
-}, [dispatch, refersh,roadmap_id,isFocused]);
-const roadmapItems:RoadmapResponse = status === 'success' ? {
-  status_code: 200,
-  message: 'success',
-  roadmap_id: roadmap_id,
-  roadmap_explanation: roadmapExplanation,
-  topics: [...assignedTopics, ...completedTopics, ...markedTopics, ...reassignedTopics],
-} : {
-  message: 'error',
-  roadmap_explanation: 'error',
-  status_code: 500,
-  roadmap_id: 0,
-  topics: [],
-};
+}, [dispatch, refresh,roadmap_id,isFocused]);
+// const roadmapItems:RoadmapResponse = status === 'success' ? {
+//   status_code: 200,
+//   message: 'success',
+//   roadmap_id: roadmap_id,
+//   roadmap_explanation: roadmapExplanation,
+//   topics: [...assignedTopics, ...completedTopics, ...markedTopics, ...reassignedTopics],
+// } : {
+//   message: 'error',
+//   roadmap_explanation: 'error',
+//   status_code: 500,
+//   roadmap_id: 0,
+//   topics: [],
+// };
   if (status === 'loading') {
     return (
       <View style={styles.loaderContainer}>
@@ -83,9 +81,10 @@ else if (status === 'success') {
           openDrawer={() => { }}
           title="Roadmap"
         />
-     
-      <ViewListRoadmapItems roadmap={roadmapItems}  />
-       
+     {
+        (roadmap && roadmap.topics.length > 0 )?
+     (<ViewListRoadmapItems roadmap={roadmap}  />):(<></>)
+     }  
       
     </ScrollView>
   );}

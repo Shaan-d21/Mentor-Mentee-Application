@@ -1,5 +1,5 @@
 import React, { FC, use, useEffect, useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView, ActivityIndicator, Alert } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView, ActivityIndicator, Alert, BackHandler } from 'react-native';
 import { useDispatch, useSelector } from 'react-redux';
 import DropdownComponent from '../../components/Dropdown';
 import { ScreenProps } from '../../navigation/types';
@@ -21,6 +21,21 @@ export const MentorRoadmapGeneration: FC<ScreenProps<'MentorRoadmapGeneration'>>
   const [selectedDomain, setSelectedDomain] = useState('');
   const storage = new MMKV();
   const isFocused = useIsFocused();
+
+  useEffect(() => {
+    const backAction = () => {
+      if (roadmap) {
+        dispatch(initialStateMentorRoadmap());
+        dispatch(fetchApprovedMentees());
+        return true; // Prevents default back action
+      }
+      return false; // Let default back behavior happen when no roadmap is displayed
+    };
+
+    const backHandler = BackHandler.addEventListener('hardwareBackPress', backAction);
+
+    return () => backHandler.remove(); // Clean up on component unmount
+  }, [dispatch, roadmap]);
 
   useEffect(() => {
     if (!isFocused) {

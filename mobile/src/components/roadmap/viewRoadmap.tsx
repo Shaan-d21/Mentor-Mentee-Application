@@ -156,7 +156,11 @@ export const ViewListRoadmapItems = (props: { roadmap: RoadmapResponse | null })
                                                         </View>
                                                     ))}
                                                     
-                                                    {topic.topic_status !== 'completed' && (
+                                  
+                                                </View>
+                                            </>
+                                        )}
+                                                          {topic.topic_status !== 'completed' && (
                 <TouchableOpacity
                     style={[
                         styles.doneButton,
@@ -170,9 +174,6 @@ export const ViewListRoadmapItems = (props: { roadmap: RoadmapResponse | null })
                     </Text>
                 </TouchableOpacity>
             )}
-                                                </View>
-                                            </>
-                                        )}
 
                                         {!isImportanceExpanded ? (
                                             <TouchableOpacity
