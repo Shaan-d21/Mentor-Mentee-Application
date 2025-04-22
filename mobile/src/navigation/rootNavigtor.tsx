@@ -10,6 +10,7 @@ import MentorProfile from '../screens/profile/mentorprofile';
 import CheckRequestScreen from '../screens/Dashboards/mentorcheckRequest';
 import MenteeRoadmap from '../screens/CourseRoadmap/menteeRoadmap';
 import checkReport from '../screens/Check_Report/checkreport';
+import AsyncStorage from '@react-native-async-storage/async-storage'; // ✅ Added AsyncStorage
 
 // import CustomDrawerContent from '../components/drawer_component';
 import temp from '../screens/temp';
@@ -19,12 +20,33 @@ import RoadmapScreen from '../screens/CourseRoadmap/RoadmapScreen';
 import MenteeRequests from '../screens/Dashboards/mentee_requests';
 import MentorProgress from '../screens/progress_screens/mentor_progress';
 import MenteeFeedback from '../screens/Feedback/menteeFeedback';
+import { useEffect, useState } from 'react';
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
 export const RootNavigator: FC = () => {
+  const [initialRoute, setInitialRoute] = useState<keyof RootStackParamList>('SignInPage');
+
+  useEffect(() => {
+    const checkRememberMe = async () => {
+      const remembered = await AsyncStorage.getItem('rememberMe');
+      if (remembered === 'true') {
+        // If "Remember Me" is true, check the user role and navigate accordingly
+        const userRole = await AsyncStorage.getItem('userRole'); // Assuming you saved the role in AsyncStorage
+        if (userRole === 'mentor') {
+          setInitialRoute('MentorDashboard'); // If the role is 'mentor', navigate to MentorDashboard
+        } else {
+          setInitialRoute('MenteeDashboard'); // Otherwise, navigate to MenteeDashboard
+        }
+      } else {
+        setInitialRoute('SignInPage'); // If "Remember Me" is false, navigate to SignInPage
+      }
+    };
+
+    checkRememberMe(); // ✅ Check for RememberMe status when the component mounts
+  }, []); 
   return (
     <Stack.Navigator
-      initialRouteName="SignInPage"
+      initialRouteName={initialRoute} 
       screenOptions={() => ({
         headerShown: false,
       })}>
