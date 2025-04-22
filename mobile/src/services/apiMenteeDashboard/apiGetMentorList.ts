@@ -5,7 +5,7 @@ export const apiGetMentorList = async (credentials: {domain: string}) => {
   const storage = new MMKV();
 
   const api = axios.create({
-    baseURL: process.env.API_URL,
+    baseURL: process.env.AI_API_URL,
     headers: {
       'Content-Type': 'application/json',
       token: storage.getString('token'),
@@ -17,7 +17,9 @@ export const apiGetMentorList = async (credentials: {domain: string}) => {
     console.log(`Credentials are ${credentials.domain}`);
     const data = {choise: credentials.domain};
     //request
-    const response = await api.get('predict/', {params:{d: credentials.domain}});
+    const response = await api.get('predict/', {
+      params: {d: credentials.domain},
+    });
     if (response.status == 200) {
       // console.log("apiGetMentorList response:", response);
       console.log(`apiGetMentorList data: `, response.data);

@@ -1054,6 +1054,7 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     paddingHorizontal: 10,
     backgroundColor: '#fff',
+    zIndex: 1000,
   },
   placeholderStyle: {fontSize: 16, color: '#999'},
   selectedTextStyle: {fontSize: 16, color: '#333'},

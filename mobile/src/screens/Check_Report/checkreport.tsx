@@ -29,6 +29,7 @@ const CheckReport = ({route}: any) => {
 
   useEffect(() => {
     // Fetch the report data when the screen is mounted
+    console.log(mentorId, domain, score);
     dispatch(fetchCheckReport({mentorId, domain, score}));
   }, [dispatch, mentorId, domain, score]);
 
