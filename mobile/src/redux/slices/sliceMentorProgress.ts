@@ -39,7 +39,7 @@ const initialState: State = {
 
 // API response
 interface FetchRoadmapResponse {
-    topic: Topic[];
+    topics: Topic[];
     roadmapExplanation: string;
     roadMapId: number;
 
@@ -56,7 +56,7 @@ export const fetchRoadmap = createAsyncThunk<FetchRoadmapResponse, number, { rej
 
     // console.log("fetchRoamap asyncThunk: ", response);
     return {
-        topic: response.topic,
+        topics: response.topics,
         roadmapExplanation: response.roadmap_explanation,
         roadMapId: response.roadmap_id
     };
@@ -100,12 +100,12 @@ const sliceMentorProgress = createSlice({
         }).addCase(fetchRoadmap.pending, (state) => {
             state.status = currentStatus.loading;
         }).addCase(fetchRoadmap.fulfilled, (state, action) => {
-            console.log("reducer content is ", action.payload.topic);
+            console.log("reducer content is ", action.payload);
             state.status = currentStatus.success;
 
-            state.assignedTopics = action.payload.topic.filter(topic => topic.topic_status === "assigned");
-            state.completedTopics = action.payload.topic.filter(topic => topic.topic_status === "completed");
-            state.markedTopics = action.payload.topic.filter(topic => topic.topic_status === "marked");
+            state.assignedTopics = action.payload.topics.filter(topic => topic.topic_status === "assigned");
+            state.completedTopics = action.payload.topics.filter(topic => topic.topic_status === "completed");
+            state.markedTopics = action.payload.topics.filter(topic => topic.topic_status === "marked");
 
             state.roadMapId = action.payload.roadMapId;
             state.roadmapExplanation = action.payload.roadmapExplanation;

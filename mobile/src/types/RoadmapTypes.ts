@@ -13,9 +13,12 @@ export interface RoadmapTopic {
     subtopics: string[];
     importance: string;
     topic_status: string;
+    topic_duration_hours: number;
+
 }
 
-// Helper functions (optional)
+
+
 export function roadmapResponseFromJson(json: any): RoadmapResponse {
     return { ...json };
 }

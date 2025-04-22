@@ -5,10 +5,11 @@ import { View, Text, StyleSheet, ScrollView, ActivityIndicator } from 'react-nat
 import { useDispatch, useSelector } from 'react-redux';
 import { AppDispatch, RootState } from '../../redux/store';
 import { fetchRoadmap } from '../../redux/slices/sliceRoadmapTopics';
-import { ListRoadmapItems } from '../../components/roadmap/viewRoadmap';
-import { RoadmapResponse } from '../../types/ViewRoadmapTypes';
 import AppBar from '../../components/appbar_component';
 import { useIsFocused } from '@react-navigation/native';
+import { ListRoadmapItems } from '../../components/roadmap/RoadmapListItemsComponent';
+import { RoadmapResponse } from '../../types/RoadmapTypes';
+import { ViewListRoadmapItems } from '../../components/roadmap/viewRoadmap';
 
 interface RoadmapScreenProps {
   route: {
@@ -27,11 +28,10 @@ const RoadmapScreen: React.FC<RoadmapScreenProps> = ({ navigation,route }) => {
 
   const {
     status,
-    roadmapExplanation,
-    assignedTopics,
-    completedTopics,
-    markedTopics,
-    refersh
+   refresh,
+   roadmap
+
+
   } = useSelector((state: RootState) => state.viewRoadmap);
   const isFocused = useIsFocused();
 
@@ -42,14 +42,20 @@ useEffect(() => {
   dispatch(fetchRoadmap(roadmap_id)).then((response) => {
 
   });
-}, [dispatch, refersh,roadmap_id,isFocused]);
-const roadmapItems = status === 'success' ? {
-  status_code: 200,
-  message: 'success',
-  roadmap_id: roadmap_id,
-  roadmap_explanation: roadmapExplanation,
-  topic: [...assignedTopics, ...completedTopics, ...markedTopics]
-} : null;
+}, [dispatch, refresh,roadmap_id,isFocused]);
+// const roadmapItems:RoadmapResponse = status === 'success' ? {
+//   status_code: 200,
+//   message: 'success',
+//   roadmap_id: roadmap_id,
+//   roadmap_explanation: roadmapExplanation,
+//   topics: [...assignedTopics, ...completedTopics, ...markedTopics, ...reassignedTopics],
+// } : {
+//   message: 'error',
+//   roadmap_explanation: 'error',
+//   status_code: 500,
+//   roadmap_id: 0,
+//   topics: [],
+// };
   if (status === 'loading') {
     return (
       <View style={styles.loaderContainer}>
@@ -75,9 +81,10 @@ else if (status === 'success') {
           openDrawer={() => { }}
           title="Roadmap"
         />
-     
-      <ListRoadmapItems roadmap={roadmapItems} />
-       
+     {
+        (roadmap && roadmap.topics.length > 0 )?
+     (<ViewListRoadmapItems roadmap={roadmap}  />):(<></>)
+     }  
       
     </ScrollView>
   );}

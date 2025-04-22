@@ -26,6 +26,7 @@
     "react": "19.0.0",
     "react-native": "^0.78.1",
     "react-native-circular-progress": "^1.4.1",
+    "react-circular-progressbar": "^2.2.0",
     "react-native-dotenv": "^3.4.11",
     "react-native-element-dropdown": "^2.12.4",
     "react-native-elements": "^3.4.3",

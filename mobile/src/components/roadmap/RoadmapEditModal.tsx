@@ -16,10 +16,17 @@ import {
   faTrash, 
   faPlus, 
   faSave,
-  faTimes
+  faTimes,
+  faClock
 } from '@fortawesome/free-solid-svg-icons';
 import { RoadmapTopic } from '../../types/RoadmapTypes';
 import { apiDeleteTopic } from '../../services/apiRoadmap/apiGenerateRoadmapMentor';
+
+// Define subtopic item interface
+interface SubtopicItem {
+  text: string;
+  hours: string;
+}
 
 interface RoadmapEditModalProps {
   visible: boolean;
@@ -42,7 +49,8 @@ const RoadmapEditModal: React.FC<RoadmapEditModalProps> = ({
     name: '',
     description: '',
     subtopics: [],
-    importance: ''
+    importance: '',
+    topic_duration_days: 0
   });
   const [isSaving, setIsSaving] = useState(false);
   const [errors, setErrors] = useState<{[key: string]: string}>({});
@@ -50,20 +58,45 @@ const RoadmapEditModal: React.FC<RoadmapEditModalProps> = ({
   // Initialize form values when editingTopic changes
   useEffect(() => {
     if (editingTopic) {
+      // Parse existing subtopics to extract text and hours
+      const parsedSubtopics = editingTopic.subtopics.map((subtopic: string) => {
+        const match = subtopic.match(/(.*?)\s*\((\d+)\s*hours?\)$/i);
+        if (match) {
+          return { text: match[1].trim(), hours: match[2] };
+        }
+        return { text: subtopic, hours: "" };
+      });
+      
       setEditedValues({
         name: editingTopic.name,
         description: editingTopic.description,
-        subtopics: [...editingTopic.subtopics],
-        importance: editingTopic.importance
+        subtopics: parsedSubtopics,
+        importance: editingTopic.importance,
+        topic_duration_days: editingTopic.topic_duration_hours || 0
       });
       setErrors({});
     }
   }, [editingTopic]);
 
   // Update a subtopic text
-  const updateSubtopic = (index: number, text: string) => {
+  const updateSubtopicText = (index: number, text: string) => {
     const updatedSubtopics = [...editedValues.subtopics];
-    updatedSubtopics[index] = text;
+    updatedSubtopics[index] = { 
+      ...updatedSubtopics[index], 
+      text 
+    };
+    setEditedValues({...editedValues, subtopics: updatedSubtopics});
+  };
+
+  const updateSubtopicHours = (index: number, hours: string) => {
+    // Only allow numeric input
+    if (hours && !/^\d+$/.test(hours)) return;
+    
+    const updatedSubtopics = [...editedValues.subtopics];
+    updatedSubtopics[index] = { 
+      ...updatedSubtopics[index], 
+      hours 
+    };
     setEditedValues({...editedValues, subtopics: updatedSubtopics});
   };
   
@@ -71,7 +104,7 @@ const RoadmapEditModal: React.FC<RoadmapEditModalProps> = ({
   const addSubtopic = () => {
     setEditedValues({
       ...editedValues, 
-      subtopics: [...editedValues.subtopics, ""]
+      subtopics: [...editedValues.subtopics, { text: "", hours: "" }]
     });
   };
   
@@ -96,13 +129,21 @@ const RoadmapEditModal: React.FC<RoadmapEditModalProps> = ({
     if (!editedValues.importance.trim()) {
       newErrors.importance = "Importance is required";
     }
-    
     if (editedValues.subtopics.length === 0) {
       newErrors.subtopics = "At least one subtopic is required";
     } else {
-      const emptySubtopics = editedValues.subtopics.filter((st: string) => !st.trim());
+      const emptySubtopics = editedValues.subtopics.filter(
+        (st: SubtopicItem) => !st.text.trim()
+      );
+      
+      const missingHours = editedValues.subtopics.filter(
+        (st: SubtopicItem) => !st.hours.trim()
+      );
+      
       if (emptySubtopics.length > 0) {
-        newErrors.subtopics = "Subtopics cannot be empty";
+        newErrors.subtopics = "Subtopic text cannot be empty";
+      } else if (missingHours.length > 0) {
+        newErrors.subtopicHours = "Hours are required for all subtopics";
       }
     }
     
@@ -119,12 +160,26 @@ const RoadmapEditModal: React.FC<RoadmapEditModalProps> = ({
     if (editingTopic) {
       setIsSaving(true);
       try {
+        // Format subtopics as "Text (X hours)"
+        const formattedSubtopics = editedValues.subtopics.map((st: SubtopicItem) => {
+          if (st.hours && st.hours.trim() !== "") {
+            return `${st.text.trim()} (${st.hours} hours)`;
+          }
+          return st.text.trim();
+        });
+        
+        // Calculate total duration from all subtopics
+        const totalDuration = editedValues.subtopics.reduce((total: number, st: SubtopicItem) => {
+          return total + (st.hours && !isNaN(parseInt(st.hours)) ? parseInt(st.hours) : 0);
+        }, 0);
+        
         await onSave({
           ...editingTopic,
           name: editedValues.name.trim(),
           description: editedValues.description.trim(),
-          subtopics: editedValues.subtopics.map((st: string) => st.trim()),
-          importance: editedValues.importance.trim()
+          subtopics: formattedSubtopics,
+          importance: editedValues.importance.trim(),
+          topic_duration_hours: totalDuration
         });
       } finally {
         setIsSaving(false);
@@ -132,30 +187,17 @@ const RoadmapEditModal: React.FC<RoadmapEditModalProps> = ({
     }
   };
 
-
- 
-
-    // const handleDeleteTopic = async (topicId: number) => {
-    //   const result = await apiDeleteTopic(topicId);
-    //   if (result.success) {
-    //     // Remove it from the UI list
-    //     setTopics((prev) => prev.filter((t: { topic_id: number; }) => t.topic_id !== topicId));
-    //   } else {
-    //     console.log("Failed to delete topic", result);
-    //     Alert.alert("Error", "Could not delete topic.");
-    //   }
-    // };
-
-    useEffect(() => {
-      const hardcodedTopicId =  4743; // Replace with your topic ID
-      apiDeleteTopic(hardcodedTopicId)
-        .then(() => {
-          console.log("Topic deleted successfully");
-        })
-        .catch((error) => {
-          console.error("Failed to delete topic:", error);
-        });
-    }, []);
+  // Remove hardcoded delete effect
+  // useEffect(() => {
+  //   const hardcodedTopicId = 4743;
+  //   apiDeleteTopic(hardcodedTopicId)
+  //     .then(() => {
+  //       console.log("Topic deleted successfully");
+  //     })
+  //     .catch((error) => {
+  //       console.error("Failed to delete topic:", error);
+  //     });
+  // }, []);
     
   return (
     <Modal
@@ -196,6 +238,19 @@ const RoadmapEditModal: React.FC<RoadmapEditModalProps> = ({
             />
             {errors.description && <Text style={styles.errorText}>{errors.description}</Text>}
             
+            {/* <Text style={styles.editLabel}>Total Duration (in hours)</Text>
+            <TextInput
+              style={[styles.editInput, errors.topic_duration_days ? styles.inputError : null]}
+              value={String(editedValues.topic_duration_days)}
+              onChangeText={(value) => {
+                // Only allow numeric input
+                if (value && !/^\d+$/.test(value)) return;
+                setEditedValues({...editedValues, topic_duration_days: value ? parseInt(value) : 0})
+              }}
+              placeholder="Total duration in hours"
+              keyboardType="numeric"
+            /> */}
+            
             <Text style={styles.editLabel}>Importance</Text>
             <TextInput
               style={[styles.editInput, styles.multilineInput, errors.importance ? styles.inputError : null]}
@@ -207,25 +262,39 @@ const RoadmapEditModal: React.FC<RoadmapEditModalProps> = ({
             />
             {errors.importance && <Text style={styles.errorText}>{errors.importance}</Text>}
             
-            <Text style={styles.editLabel}>Subtopics</Text>
+            <View style={styles.subtopicsHeader}>
+              <Text style={styles.editLabel}>Subtopics</Text>
+              <Text style={styles.subtopicHint}>Duration required for each subtopic</Text>
+            </View>
             {errors.subtopics && <Text style={styles.errorText}>{errors.subtopics}</Text>}
+            {errors.subtopicHours && <Text style={styles.errorText}>{errors.subtopicHours}</Text>}
             
-            {editedValues.subtopics.map((subtopic: string, idx: number) => (
+            {editedValues.subtopics.map((subtopic: SubtopicItem, idx: number) => (
               <View key={idx} style={styles.editSubtopicRow}>
                 <TextInput
                   style={[styles.editSubtopicInput, errors.subtopics ? styles.inputError : null]}
-                  value={subtopic}
-                  onChangeText={(text) => updateSubtopic(idx, text)}
+                  value={subtopic.text}
+                  onChangeText={(text) => updateSubtopicText(idx, text)}
                   placeholder="Subtopic"
                 />
+                <View style={[styles.hoursContainer, errors.subtopicHours ? styles.inputError : null]}>
+                  <TextInput
+                    style={styles.hoursInput}
+                    value={subtopic.hours}
+                    onChangeText={(hours) => updateSubtopicHours(idx, hours)}
+                    placeholder="0"
+                    keyboardType="numeric"
+                    maxLength={3}
+                  />
+                  <Text style={styles.hoursLabel}>hrs</Text>
+                </View>
                 {editedValues.subtopics.length > 1 && (
-                  <TouchableOpacity onPress={() => deleteSubtopic(idx)}>
+                  <TouchableOpacity style={styles.deleteSubtopicBtn} onPress={() => deleteSubtopic(idx)}>
                     <FontAwesomeIcon icon={faTrash} size={18} color="#EF4444" />
                   </TouchableOpacity>
                 )}
               </View>
             ))}
-            
             <TouchableOpacity style={styles.addSubtopicButton} onPress={addSubtopic}>
               <FontAwesomeIcon icon={faPlus} size={16} color="#4C6EF5" />
               <Text style={styles.addSubtopicText}>Add Subtopic</Text>
@@ -337,6 +406,17 @@ const styles = StyleSheet.create({
     minHeight: 80,
     textAlignVertical: 'top',
   },
+  subtopicsHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginTop: 12,
+  },
+  subtopicHint: {
+    fontSize: 12,
+    color: '#6B7280',
+    fontStyle: 'italic',
+  },
   editSubtopicRow: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -351,6 +431,31 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: '#E5E7EB',
     marginRight: 10,
+  },
+  hoursContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#F9FAFB',
+    borderRadius: 6,
+    borderWidth: 1,
+    borderColor: '#E5E7EB',
+    marginRight: 10,
+    width: 70,
+    height: 40,
+  },
+  hoursInput: {
+    flex: 1,
+    padding: 8,
+    fontSize: 14,
+    textAlign: 'center',
+  },
+  hoursLabel: {
+    fontSize: 12,
+    color: '#6B7280',
+    marginRight: 8,
+  },
+  deleteSubtopicBtn: {
+    padding: 8,
   },
   addSubtopicButton: {
     flexDirection: 'row',
@@ -410,7 +515,3 @@ const styles = StyleSheet.create({
 });
 
 export default RoadmapEditModal;
-
-function setTopics(arg0: (prev: any) => any) {
-  throw new Error('Function not implemented.');
-}
