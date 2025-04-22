@@ -646,6 +646,7 @@ const CheckCompatibility: FC<ScreenProps<'CheckCompatibility'>> = ({
   const [selectedReason, setSelectedReason] = useState('');
   const [selectedMentor, setSelectedMentor] = useState<Mentor | null>(null);
   const [loading, setLoading] = useState(false);
+  const [domain, setDomain] = useState('');
 
   const {domain_mentors, other_domain_mentors, getDomain, requestMentorId} =
     useSelector((state: RootState) => state.menteeDashboard);
@@ -670,7 +671,6 @@ const CheckCompatibility: FC<ScreenProps<'CheckCompatibility'>> = ({
     getDomain === null
       ? data
       : data.filter(item => !getDomain.includes(item.value));
-
   // ...existing code...
   const submitDomain = async () => {
     // Make submitDomain async
@@ -747,6 +747,7 @@ const CheckCompatibility: FC<ScreenProps<'CheckCompatibility'>> = ({
           placeholder="Select Domain"
           value={value}
           onChange={item => {
+            setDomain(item.value);
             setValue(item.value);
           }}
         />
@@ -828,13 +829,15 @@ const CheckCompatibility: FC<ScreenProps<'CheckCompatibility'>> = ({
               </View>
               <View style={styles.bottomContent}>
                 <TouchableOpacity
-                  onPress={() =>
+                  onPress={() => {
+                    // Log the domain
+
                     navigation.navigate('CheckReport', {
+                      domain: domain,
                       mentorId: mentor.id,
                       score: mentor.score,
-                      domain: value,
-                    })
-                  }>
+                    });
+                  }}>
                   <View style={styles.scoreContainer}>
                     <Text style={styles.scoreText}>{mentor.score}</Text>
                   </View>
@@ -1051,6 +1054,7 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     paddingHorizontal: 10,
     backgroundColor: '#fff',
+    zIndex: 1000,
   },
   placeholderStyle: {fontSize: 16, color: '#999'},
   selectedTextStyle: {fontSize: 16, color: '#333'},

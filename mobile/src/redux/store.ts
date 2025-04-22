@@ -9,9 +9,10 @@ import MenteeRoadmapSlice from './slices/sliceMenteeRoadmap';
 import MentorRoadmapSlice from './slices/sliceMentorRoadmap';
 import sliceRoadmapTopics from './slices/sliceRoadmapTopics';
 import mentorProgressSlice from './slices/sliceMentorProgress';
-import { useDispatch } from 'react-redux';
+import {useDispatch} from 'react-redux';
 
 import checkReportSlice from './slices/SliceCheckReport';
+import cancelRequestReducer from './slices/slicecancelRequest';
 export const store = configureStore({
   reducer: {
     login: loginReducer,
@@ -26,10 +27,11 @@ export const store = configureStore({
     viewRoadmap: sliceRoadmapTopics,
     mentorProgress: mentorProgressSlice,
     checkReport: checkReportSlice,
+    cancelRequest: cancelRequestReducer,
   },
   middleware: getDefaultMiddleware => getDefaultMiddleware(),
 });
 
 export type RootState = ReturnType<typeof store.getState>;
 export type AppDispatch = typeof store.dispatch;
-export const useAppDispatch = () => useDispatch<AppDispatch>();
+// export const useAppDispatch = () => useDispatch<AppDispatch>();

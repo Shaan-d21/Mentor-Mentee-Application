@@ -24,8 +24,8 @@ export const apiSendMentorRequest = async (credentials: {
     const response = await api.post('mentee/mentorship', JSON.stringify(data));
 
     if (response.status === 200) {
-      // console.log(response.data);
-      // console.log(`apiSendMentorRequest: ${response.data}`);
+      console.log(response.data);
+      console.log(`apiSendMentorRequest: ${response.data}`);
       return response.data;
     } else {
       console.log('Something went wrong');

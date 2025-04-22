@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, {useEffect} from 'react';
 import {
   View,
   Text,
@@ -7,28 +7,35 @@ import {
   ActivityIndicator,
   TouchableOpacity,
 } from 'react-native';
-import { AnimatedCircularProgress } from 'react-native-circular-progress';
+import {AnimatedCircularProgress} from 'react-native-circular-progress';
 import AppBar from '../../components/appbar_component';
-import { useDispatch, useSelector } from 'react-redux';
-import { useNavigation } from '@react-navigation/native';
-import { StackNavigationProp } from '@react-navigation/stack';
-import { RootStackParamList } from '../../navigation/types';
-import { AppDispatch, RootState } from '../../redux/store';
+import {useDispatch, useSelector} from 'react-redux';
+import {useNavigation} from '@react-navigation/native';
+import {StackNavigationProp} from '@react-navigation/stack';
+import {RootStackParamList} from '../../navigation/types';
+import {AppDispatch, RootState} from '../../redux/store';
 
-import { fetchCheckReport } from '../../redux/slices/SliceCheckReport';
-import { FontAwesomeIcon } from "@fortawesome/react-native-fontawesome";
-import { faChevronLeft} from '@fortawesome/free-solid-svg-icons';
+import {fetchCheckReport} from '../../redux/slices/SliceCheckReport';
+import {FontAwesomeIcon} from '@fortawesome/react-native-fontawesome';
+import {faChevronLeft} from '@fortawesome/free-solid-svg-icons';
 
-type CheckReportNavigationProp = StackNavigationProp<RootStackParamList, 'CheckReport'>;
+type CheckReportNavigationProp = StackNavigationProp<
+  RootStackParamList,
+  'CheckReport'
+>;
 
-const CheckReport = ({ route }: any) => {
-  const { mentorId, domain, score } = route.params;
+const CheckReport = ({route}: any) => {
+  const {mentorId, domain, score} = route.params;
   const dispatch = useDispatch<AppDispatch>();
   const navigation = useNavigation<CheckReportNavigationProp>();
-  const { data, status, error } = useSelector((state: RootState) => state.checkReport);
+  const {data, status, error} = useSelector(
+    (state: RootState) => state.checkReport,
+  );
 
   useEffect(() => {
-    dispatch(fetchCheckReport({ mentorId, domain, score }));
+    // Fetch the report data when the screen is mounted
+    console.log(mentorId, domain, score);
+    dispatch(fetchCheckReport({mentorId, domain, score}));
   }, [dispatch, mentorId, domain, score]);
 
   const getTintColor = (score: number) => {
@@ -38,7 +45,9 @@ const CheckReport = ({ route }: any) => {
   };
 
   if (status === 'loading') {
-    return <ActivityIndicator style={styles.loading} size="large" color="#2196F3" />;
+    return (
+      <ActivityIndicator style={styles.loading} size="large" color="#2196F3" />
+    );
   }
 
   if (status === 'failed') {
@@ -50,24 +59,23 @@ const CheckReport = ({ route }: any) => {
   }
 
   return (
-    <View style={{ flex: 1 }}>
-          <View style={styles.header}>
-      <TouchableOpacity 
-        style={styles.backButton}
-        onPress={() => navigation.goBack()}
-      >
-        <FontAwesomeIcon icon={faChevronLeft} size={24} color="#1A237E" />
-      </TouchableOpacity>
-      <View style={styles.headerTitleContainer}>
-    <Text style={styles.headerTitle}>Mentor Compatibility Report</Text>
-  </View>
-    </View>
+    <View style={{flex: 1}}>
+      <View style={styles.header}>
+        <TouchableOpacity
+          style={styles.backButton}
+          onPress={() => navigation.goBack()}>
+          <FontAwesomeIcon icon={faChevronLeft} size={24} color="#1A237E" />
+        </TouchableOpacity>
+        <View style={styles.headerTitleContainer}>
+          <Text style={styles.headerTitle}>Mentor Compatibility Report</Text>
+        </View>
+      </View>
       {/* <AppBar
         title="Report"
         onProfilePress={() => navigation.navigate('MentorProfileScreen')}
 
       /> */}
-      
+
       <ScrollView contentContainerStyle={styles.container}>
         <Text style={styles.title}>Score</Text>
 
@@ -91,7 +99,7 @@ const CheckReport = ({ route }: any) => {
         {/* <Text style={styles.score}>{score}% Compatible</Text> */}
 
         <Text style={styles.section}>Skillset Analysis</Text>
-        
+
         {data.existingSkills.length > 0 && (
           <View style={styles.skillSection}>
             <Text style={styles.subSection}>Existing Skills</Text>
@@ -218,7 +226,7 @@ const styles = StyleSheet.create({
     color: 'red',
     fontWeight: '600',
     elevation: 1,
-    borderColor:'red',
+    borderColor: 'red',
     borderWidth: 1,
   },
   skillPillExisting: {
@@ -230,7 +238,7 @@ const styles = StyleSheet.create({
     color: 'green',
     fontWeight: '600',
     elevation: 1,
-    borderColor:'green',
+    borderColor: 'green',
     borderWidth: 1,
   },
   summarySection: {
@@ -286,33 +294,28 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     paddingHorizontal: 16,
-    paddingTop: 48, 
+    paddingTop: 48,
     paddingBottom: 16,
     backgroundColor: '#FFFFFF',
     borderBottomWidth: 1,
     borderBottomColor: '#E5E7EB',
   },
-  
+
   backButton: {
-    
     position: 'relative',
     zIndex: 1,
     left: 0,
-    
   },
-  
+
   headerTitle: {
     fontSize: 20,
     fontWeight: '600',
     color: '#1A237E',
-    
-    
   },
   headerTitleContainer: {
     flex: 1,
     alignItems: 'center',
   },
-  
 });
 
 export default CheckReport;
