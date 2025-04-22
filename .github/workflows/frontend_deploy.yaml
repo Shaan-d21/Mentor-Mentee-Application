@@ -48,6 +48,8 @@ jobs:
             MM_FRONTEND=${{ secrets.MM_FRONTEND }}
             MM_BACKEND=${{ secrets.MM_BACKEND }}
             VITE_SERVER_ENDPOINT=${{ secrets.VITE_SERVER_ENDPOINT }}
+            VITE_API_URL=${{ vars.VITE_API_URL }}
+            VITE_AI_API_URL=${{ vars.VITE_AI_API_URL }}
             EOL
             echo ".env file created/updated successfully."
 
@@ -60,7 +62,8 @@ jobs:
           script: |
             cd /home/intern/Internship-2025/Mentor-Mentee-App/frontend_web
             cat > .env <<EOL
-            VITE_SERVER_ENDPOINT=${{ secrets.VITE_SERVER_ENDPOINT }}
+            VITE_API_URL=${{ vars.VITE_API_URL }}
+            VITE_AI_API_URL=${{ vars.VITE_AI_API_URL }}
             EOL
             echo ".env file created/updated successfully."
 
