@@ -1,6 +1,6 @@
 import { createAsyncThunk, createSlice, PayloadAction } from "@reduxjs/toolkit";
 import { apiaddMenteeProfileSkill, apigetMenteeProfile, apiUpdateMenteeProfile } from "../../../services/profile/apimenteeprofile";
-import { MenteeProfile, MenteeProfileImpl } from "../../../types/MenteeProfileTypes";
+import { MenteeProfile, MenteeProfileImpl, Skill } from "../../../types/MenteeProfileTypes";
 
 enum currentStatus { idle = 'idle', loading = 'loading', success = 'success', failed = 'failed' }
 interface MenteeProfilestate {
@@ -109,7 +109,7 @@ export const updateProfileData = createAsyncThunk("profile/update", async ({ nam
 
 export const updateprofileskill = createAsyncThunk(
   "profile/addSkill",
-  async (skill: string[]) => {
+  async (skill: Skill[]) => {
     // Call your API to add the new skill
     const response = await apiaddMenteeProfileSkill(skill);
     if (response === 1) {

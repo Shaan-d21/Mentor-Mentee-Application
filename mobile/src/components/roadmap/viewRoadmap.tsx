@@ -16,11 +16,11 @@ import {
     faInfo,
     faCheckCircle
 } from '@fortawesome/free-solid-svg-icons';
-import { RoadmapResponse, RoadmapTopic } from '../../types/ViewRoadmapTypes';
 import { useAppDispatch } from '../../redux/store'; // Import the hook
 import { markTopicAsDone } from '../../redux/slices/sliceRoadmapTopics';
+import { RoadmapResponse, RoadmapTopic } from '../../types/RoadmapTypes';
 
-export const ListRoadmapItems = (props: { roadmap: RoadmapResponse | null }) => {
+export const ViewListRoadmapItems = (props: { roadmap: RoadmapResponse | null }) => {
     const { roadmap } = props;
 
     // State for expanded/collapsed topics
@@ -56,7 +56,6 @@ export const ListRoadmapItems = (props: { roadmap: RoadmapResponse | null }) => 
             // Remove from markingAsDone if the API call fails
             setMarkingAsDone(markingAsDone.filter(id => id !== topicId));
         }
-        // Note: We don't remove from markingAsDone on success because we want to keep showing "Requested..."
     };
 
     // Helper to determine if a topic is marked or being marked
@@ -68,11 +67,13 @@ export const ListRoadmapItems = (props: { roadmap: RoadmapResponse | null }) => 
           return <View style={styles.statusIndicator}><Text style={styles.statusText}>Completed</Text></View>;
         } else if (topic.topic_status === 'marked' || markingAsDone.includes(topic.topic_id)) {
           return <></>
+        } else if (topic.topic_status === 'reassigned') {
+          return <View style={[styles.statusIndicator, styles.markedIndicator,{backgroundColor:"#EF4444"}]}><Text style={styles.statusText}>Reassigned</Text></View>;
         }
         return null;
       };
     return (
-        (roadmap && roadmap.topic.length > 0) ? (
+        (roadmap && roadmap.topics.length > 0) ? (
             <View style={styles.container}>
                 <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
                     {/* Roadmap Overview Card */}
@@ -82,12 +83,12 @@ export const ListRoadmapItems = (props: { roadmap: RoadmapResponse | null }) => 
 
                         <View style={styles.statsContainer}>
                             <View style={styles.statItem}>
-                                <Text style={styles.statValue}>{roadmap.topic.length}</Text>
+                                <Text style={styles.statValue}>{roadmap.topics.length}</Text>
                                 <Text style={styles.statLabel}>Topics</Text>
                             </View>
                             <View style={styles.statItem}>
                             <Text style={styles.statValue}>
-    {Math.round((roadmap.topic.filter(topic => topic.topic_status === 'completed').length / roadmap.topic.length) * 100)}%
+    {Math.round((roadmap.topics.filter(topic => topic.topic_status === 'completed').length / roadmap.topics.length) * 100)}%
 </Text>
                                 <Text style={styles.statLabel}>Complete</Text>
                             </View>
@@ -97,7 +98,7 @@ export const ListRoadmapItems = (props: { roadmap: RoadmapResponse | null }) => 
                     {/* Topics List */}
                     <Text style={styles.sectionTitle}>Learning Path</Text>
 
-                    {roadmap.topic.map((topic, index) => {
+                    {roadmap.topics.map((topic, index) => {
                         const isExpanded = expandedTopics.includes(topic.topic_id);
                         const isImportanceExpanded = expandedImportance === topic.topic_id;
                         const isTopicMarked = isMarkedOrMarking(topic);
@@ -107,7 +108,7 @@ export const ListRoadmapItems = (props: { roadmap: RoadmapResponse | null }) => 
                                 key={topic.topic_id}
                                 style={[
                                     styles.topicCard,
-                                    index === roadmap.topic.length - 1 && styles.lastTopicCard
+                                    index === roadmap.topics.length - 1 && styles.lastTopicCard
                                 ]}
                             >
                                 <TouchableOpacity
@@ -155,7 +156,11 @@ export const ListRoadmapItems = (props: { roadmap: RoadmapResponse | null }) => 
                                                         </View>
                                                     ))}
                                                     
-                                                    {topic.topic_status !== 'completed' && (
+                                  
+                                                </View>
+                                            </>
+                                        )}
+                                                          {topic.topic_status !== 'completed' && (
                 <TouchableOpacity
                     style={[
                         styles.doneButton,
@@ -169,9 +174,6 @@ export const ListRoadmapItems = (props: { roadmap: RoadmapResponse | null }) => 
                     </Text>
                 </TouchableOpacity>
             )}
-                                                </View>
-                                            </>
-                                        )}
 
                                         {!isImportanceExpanded ? (
                                             <TouchableOpacity

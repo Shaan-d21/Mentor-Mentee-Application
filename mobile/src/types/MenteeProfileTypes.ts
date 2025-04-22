@@ -1,9 +1,6 @@
-//types file for MenteeProfile
-// This file defines the MenteeProfile interface and its implementation.
-
-
 export interface Skill {
     name: string;
+    proficiency: number;
 }
 
 export interface MenteeProfile {
@@ -11,7 +8,7 @@ export interface MenteeProfile {
     mail: string;
     designation: string;
     contact: string;
-    skillSet: any;
+    skillSet: Skill[];
 
     toJSON(): object;
 }
@@ -21,19 +18,19 @@ export class MenteeProfileImpl implements MenteeProfile {
     mail: string;
     designation: string;
     contact: string;
-    skillSet: [];
+    skillSet: Skill[];
 
     constructor(
         name: string,
         mail: string,
         contact: string,
         designation: string,
-        skillSet: []
+        skillSet: Skill[]
     ) {
         this.name = name;
         this.mail = mail;
         this.contact = contact;
-        this.designation= designation;
+        this.designation = designation;
         this.skillSet = skillSet;
     }
 
@@ -45,10 +42,10 @@ export class MenteeProfileImpl implements MenteeProfile {
             jsonParsed.mail,
             jsonParsed.contact,
             jsonParsed.designation,
-            jsonParsed["Skill set"].map((((skill: { name: any; }) => {
-                console.log(`Skill set is `, skill.name);
-                return skill.name 
-            })))
+            jsonParsed["Skill set"].map((skill: { name: string; proficiency?: number }) => ({
+                name: skill.name,
+                proficiency: skill.proficiency || 1
+            }))
         );
     }
 
@@ -58,7 +55,10 @@ export class MenteeProfileImpl implements MenteeProfile {
             mail: this.mail,
             contact: this.contact,
             designation: this.designation,
-            "Skill set": this.skillSet.map(name => ({  name }))
+            "Skill set": this.skillSet.map(skill => ({ 
+                name: skill.name, 
+                proficiency: skill.proficiency 
+            }))
         };
     }
 }

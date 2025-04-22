@@ -1,5 +1,6 @@
 import axios from "axios";
 import { MMKV } from "react-native-mmkv";
+import { Skill } from "../../types/MenteeProfileTypes";
 
 
 
@@ -71,7 +72,7 @@ export const apiUpdateMenteeProfile = async (name: string, contact: string, desi
     return 0;
   }
 }
-export const apiaddMenteeProfileSkill = async (skillName: string[]) => {
+export const apiaddMenteeProfileSkill = async (skillName: Skill[]) => {
   const api = axios.create({
     baseURL: process.env.API_URL,
     headers: {
@@ -86,7 +87,8 @@ export const apiaddMenteeProfileSkill = async (skillName: string[]) => {
   try {
     const data = {
       skills: skillName.map((skillName) => ({
-        skill_name: skillName,
+        skill_name: skillName.name,
+        proficiency: skillName.proficiency
       })),
     };
     const response = await api.post("mentee/mentee/skills", data);
