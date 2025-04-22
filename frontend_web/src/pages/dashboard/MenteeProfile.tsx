@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { Edit2, Loader2, Save } from 'lucide-react';
+import { Edit2, Loader2, Save, Plus } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import toast from 'react-hot-toast';
 import { FaUser } from 'react-icons/fa';
@@ -12,11 +12,8 @@ interface ProfileData {
   mail: string;
   contact: string;
   designation: string;
-  "Skill set": Array<{
-    name: string;
-    isNew?: boolean; // Flag to track newly added skills
-  }>;
   role: string;
+  "Skill set": SelectedSkill[];
 }
 
 interface ValidationErrors {
@@ -59,6 +56,12 @@ const PREDEFINED_SKILLS = [
   "CSS"
 ];
 
+// Update the SelectedSkill interface
+interface SelectedSkill {
+  name: string;
+  proficiency: number;
+}
+
 const MenteeProfileContent: React.FC = () => {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
@@ -66,8 +69,8 @@ const MenteeProfileContent: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [validationErrors, setValidationErrors] = useState<ValidationErrors>({});
   const [editMode, setEditMode] = useState(false);
-  const [selectedSkill, setSelectedSkill] = useState<string>('');
-  const [availableSkills, setAvailableSkills] = useState<string[]>(PREDEFINED_SKILLS);
+  const [showAddSkillsModal, setShowAddSkillsModal] = useState(false);
+  const [selectedNewSkills, setSelectedNewSkills] = useState<SelectedSkill[]>([]);
 
   // Profile states
   const [profile, setProfile] = useState<ProfileData>({
@@ -87,32 +90,6 @@ const MenteeProfileContent: React.FC = () => {
     "Skill set": [],
     role: ''
   });
-
-  // Update available skills when tempProfile changes
-  useEffect(() => {
-    setAvailableSkills(PREDEFINED_SKILLS.filter(skill => 
-      !tempProfile["Skill set"].some(s => s.name === skill)
-    ));
-  }, [tempProfile["Skill set"]]);
-
-  // Add selected skill
-  const addSkill = () => {
-    if (selectedSkill) {
-      // Check if skill with this name already exists
-      const skillExists = tempProfile["Skill set"].some(skill => skill.name === selectedSkill);
-      
-      if (!skillExists) {
-        setTempProfile(prev => ({
-          ...prev,
-          "Skill set": [...prev["Skill set"], { name: selectedSkill, isNew: true }]
-        }));
-        setSelectedSkill('');
-        setValidationErrors(prev => ({ ...prev, skills: undefined }));
-      } else {
-        setValidationErrors(prev => ({ ...prev, skills: 'This skill is already added' }));
-      }
-    }
-  };
 
   // Validation functions
   const handleChange = (field: keyof ProfileData, value: string) => {
@@ -228,15 +205,12 @@ const MenteeProfileContent: React.FC = () => {
         if (profileResponse.status === 200) {
           console.log("Profile data received from API:", profileResponse.data);
           
-          // Check if skills are in the response
-          let skills = [];
-          if (profileResponse.data["Skill set"] && profileResponse.data["Skill set"].length > 0) {
-            skills = profileResponse.data["Skill set"].map((skill: any) => ({
-              name: skill.name,
-              isNew: false // Mark existing skills from database
-            }));
-            console.log("Skills found in profile response:", skills);
-          }
+          // Update the skills initialization in fetchProfile
+          const skills = profileResponse.data["Skill set"]?.map((skill: any) => ({
+            name: skill.name,
+            proficiency: skill.proficiency || 2,
+            isNew: false
+          })) || [];
           
           const profileData: ProfileData = {
             name: profileResponse.data.name || '',
@@ -347,7 +321,6 @@ const MenteeProfileContent: React.FC = () => {
       };
       
       // First update the profile
-      // const profileResponse = await axios.put(
       await axios.put(
         `${import.meta.env.VITE_API_URL}/mentee/mentee/profile_creation`,
         profileData,
@@ -359,38 +332,34 @@ const MenteeProfileContent: React.FC = () => {
         }
       );
       
-      // Then update only new skills
+      // Then update skills
       if (tempProfile["Skill set"].length > 0) {
         try {
-          // Filter only new skills (those with isNew flag)
-          const newSkills = tempProfile["Skill set"].filter(skill => skill.isNew);
-          
-          if (newSkills.length > 0) {
-            const skillsPayload = {
-              skills: newSkills.map(skill => ({
-                skill_name: skill.name
-              }))
-            };
+          // Update the skills payload in saveChanges
+          const skillsPayload = {
+            skills: tempProfile["Skill set"].map(skill => ({
+              skill_name: skill.name,
+              proficiency: skill.proficiency
+            }))
+          };
 
-            await axios.post(
-              `${import.meta.env.VITE_API_URL}/mentee/mentee/skills`,
-              skillsPayload,
-              {
-                headers: {
-                  'Content-Type': 'application/json',
-                  'Token': authToken
-                }
+          await axios.post(
+            `${import.meta.env.VITE_API_URL}/mentee/mentee/skills`,
+            skillsPayload,
+            {
+              headers: {
+                'Content-Type': 'application/json',
+                'Token': authToken
               }
-            );
-          }
+            }
+          );
         } catch (skillsError: any) {
           if (skillsError.response?.status === 409) {
-            // Handle duplicate skill error gracefully
             toast.error('Some skills were already added. Please try adding different skills.');
             setSaving(false);
             return;
           }
-          throw skillsError; // Re-throw other errors
+          throw skillsError;
         }
       }
       
@@ -431,6 +400,44 @@ const MenteeProfileContent: React.FC = () => {
     setValidationErrors({});
   };
 
+  const handleRemoveSkill = (skillName: string) => {
+    if (!tempProfile) return;
+    setTempProfile({
+      ...tempProfile,
+      "Skill set": tempProfile["Skill set"].filter(skill => skill.name !== skillName)
+    });
+  };
+
+  // Update the handleAddNewSkills function
+  const handleAddNewSkills = () => {
+    if (!tempProfile) return;
+    const newSkills = selectedNewSkills.map(skill => ({
+      name: skill.name,
+      proficiency: skill.proficiency,
+      isNew: true
+    }));
+    setTempProfile({
+      ...tempProfile,
+      "Skill set": [...tempProfile["Skill set"], ...newSkills]
+    });
+    setSelectedNewSkills([]);
+    setShowAddSkillsModal(false);
+  };
+
+  // Update the handleSkillChange function
+  const handleSkillChange = (index: number, field: 'name' | 'proficiency', value: string | number) => {
+    if (!tempProfile) return;
+    const newSkills = [...tempProfile["Skill set"]];
+    newSkills[index] = {
+      ...newSkills[index],
+      [field]: value
+    };
+    setTempProfile({
+      ...tempProfile,
+      "Skill set": newSkills
+    });
+  };
+
   // Loading state
   if (loading) {
     return (
@@ -440,6 +447,20 @@ const MenteeProfileContent: React.FC = () => {
       </div>
     );
   }
+
+  // Add this function near the top with other functions
+  const getProficiencyText = (level: number) => {
+    switch (level) {
+      case 1:
+        return 'Beginner';
+      case 2:
+        return 'Intermediate';
+      case 3:
+        return 'Advanced';
+      default:
+        return 'Beginner';
+    }
+  };
 
   return (
     <div className="max-w-2xl mx-auto p-8 bg-white rounded-lg shadow-md">
@@ -511,19 +532,26 @@ const MenteeProfileContent: React.FC = () => {
               </div>
 
               {/* Skills */}
-              <div className="bg-gray-50 p-4 rounded-lg">
-                <h3 className="text-lg font-semibold text-gray-800 mb-3">Skills</h3>
-                {profile["Skill set"] && profile["Skill set"].length > 0 ? (
-                  <div className="flex flex-wrap gap-2">
-                    {profile["Skill set"].map((skill) => (
-                      <span key={skill.name} className="bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-sm">
-                        {skill.name}
-                      </span>
+              <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-100">
+                <h3 className="text-lg font-semibold text-gray-800 mb-4">Skills</h3>
+                <div className="space-y-6">
+                  {/* Selected Skills Display */}
+                  <div className="grid grid-cols-2 gap-4">
+                    {profile["Skill set"].map((skill, index) => (
+                      <div 
+                        key={index} 
+                        className="bg-gray-50 p-4 rounded-lg border border-gray-200"
+                      >
+                        <div className="flex justify-between items-center">
+                          <span className="font-medium text-gray-800">{skill.name}</span>
+                          <div className="flex items-center space-x-3">
+                            <span className="text-sm text-gray-500">{getProficiencyText(skill.proficiency)}</span>
+                          </div>
+                        </div>
+                      </div>
                     ))}
                   </div>
-                ) : (
-                  <p className="text-gray-600">No skills specified</p>
-                )}
+                </div>
               </div>
             </div>
           </>
@@ -601,39 +629,56 @@ const MenteeProfileContent: React.FC = () => {
               <h3 className="text-lg font-semibold mb-4">
                 Skills <span className="text-red-500">*</span>
               </h3>
-              <div className="flex flex-wrap gap-2">
+              <div className="grid grid-cols-2 gap-4">
                 {tempProfile["Skill set"].map((skill, index) => (
-                  <span
-                    key={`${skill.name}-${index}`}
-                    className="bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-sm"
+                  <div 
+                    key={index} 
+                    className="bg-gray-50 p-4 rounded-lg border border-gray-200 hover:border-blue-200 hover:shadow-md hover:scale-[1.02] transition-all duration-300 ease-in-out"
                   >
-                    {skill.name}
-                  </span>
+                    <div className="flex justify-between items-center">
+                      <span className="font-medium text-gray-800">{skill.name}</span>
+                      <div className="flex items-center space-x-3">
+                        <select
+                          className="text-sm border border-gray-300 rounded-md px-2 py-1 bg-white hover:border-blue-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors duration-200"
+                          value={skill.proficiency}
+                          onChange={(e) => handleSkillChange(index, 'proficiency', parseInt(e.target.value))}
+                        >
+                          {[1, 2, 3].map((level) => (
+                            <option key={level} value={level}>
+                              {getProficiencyText(level)}
+                            </option>
+                          ))}
+                        </select>
+                        {!profile["Skill set"].some(s => s.name === skill.name) && (
+                          <button
+                            onClick={() => handleRemoveSkill(skill.name)}
+                            className="text-gray-400 hover:text-red-500 hover:scale-110 transition-all duration-200"
+                          >
+                            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                              <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" />
+                            </svg>
+                          </button>
+                        )}
+                      </div>
+                    </div>
+                  </div>
                 ))}
               </div>
-              {validationErrors.skills && (
-                <p className="text-red-500 text-sm mt-1">{validationErrors.skills}</p>
-              )}
-              <div className="mt-4 flex gap-2">
-                <select
-                  value={selectedSkill}
-                  onChange={(e) => setSelectedSkill(e.target.value)}
-                  className="border rounded px-3 py-2"
-                >
-                  <option value="">Select a skill</option>
-                  {availableSkills.map((skill) => (
-                    <option key={skill} value={skill}>
-                      {skill}
-                    </option>
-                  ))}
-                </select>
+
+              {/* Add Skills Button with proper spacing */}
+              <div className="mt-8 flex justify-center">
                 <button
-                  onClick={addSkill}
-                  className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 cursor-pointer"
+                  onClick={() => setShowAddSkillsModal(true)}
+                  className="inline-flex items-center px-4 py-2 text-sm font-medium text-blue-600 bg-blue-50 rounded-lg hover:bg-blue-100 hover:shadow-md hover:scale-105 transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 cursor-pointer"
                 >
-                  Add Skill
+                  <Plus className="h-4 w-4 mr-2" />
+                  <span>Add Skills</span>
                 </button>
               </div>
+
+              {validationErrors.skills && (
+                <p className="text-sm text-red-500 mt-1 text-center">{validationErrors.skills}</p>
+              )}
             </div>
           </div>
         )}
@@ -668,6 +713,75 @@ const MenteeProfileContent: React.FC = () => {
           </div>
         )}
       </div>
+
+      {/* Add Skills Modal */}
+      {showAddSkillsModal && (
+        <div className="fixed inset-0 bg-gray-900/30 backdrop-blur-sm flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg p-6 max-w-md w-full">
+            <h3 className="text-lg font-medium text-gray-900 mb-4">Add New Skills</h3>
+            <div className="space-y-4">
+              <div className="max-h-60 overflow-y-auto">
+                {PREDEFINED_SKILLS
+                  .filter(skill => !tempProfile["Skill set"].some(s => s.name === skill))
+                  .map((skill) => (
+                    <div key={skill} className="flex items-center justify-between px-3 py-2 hover:bg-gray-50">
+                      <div className="flex items-center">
+                        <input
+                          type="checkbox"
+                          className="mr-2"
+                          checked={selectedNewSkills.some(s => s.name === skill)}
+                          onChange={(e) => {
+                            if (e.target.checked) {
+                              setSelectedNewSkills([...selectedNewSkills, { name: skill, proficiency: 2 }]);
+                            } else {
+                              setSelectedNewSkills(selectedNewSkills.filter(s => s.name !== skill));
+                            }
+                          }}
+                        />
+                        <span>{skill}</span>
+                      </div>
+                      {selectedNewSkills.some(s => s.name === skill) && (
+                        <select
+                          className="text-sm border rounded p-1 cursor-pointer"
+                          value={selectedNewSkills.find(s => s.name === skill)?.proficiency || 2}
+                          onChange={(e) => {
+                            setSelectedNewSkills(selectedNewSkills.map(s => 
+                              s.name === skill ? { ...s, proficiency: parseInt(e.target.value) } : s
+                            ));
+                          }}
+                        >
+                          {[1, 2, 3].map((level) => (
+                            <option key={level} value={level}>
+                              {getProficiencyText(level)}
+                            </option>
+                          ))}
+                        </select>
+                      )}
+                    </div>
+                  ))}
+              </div>
+              <div className="flex justify-end space-x-3 pt-4">
+                <button
+                  onClick={() => {
+                    setShowAddSkillsModal(false);
+                    setSelectedNewSkills([]);
+                  }}
+                  className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-md hover:bg-gray-200 cursor-pointer"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleAddNewSkills}
+                  disabled={selectedNewSkills.length === 0}
+                  className="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700 disabled:opacity-50 cursor-pointer"
+                >
+                  Add Selected Skills
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

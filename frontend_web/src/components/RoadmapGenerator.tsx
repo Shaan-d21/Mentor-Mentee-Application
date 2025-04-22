@@ -489,17 +489,17 @@ const RoadmapGenerator: React.FC = () => {
     const handleConfirmDeleteSubtopic = () => {
         if (showDeleteSubtopicConfirmation) {
             const { topicId, subtopicIndex } = showDeleteSubtopicConfirmation;
-            setTopics(topics.map(topic => {
-                if (topic.topic_id === topicId) {
+        setTopics(topics.map(topic => {
+            if (topic.topic_id === topicId) {
                     const newSubtopics = [...topic.subtopics];
                     newSubtopics.splice(subtopicIndex, 1);
-                    return {
-                        ...topic,
+                return {
+                    ...topic,
                         subtopics: newSubtopics
-                    };
-                }
-                return topic;
-            }));
+                };
+            }
+            return topic;
+        }));
             setShowDeleteSubtopicConfirmation(null);
         }
     };
@@ -706,14 +706,14 @@ const RoadmapGenerator: React.FC = () => {
                                                         const duration = durationMatch ? parseInt(durationMatch[1]) : 0;
                                                         
                                                         return (
-                                                            <div key={index} className="border-l-2 border-indigo-300 pl-4 py-3 bg-indigo-50 rounded-r-lg">
-                                                                <div className="flex justify-between items-center">
-                                                                    <div>
+                                                        <div key={index} className="border-l-2 border-indigo-300 pl-4 py-3 bg-indigo-50 rounded-r-lg">
+                                                            <div className="flex justify-between items-center">
+                                                                <div>
                                                                         <span className="font-medium text-gray-900">{name}</span>
                                                                         <span className="ml-2 text-sm text-gray-500">
                                                                             ({duration} hours)
                                                                         </span>
-                                                                    </div>
+                                                                </div>
                                                                 </div>
                                                             </div>
                                                         );
@@ -754,132 +754,136 @@ const RoadmapGenerator: React.FC = () => {
 
             {/* Add Topic Modal */}
             {showAddTopicModal && (
-                <div className="fixed inset-0 bg-gray-500 bg-opacity-75 flex items-center justify-center">
-                    <div className="bg-white rounded-lg p-8 w-[1000px] h-[800px] overflow-hidden flex flex-col">
-                        <h3 className="text-xl font-medium mb-6 text-indigo-800">Add New Topic</h3>
-                        <div className="grid grid-cols-2 gap-8 flex-1">
-                            <div className="space-y-6 border-r border-gray-200 pr-8">
-                                <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                                        Topic Name <span className="text-red-500">*</span>
-                                    </label>
-                                    <input
-                                        type="text"
-                                        value={newTopic.name}
-                                        onChange={(e) => setNewTopic({ ...newTopic, name: e.target.value })}
-                                        className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 p-2"
-                                    />
-                                </div>
-                                <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                                        Description <span className="text-red-500">*</span>
-                                    </label>
-                                    <textarea
-                                        value={newTopic.description}
-                                        onChange={(e) => setNewTopic({ ...newTopic, description: e.target.value })}
-                                        className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 p-2"
-                                        rows={5}
-                                    />
-                                </div>
-                                <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                                        Importance <span className="text-red-500">*</span>
-                                    </label>
-                                    <textarea
-                                        value={newTopic.importance}
-                                        onChange={(e) => setNewTopic({ ...newTopic, importance: e.target.value })}
-                                        className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 p-2"
-                                        rows={5}
-                                    />
-                                </div>
-                            </div>
-                            <div className="space-y-6">
-                                <div>
-                                    <div className="flex justify-between items-center mb-4">
-                                        <label className="block text-sm font-medium text-gray-700">Subtopics</label>
-                                        <button
-                                            onClick={() => setShowAddModalSubtopicForm(true)}
-                                            className="text-sm text-indigo-600 hover:text-indigo-800 flex items-center space-x-1 cursor-pointer"
-                                        >
-                                            <Plus className="h-4 w-4" />
-                                            <span>Add Subtopic</span>
-                                        </button>
+                <div className="fixed inset-0 bg-gray-500 bg-opacity-75 flex items-center justify-center p-4">
+                    <div className="bg-white rounded-lg w-full max-w-[1000px] max-h-[90vh] flex flex-col">
+                        <div className="p-6 border-b border-gray-200">
+                            <h3 className="text-xl font-medium text-indigo-800">Add New Topic</h3>
+                        </div>
+                        <div className="flex-1 overflow-y-auto p-6">
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                                <div className="space-y-6 border-r border-gray-200 pr-8">
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                                            Topic Name <span className="text-red-500">*</span>
+                                        </label>
+                                        <input
+                                            type="text"
+                                            value={newTopic.name}
+                                            onChange={(e) => setNewTopic({ ...newTopic, name: e.target.value })}
+                                            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 p-2"
+                                        />
                                     </div>
-
-                                    {showAddModalSubtopicForm && (
-                                        <div className="mb-4 p-4 bg-gray-50 rounded-lg border border-gray-200">
-                                            <div className="flex items-center space-x-2">
-                                                <input
-                                                    type="text"
-                                                    placeholder="Subtopic name"
-                                                    value={newTopicSubtopicForm.name}
-                                                    onChange={(e) => setNewTopicSubtopicForm({ ...newTopicSubtopicForm, name: e.target.value })}
-                                                    className="flex-1 rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 p-2 text-sm"
-                                                />
-                                                <input
-                                                    type="number"
-                                                    min="0"
-                                                    placeholder="Duration"
-                                                    value={newTopicSubtopicForm.duration}
-                                                    onChange={(e) => setNewTopicSubtopicForm({ ...newTopicSubtopicForm, duration: parseInt(e.target.value) || 0 })}
-                                                    className="w-20 rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 p-2 text-sm"
-                                                />
-                                                <span className="text-sm text-gray-500">hours</span>
-                                                <div className="flex space-x-2">
-                                                    <button
-                                                        onClick={() => {
-                                                            if (newTopicSubtopicForm.name.trim()) {
-                                                                setNewTopicSubtopics([...newTopicSubtopics, `${newTopicSubtopicForm.name} (${newTopicSubtopicForm.duration} hours)`]);
-                                                                setNewTopicSubtopicForm({ name: '', duration: 0 });
-                                                                setShowAddModalSubtopicForm(false);
-                                                            }
-                                                        }}
-                                                        className="text-sm text-indigo-600 hover:text-indigo-800 cursor-pointer"
-                                                    >
-                                                        Add
-                                                    </button>
-                                                    <button
-                                                        onClick={() => {
-                                                            setShowAddModalSubtopicForm(false);
-                                                            setNewTopicSubtopicForm({ name: '', duration: 0 });
-                                                        }}
-                                                        className="text-sm text-gray-600 hover:text-gray-800 cursor-pointer"
-                                                    >
-                                                        Cancel
-                                                    </button>
-                                                </div>
-                                            </div>
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                                            Description <span className="text-red-500">*</span>
+                                        </label>
+                                        <textarea
+                                            value={newTopic.description}
+                                            onChange={(e) => setNewTopic({ ...newTopic, description: e.target.value })}
+                                            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 p-2"
+                                            rows={5}
+                                        />
+                                    </div>
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                                            Importance <span className="text-red-500">*</span>
+                                        </label>
+                                        <textarea
+                                            value={newTopic.importance}
+                                            onChange={(e) => setNewTopic({ ...newTopic, importance: e.target.value })}
+                                            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 p-2"
+                                            rows={5}
+                                        />
+                                    </div>
+                                </div>
+                                <div className="space-y-6">
+                                    <div>
+                                        <div className="flex justify-between items-center mb-4">
+                                            <label className="block text-sm font-medium text-gray-700">Subtopics</label>
+                                            <button
+                                                onClick={() => setShowAddModalSubtopicForm(true)}
+                                                className="text-sm text-indigo-600 hover:text-indigo-800 flex items-center space-x-1 cursor-pointer"
+                                            >
+                                                <Plus className="h-4 w-4" />
+                                                <span>Add Subtopic</span>
+                                            </button>
                                         </div>
-                                    )}
 
-                                    <div className="space-y-3 h-[400px] overflow-y-auto pr-2">
-                                        {newTopicSubtopics.map((subtopic, index) => {
-                                            const name = subtopic.replace(/\s*\(\d+\s*hours\)$/, '');
-                                            const durationMatch = subtopic.match(/\((\d+)\s*hours\)/);
-                                            const duration = durationMatch ? parseInt(durationMatch[1]) : 0;
-                                            
-                                            return (
-                                                <div key={index} className="flex items-center justify-between p-3 bg-gray-50 rounded border border-gray-200">
-                                                    <div className="flex-1 mr-4">
-                                                        <span className="font-medium text-gray-900">{name}</span>
-                                                    </div>
-                                                    <div className="flex items-center space-x-2">
-                                                        <span className="text-sm text-gray-500">{duration} hours</span>
+                                        {showAddModalSubtopicForm && (
+                                            <div className="mb-4 p-4 bg-gray-50 rounded-lg border border-gray-200">
+                                                <div className="flex items-center space-x-2">
+                                                    <input
+                                                        type="text"
+                                                        placeholder="Subtopic name"
+                                                        value={newTopicSubtopicForm.name}
+                                                        onChange={(e) => setNewTopicSubtopicForm({ ...newTopicSubtopicForm, name: e.target.value })}
+                                                        className="flex-1 rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 p-2 text-sm"
+                                                    />
+                                                    <input
+                                                        type="number"
+                                                        min="0"
+                                                        placeholder="Duration"
+                                                        value={newTopicSubtopicForm.duration}
+                                                        onChange={(e) => setNewTopicSubtopicForm({ ...newTopicSubtopicForm, duration: parseInt(e.target.value) || 0 })}
+                                                        className="w-20 rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 p-2 text-sm"
+                                                    />
+                                                    <span className="text-sm text-gray-500">hours</span>
+                                                    <div className="flex space-x-2">
                                                         <button
-                                                            onClick={() => setShowAddModalSubtopicDeleteConfirmation({ show: true, subtopicIndex: index })}
-                                                            className="text-sm text-red-600 hover:text-red-800 cursor-pointer"
+                                                            onClick={() => {
+                                                                if (newTopicSubtopicForm.name.trim()) {
+                                                                    setNewTopicSubtopics([...newTopicSubtopics, `${newTopicSubtopicForm.name} (${newTopicSubtopicForm.duration} hours)`]);
+                                                                    setNewTopicSubtopicForm({ name: '', duration: 0 });
+                                                                    setShowAddModalSubtopicForm(false);
+                                                                }
+                                                            }}
+                                                            className="text-sm text-indigo-600 hover:text-indigo-800 cursor-pointer"
                                                         >
-                                                            Remove
+                                                            Add
+                                                        </button>
+                                                        <button
+                                                            onClick={() => {
+                                                                setShowAddModalSubtopicForm(false);
+                                                                setNewTopicSubtopicForm({ name: '', duration: 0 });
+                                                            }}
+                                                            className="text-sm text-gray-600 hover:text-gray-800 cursor-pointer"
+                                                        >
+                                                            Cancel
                                                         </button>
                                                     </div>
                                                 </div>
-                                            );
-                                        })}
+                                            </div>
+                                        )}
+
+                                        <div className="space-y-3 max-h-[300px] overflow-y-auto pr-2">
+                                            {newTopicSubtopics.map((subtopic, index) => {
+                                                const name = subtopic.replace(/\s*\(\d+\s*hours\)$/, '');
+                                                const durationMatch = subtopic.match(/\((\d+)\s*hours\)/);
+                                                const duration = durationMatch ? parseInt(durationMatch[1]) : 0;
+                                                
+                                                return (
+                                                    <div key={index} className="flex items-center justify-between p-3 bg-gray-50 rounded border border-gray-200">
+                                                        <div className="flex-1 mr-4">
+                                                            <span className="font-medium text-gray-900">{name}</span>
+                                                        </div>
+                                                        <div className="flex items-center space-x-2">
+                                                            <span className="text-sm text-gray-500">{duration} hours</span>
+                                                            <button
+                                                                onClick={() => setShowAddModalSubtopicDeleteConfirmation({ show: true, subtopicIndex: index })}
+                                                                className="text-sm text-red-600 hover:text-red-800 cursor-pointer"
+                                                            >
+                                                                Remove
+                                                            </button>
+                                                        </div>
+                                                    </div>
+                                                );
+                                            })}
+                                        </div>
                                     </div>
                                 </div>
                             </div>
                         </div>
-                        <div className="flex justify-end space-x-3 mt-6 border-t border-gray-200 pt-4">
+                        <div className="flex justify-end space-x-3 p-4 border-t border-gray-200">
                             <button
                                 onClick={() => {
                                     setShowAddTopicModal(false);
@@ -937,173 +941,177 @@ const RoadmapGenerator: React.FC = () => {
 
             {/* Edit Topic Modal */}
             {editingTopic && (
-                <div className="fixed inset-0 bg-gray-500 bg-opacity-75 flex items-center justify-center">
-                    <div className="bg-white rounded-lg p-8 w-[1000px] h-[800px] overflow-hidden flex flex-col">
-                        <h3 className="text-xl font-medium mb-6 text-indigo-800">Edit Topic</h3>
-                        <div className="grid grid-cols-2 gap-8 flex-1">
-                            <div className="space-y-6 border-r border-gray-200 pr-8">
-                                <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                                        Topic Name <span className="text-red-500">*</span>
-                                    </label>
-                                    <input
-                                        type="text"
-                                        value={editingTopic.name}
-                                        onChange={(e) => setEditingTopic({ ...editingTopic, name: e.target.value })}
-                                        className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 p-2"
-                                    />
-                                </div>
-                                <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                                        Description <span className="text-red-500">*</span>
-                                    </label>
-                                    <textarea
-                                        value={editingTopic.description}
-                                        onChange={(e) => setEditingTopic({ ...editingTopic, description: e.target.value })}
-                                        className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 p-2"
-                                        rows={5}
-                                    />
-                                </div>
-                                <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                                        Importance <span className="text-red-500">*</span>
-                                    </label>
-                                    <textarea
-                                        value={editingTopic.importance}
-                                        onChange={(e) => setEditingTopic({ ...editingTopic, importance: e.target.value })}
-                                        className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 p-2"
-                                        rows={5}
-                                    />
-                                </div>
-                            </div>
-                            <div className="space-y-6">
-                                <div>
-                                    <div className="flex justify-between items-center mb-4">
-                                        <label className="block text-sm font-medium text-gray-700">Subtopics</label>
-                                        <button
-                                            onClick={() => setShowSubtopicForm(true)}
-                                            className="text-sm text-indigo-600 hover:text-indigo-800 flex items-center space-x-1 cursor-pointer"
-                                        >
-                                            <Plus className="h-4 w-4" />
-                                            <span>Add Subtopic</span>
-                                        </button>
+                <div className="fixed inset-0 bg-gray-500 bg-opacity-75 flex items-center justify-center p-4">
+                    <div className="bg-white rounded-lg w-full max-w-[1000px] max-h-[90vh] flex flex-col">
+                        <div className="p-6 border-b border-gray-200">
+                            <h3 className="text-xl font-medium text-indigo-800">Edit Topic</h3>
+                        </div>
+                        <div className="flex-1 overflow-y-auto p-6">
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                                <div className="space-y-6 border-r border-gray-200 pr-8">
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                                            Topic Name <span className="text-red-500">*</span>
+                                        </label>
+                                        <input
+                                            type="text"
+                                            value={editingTopic.name}
+                                            onChange={(e) => setEditingTopic({ ...editingTopic, name: e.target.value })}
+                                            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 p-2"
+                                        />
                                     </div>
-
-                                    {showSubtopicForm && (
-                                        <div className="mb-4 p-4 bg-gray-50 rounded-lg border border-gray-200">
-                                            <div className="flex items-center space-x-2">
-                                                <input
-                                                    type="text"
-                                                    placeholder="Subtopic name"
-                                                    value={newSubtopicForm.name}
-                                                    onChange={(e) => setNewSubtopicForm({ ...newSubtopicForm, name: e.target.value })}
-                                                    className="flex-1 rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 p-2 text-sm"
-                                                />
-                                                <input
-                                                    type="number"
-                                                    min="0"
-                                                    placeholder="Duration"
-                                                    value={newSubtopicForm.duration}
-                                                    onChange={(e) => setNewSubtopicForm({ ...newSubtopicForm, duration: parseInt(e.target.value) || 0 })}
-                                                    className="w-20 rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 p-2 text-sm"
-                                                />
-                                                <span className="text-sm text-gray-500">hours</span>
-                                                <div className="flex space-x-2">
-                                                    <button
-                                                        onClick={() => {
-                                                            if (newSubtopicForm.name.trim()) {
-                                                                const newSubtopics = [...editingTopic.subtopics, `${newSubtopicForm.name} (${newSubtopicForm.duration} hours)`];
-                                                                const newTotalDuration = newSubtopics.reduce((sum, s) => {
-                                                                    const match = s.match(/\((\d+)\s*hours\)/);
-                                                                    return sum + (match ? parseInt(match[1]) : 0);
-                                                                }, 0);
-                                                                setEditingTopic({
-                                                                    ...editingTopic,
-                                                                    subtopics: newSubtopics,
-                                                                    topic_duration_hours: newTotalDuration
-                                                                });
-                                                                setNewSubtopicForm({ name: '', duration: 0 });
-                                                                setShowSubtopicForm(false);
-                                                            }
-                                                        }}
-                                                        className="text-sm text-indigo-600 hover:text-indigo-800 cursor-pointer"
-                                                    >
-                                                        Add
-                                                    </button>
-                                                    <button
-                                                        onClick={() => {
-                                                            setShowSubtopicForm(false);
-                                                            setNewSubtopicForm({ name: '', duration: 0 });
-                                                        }}
-                                                        className="text-sm text-gray-600 hover:text-gray-800 cursor-pointer"
-                                                    >
-                                                        Cancel
-                                                    </button>
-                                                </div>
-                                            </div>
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                                            Description <span className="text-red-500">*</span>
+                                        </label>
+                                        <textarea
+                                            value={editingTopic.description}
+                                            onChange={(e) => setEditingTopic({ ...editingTopic, description: e.target.value })}
+                                            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 p-2"
+                                            rows={5}
+                                        />
+                                    </div>
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                                            Importance <span className="text-red-500">*</span>
+                                        </label>
+                                        <textarea
+                                            value={editingTopic.importance}
+                                            onChange={(e) => setEditingTopic({ ...editingTopic, importance: e.target.value })}
+                                            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 p-2"
+                                            rows={5}
+                                        />
+                                    </div>
+                                </div>
+                                <div className="space-y-6">
+                                    <div>
+                                        <div className="flex justify-between items-center mb-4">
+                                            <label className="block text-sm font-medium text-gray-700">Subtopics</label>
+                                            <button
+                                                onClick={() => setShowSubtopicForm(true)}
+                                                className="text-sm text-indigo-600 hover:text-indigo-800 flex items-center space-x-1 cursor-pointer"
+                                            >
+                                                <Plus className="h-4 w-4" />
+                                                <span>Add Subtopic</span>
+                                            </button>
                                         </div>
-                                    )}
 
-                                    <div className="space-y-3 h-[400px] overflow-y-auto pr-2">
-                                        {editingTopic.subtopics.map((subtopic, index) => {
-                                            const name = subtopic.replace(/\s*\(\d+\s*hours\)$/, '');
-                                            const durationMatch = subtopic.match(/\((\d+)\s*hours\)/);
-                                            const duration = durationMatch ? parseInt(durationMatch[1]) : 0;
-                                            
-                                            return (
-                                                <div key={index} className="flex items-center justify-between p-3 bg-gray-50 rounded border border-gray-200">
-                                                    <div className="flex-1 mr-4">
-                                                        <input
-                                                            type="text"
-                                                            value={name}
-                                                            onChange={(e) => {
-                                                                const newSubtopics = [...editingTopic.subtopics];
-                                                                newSubtopics[index] = `${e.target.value} (${duration} hours)`;
-                                                                setEditingTopic({
-                                                                    ...editingTopic,
-                                                                    subtopics: newSubtopics
-                                                                });
-                                                            }}
-                                                            className="w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 p-2 text-sm"
-                                                        />
-                                                    </div>
-                                                    <div className="flex items-center space-x-2">
-                                                        <input
-                                                            type="number"
-                                                            min="0"
-                                                            value={duration}
-                                                            onChange={(e) => {
-                                                                const newDuration = parseInt(e.target.value) || 0;
-                                                                const newSubtopics = [...editingTopic.subtopics];
-                                                                newSubtopics[index] = `${name} (${newDuration} hours)`;
-                                                                const newTotalDuration = newSubtopics.reduce((sum, s) => {
-                                                                    const match = s.match(/\((\d+)\s*hours\)/);
-                                                                    return sum + (match ? parseInt(match[1]) : 0);
-                                                                }, 0);
-                                                                setEditingTopic({
-                                                                    ...editingTopic,
-                                                                    subtopics: newSubtopics,
-                                                                    topic_duration_hours: newTotalDuration
-                                                                });
-                                                            }}
-                                                            className="w-20 rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 p-2 text-sm"
-                                                        />
-                                                        <span className="text-sm text-gray-500">hours</span>
+                                        {showSubtopicForm && (
+                                            <div className="mb-4 p-4 bg-gray-50 rounded-lg border border-gray-200">
+                                                <div className="flex items-center space-x-2">
+                                                    <input
+                                                        type="text"
+                                                        placeholder="Subtopic name"
+                                                        value={newSubtopicForm.name}
+                                                        onChange={(e) => setNewSubtopicForm({ ...newSubtopicForm, name: e.target.value })}
+                                                        className="flex-1 rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 p-2 text-sm"
+                                                    />
+                                                    <input
+                                                        type="number"
+                                                        min="0"
+                                                        placeholder="Duration"
+                                                        value={newSubtopicForm.duration}
+                                                        onChange={(e) => setNewSubtopicForm({ ...newSubtopicForm, duration: parseInt(e.target.value) || 0 })}
+                                                        className="w-20 rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 p-2 text-sm"
+                                                    />
+                                                    <span className="text-sm text-gray-500">hours</span>
+                                                    <div className="flex space-x-2">
                                                         <button
-                                                            onClick={() => setShowEditModalSubtopicDeleteConfirmation({ show: true, subtopicIndex: index })}
-                                                            className="text-sm text-red-600 hover:text-red-800 cursor-pointer"
+                                                            onClick={() => {
+                                                                if (newSubtopicForm.name.trim()) {
+                                                                    const newSubtopics = [...editingTopic.subtopics, `${newSubtopicForm.name} (${newSubtopicForm.duration} hours)`];
+                                                                    const newTotalDuration = newSubtopics.reduce((sum, s) => {
+                                                                        const match = s.match(/\((\d+)\s*hours\)/);
+                                                                        return sum + (match ? parseInt(match[1]) : 0);
+                                                                    }, 0);
+                                                                    setEditingTopic({
+                                                                        ...editingTopic,
+                                                                        subtopics: newSubtopics,
+                                                                        topic_duration_hours: newTotalDuration
+                                                                    });
+                                                                    setNewSubtopicForm({ name: '', duration: 0 });
+                                                                    setShowSubtopicForm(false);
+                                                                }
+                                                            }}
+                                                            className="text-sm text-indigo-600 hover:text-indigo-800 cursor-pointer"
                                                         >
-                                                            Remove
+                                                            Add
+                                                        </button>
+                                                        <button
+                                                            onClick={() => {
+                                                                setShowSubtopicForm(false);
+                                                                setNewSubtopicForm({ name: '', duration: 0 });
+                                                            }}
+                                                            className="text-sm text-gray-600 hover:text-gray-800 cursor-pointer"
+                                                        >
+                                                            Cancel
                                                         </button>
                                                     </div>
                                                 </div>
-                                            );
-                                        })}
+                                            </div>
+                                        )}
+
+                                        <div className="space-y-3 max-h-[300px] overflow-y-auto pr-2">
+                                            {editingTopic.subtopics.map((subtopic, index) => {
+                                                const name = subtopic.replace(/\s*\(\d+\s*hours\)$/, '');
+                                                const durationMatch = subtopic.match(/\((\d+)\s*hours\)/);
+                                                const duration = durationMatch ? parseInt(durationMatch[1]) : 0;
+                                                
+                                                return (
+                                                    <div key={index} className="flex items-center justify-between p-3 bg-gray-50 rounded border border-gray-200">
+                                                        <div className="flex-1 mr-4">
+                                                            <input
+                                                                type="text"
+                                                                value={name}
+                                                                onChange={(e) => {
+                                                                    const newSubtopics = [...editingTopic.subtopics];
+                                                                    newSubtopics[index] = `${e.target.value} (${duration} hours)`;
+                                                                    setEditingTopic({
+                                                                        ...editingTopic,
+                                                                        subtopics: newSubtopics
+                                                                    });
+                                                                }}
+                                                                className="w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 p-2 text-sm"
+                                                            />
+                                                        </div>
+                                                        <div className="flex items-center space-x-2">
+                                                            <input
+                                                                type="number"
+                                                                min="0"
+                                                                value={duration}
+                                                                onChange={(e) => {
+                                                                    const newDuration = parseInt(e.target.value) || 0;
+                                                                    const newSubtopics = [...editingTopic.subtopics];
+                                                                    newSubtopics[index] = `${name} (${newDuration} hours)`;
+                                                                    const newTotalDuration = newSubtopics.reduce((sum, s) => {
+                                                                        const match = s.match(/\((\d+)\s*hours\)/);
+                                                                        return sum + (match ? parseInt(match[1]) : 0);
+                                                                    }, 0);
+                                                                    setEditingTopic({
+                                                                        ...editingTopic,
+                                                                        subtopics: newSubtopics,
+                                                                        topic_duration_hours: newTotalDuration
+                                                                    });
+                                                                }}
+                                                                className="w-20 rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 p-2 text-sm"
+                                                            />
+                                                            <span className="text-sm text-gray-500">hours</span>
+                                                            <button
+                                                                onClick={() => setShowEditModalSubtopicDeleteConfirmation({ show: true, subtopicIndex: index })}
+                                                                className="text-sm text-red-600 hover:text-red-800 cursor-pointer"
+                                                            >
+                                                                Remove
+                                                            </button>
+                                                        </div>
+                                                    </div>
+                                                );
+                                            })}
+                                        </div>
                                     </div>
                                 </div>
                             </div>
                         </div>
-                        <div className="flex justify-end space-x-3 mt-6 border-t border-gray-200 pt-4">
+                        <div className="flex justify-end space-x-3 p-4 border-t border-gray-200">
                             <button
                                 onClick={() => setEditingTopic(null)}
                                 className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-md hover:bg-gray-200 cursor-pointer"

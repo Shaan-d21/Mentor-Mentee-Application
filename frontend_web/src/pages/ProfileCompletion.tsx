@@ -9,10 +9,13 @@ import axios from "axios";
 interface MentorSkill {
   name: string;
   proficiency: number;
+  isNew?: boolean;
 }
 
 interface MenteeSkill {
   name: string;
+  proficiency: number;
+  isNew?: boolean;
 }
 
 // Remove unused Skill type
@@ -329,26 +332,6 @@ const ProfileCompletion = () => {
     }
   };
 
-  // Add a function to update skill proficiency (for mentors only)
-  const updateSkillProficiency = (skillName: string, proficiency: number) => {
-    setProfile(prev => {
-      const newSkills = prev.skills.map(skill => {
-        if (typeof skill === 'string') {
-          return { name: skill, proficiency } as MentorSkill;
-        }
-        if (skill.name === skillName) {
-          return { ...skill, proficiency } as MentorSkill;
-        }
-        return skill;
-      });
-      
-      return {
-        ...prev,
-        skills: newSkills
-      };
-    });
-  };
-
   // Handle skill selection/deselection
   const handleSkillToggle = (skill: string) => {
     setProfile(prev => {
@@ -362,10 +345,8 @@ const ProfileCompletion = () => {
         newSkills.splice(existingSkillIndex, 1);
         return { ...prev, skills: newSkills };
       } else {
-        // Add skill with default proficiency for mentors
-        const newSkill = role === 'mentor' 
-          ? { name: skill, proficiency: 2 } as MentorSkill
-          : { name: skill } as MenteeSkill;
+        // Add skill with default proficiency for both mentors and mentees
+        const newSkill = { name: skill, proficiency: 2 } as MentorSkill | MenteeSkill;
         
         const newSkills = [...prev.skills, newSkill];
         
@@ -379,9 +360,29 @@ const ProfileCompletion = () => {
     });
   };
 
-  // Type guard to check if a skill is a MentorSkill
-  const isMentorSkill = (skill: MentorSkill | MenteeSkill): skill is MentorSkill => {
+  // Type guard to check if a skill is a MentorSkill or MenteeSkill
+  const isSkillWithProficiency = (skill: MentorSkill | MenteeSkill): skill is MentorSkill | MenteeSkill => {
     return 'proficiency' in skill;
+  };
+
+  // Add a function to update skill proficiency (for both mentors and mentees)
+  const updateSkillProficiency = (skillName: string, proficiency: number) => {
+    setProfile(prev => {
+      const newSkills = prev.skills.map(skill => {
+        if (typeof skill === 'string') {
+          return { name: skill, proficiency } as MentorSkill | MenteeSkill;
+        }
+        if (skill.name === skillName) {
+          return { ...skill, proficiency } as MentorSkill | MenteeSkill;
+        }
+        return skill;
+      });
+      
+      return {
+        ...prev,
+        skills: newSkills
+      };
+    });
   };
 
   // Form validation before submission
@@ -475,7 +476,7 @@ const ProfileCompletion = () => {
         
         // Format and create skills
         const skillsPayload = profile.skills
-          .filter(isMentorSkill)
+          .filter(isSkillWithProficiency)
           .map(skill => ({
             skill_name: skill.name,
             proficiency: skill.proficiency,
@@ -533,16 +534,19 @@ const ProfileCompletion = () => {
         
         console.log('Mentee profile creation response:', profileResponse.data);
         
-        // Format and create mentee skills (no proficiency)
+        // Format and create mentee skills (only new skills)
         const menteeSkillsPayload = {
-          skills: profile.skills.map(skill => ({
-            skill_name: typeof skill === 'string' ? skill : skill.name
-          }))
+          skills: profile.skills
+            .filter(skill => typeof skill === 'object') // Filter out any string skills
+            .map(skill => ({
+              skill_name: skill.name,
+              proficiency: skill.proficiency || 2 // Use the skill's proficiency or default to 2
+            }))
         };
         
         console.log('Creating mentee skills:', menteeSkillsPayload);
         
-        if (profile.skills.length > 0) {
+        if (menteeSkillsPayload.skills.length > 0) {
           try {
             const skillsResponse = await axios.post(
               `${apiUrl}/mentee/mentee/skills`,
@@ -680,7 +684,7 @@ const ProfileCompletion = () => {
             onChange={handleChange}
             className="w-full p-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-500 cursor-pointer"
             required 
-            placeholder={role === 'mentor' ? "Your job title (e.g. Senior Developer)" : "Your current designation (e.g., Intern, Developer)"}
+            placeholder={role === 'mentor' ? "Your job title (e.g. Senior Developer)" : "Your current designation"}
           />
         </div>
 
@@ -756,7 +760,7 @@ const ProfileCompletion = () => {
                     className="bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded-full flex items-center"
                   >
                     {typeof skill === 'string' ? skill : skill.name}
-                    {role === 'mentor' && isMentorSkill(skill) && (
+                    {isSkillWithProficiency(skill) && (
                       <span className="ml-1 bg-blue-200 px-1 rounded-full text-xs">
                         {ProficiencyLevels.find(l => l.value === skill.proficiency)?.label || 'Intermediate'}
                       </span>
@@ -784,15 +788,15 @@ const ProfileCompletion = () => {
                     <span>{skill}</span>
                   </div>
                   
-                  {role === 'mentor' && profile.skills.some(s => 
-                    typeof s !== 'string' && s.name === skill && isMentorSkill(s)
+                  {profile.skills.some(s => 
+                    typeof s !== 'string' && s.name === skill && isSkillWithProficiency(s)
                   ) && (
                     <div className="mt-1 ml-6 px-3 py-1">
                       <select
                         className="text-sm border rounded p-1 cursor-pointer"
                         value={(profile.skills.find(s => 
-                          typeof s !== 'string' && s.name === skill && isMentorSkill(s)
-                        ) as MentorSkill)?.proficiency || 2}
+                          typeof s !== 'string' && s.name === skill && isSkillWithProficiency(s)
+                        ) as MentorSkill | MenteeSkill)?.proficiency || 2}
                         onChange={(e) => updateSkillProficiency(skill, parseInt(e.target.value))}
                       >
                         {ProficiencyLevels.map(level => (

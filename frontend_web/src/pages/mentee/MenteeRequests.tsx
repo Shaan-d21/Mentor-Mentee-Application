@@ -18,6 +18,8 @@ const MenteeRequests: React.FC = () => {
   const [error] = useState<string | null>(null);
   const [showCancelModal, setShowCancelModal] = useState(false);
   const [selectedMentor, setSelectedMentor] = useState<Request | null>(null);
+  const [showCommentModal, setShowCommentModal] = useState(false);
+  const [selectedComment, setSelectedComment] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchRequests = async () => {
@@ -158,42 +160,46 @@ const MenteeRequests: React.FC = () => {
                         {request.status}
                       </span>
                     </td>
-                    <td className="px-6 py-4 max-w-xs">
+                    <td className="px-4 py-4 max-w-[200px]">
                       <div className="text-sm text-gray-900">
                         {request.comment ? (
-                          <div className="relative group">
-                            <div className="line-clamp-2">
-                              {request.comment}
-                            </div>
-                            {request.comment.length > 100 && (
-                              <button
-                                onClick={() => {
-                                  const commentElement = document.getElementById(`comment-${index}`);
-                                  if (commentElement) {
-                                    commentElement.classList.toggle('line-clamp-2');
+                          <div className="bg-gray-50 rounded-lg p-2">
+                            <div className="flex items-start">
+                              <div className="flex-1 min-w-0">
+                                <p className="text-sm text-gray-700 line-clamp-2" ref={(el) => {
+                                  if (el && el.scrollHeight > el.clientHeight) {
+                                    el.nextElementSibling?.classList.remove('hidden');
                                   }
-                                }}
-                                className="text-blue-600 hover:text-blue-800 text-sm font-medium mt-1"
-                              >
-                                See More
-                              </button>
-                            )}
+                                }}>
+                                  {request.comment}
+                                </p>
+                                <button
+                                  onClick={() => {
+                                    setSelectedComment(request.comment);
+                                    setShowCommentModal(true);
+                                  }}
+                                  className="text-blue-600 hover:text-blue-800 font-medium mt-1 hidden"
+                                >
+                                  See more
+                                </button>
+                              </div>
+                            </div>
                           </div>
                         ) : (
                           <span className="text-gray-400">-</span>
                         )}
                       </div>
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
+                    <td className="px-2 py-4 whitespace-nowrap">
                       {request.status === 'pending' && (
                         <button
                           onClick={() => {
                             setSelectedMentor(request);
                             setShowCancelModal(true);
                           }}
-                          className="text-red-600 hover:text-red-800 font-medium cursor-pointer flex items-center"
+                          className="inline-flex items-center px-3 py-2 border border-red-400 text-sm font-medium rounded-md text-red-700 bg-red-50 hover:bg-red-100 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 transition-colors duration-200"
                         >
-                          <svg className="w-4 h-4 mr-1" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                          <svg className="w-4 h-4 mr-2" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                             <path d="M6 18L18 6M6 6l12 12" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
                           </svg>
                           Cancel Request
@@ -236,6 +242,31 @@ const MenteeRequests: React.FC = () => {
               >
                 Yes, Cancel Request
               </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Comment Modal */}
+      {showCommentModal && selectedComment && (
+        <div className="fixed inset-0 bg-gray-900/30 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-lg p-6 max-w-2xl w-full max-h-[80vh] flex flex-col">
+            <div className="flex justify-between items-start mb-4">
+              <h3 className="text-lg font-medium text-gray-900">Full Comment</h3>
+              <button
+                onClick={() => {
+                  setShowCommentModal(false);
+                  setSelectedComment(null);
+                }}
+                className="text-gray-400 hover:text-gray-500"
+              >
+                <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+            <div className="bg-gray-50 rounded-lg p-4 overflow-y-auto">
+              <p className="text-gray-700 whitespace-pre-wrap break-words">{selectedComment}</p>
             </div>
           </div>
         </div>

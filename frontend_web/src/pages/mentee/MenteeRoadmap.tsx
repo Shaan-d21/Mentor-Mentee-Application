@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { ChevronRightIcon, BookOpenIcon, DocumentTextIcon, ArrowPathIcon } from '@heroicons/react/24/outline';
 import toast from 'react-hot-toast';
+import { FaUserTie } from 'react-icons/fa';
 
 interface Mentor {
   mentor_id: number;
@@ -286,7 +287,12 @@ const MenteeRoadmap: React.FC = () => {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <h1 className="text-3xl font-bold text-gray-900 mb-8">Your Learning Roadmaps</h1>
 
-        {selectedRoadmap ? (
+        {mentors.length === 0 ? (
+          <div className="text-center py-8 text-gray-500">
+            <FaUserTie className="mx-auto h-12 w-12 mb-4" />
+            <p>You don't have any mentors yet.</p>
+          </div>
+        ) : selectedRoadmap ? (
           <div className="bg-white rounded-lg shadow-md p-6 mb-8">
             <button
               onClick={() => setSelectedRoadmap(null)}

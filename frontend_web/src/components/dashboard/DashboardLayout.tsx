@@ -59,11 +59,15 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({
   }
 
   return (
-    <div className="flex min-h-screen bg-gray-100">
-      <Sidebar userRole={userRole || 'mentee'} />
-      <div className="flex-1 flex flex-col overflow-hidden">
-        <DashboardHeader />
-        <div className="flex-1 overflow-auto p-6">
+    <div className="flex h-screen bg-gray-100">
+      <div className="fixed h-screen w-64">
+        <Sidebar userRole={userRole || 'mentee'} />
+      </div>
+      <div className="flex-1 flex flex-col ml-64">
+        <div className="sticky top-0 z-10">
+          <DashboardHeader />
+        </div>
+        <div className="flex-1 overflow-y-auto p-6">
           {children}
         </div>
       </div>
