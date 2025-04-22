@@ -212,14 +212,14 @@ const MenteeProfileContent: React.FC = () => {
 
       console.log("Fetching profile for user:", email);
       
-      const apiBaseUrl = import.meta.env.VITE_API_URL || 'https://mm-be.shaandewang.publicvm.com' || 'http://localhost:8000';
+      const apiBaseUrl = import.meta.env.VITE_API_URL;
       
       // Try the mentee profile endpoint with proper token format
       try {
         console.log(`Calling API: GET ${apiBaseUrl}/mentee/mentee/profile`);
         console.log('Headers:', { 'Token': authToken.substring(0, 20) + '...' });
         
-        const profileResponse = await axios.get(`${import.meta.env.VITE_API_URL || 'https://mm-be.shaandewang.publicvm.com'}/mentee/mentee/profile`, {
+        const profileResponse = await axios.get(`${import.meta.env.VITE_API_URL}/mentee/mentee/profile`, {
           headers: {
             'Token': authToken
           }
@@ -349,7 +349,7 @@ const MenteeProfileContent: React.FC = () => {
       // First update the profile
       // const profileResponse = await axios.put(
       await axios.put(
-        `${import.meta.env.VITE_API_URL || 'https://mm-be.shaandewang.publicvm.com'}/mentee/mentee/profile_creation`,
+        `${import.meta.env.VITE_API_URL}/mentee/mentee/profile_creation`,
         profileData,
         {
           headers: {
@@ -373,7 +373,7 @@ const MenteeProfileContent: React.FC = () => {
             };
 
             await axios.post(
-              `${import.meta.env.VITE_API_URL || 'https://mm-be.shaandewang.publicvm.com'}/mentee/mentee/skills`,
+              `${import.meta.env.VITE_API_URL}/mentee/mentee/skills`,
               skillsPayload,
               {
                 headers: {
@@ -450,7 +450,7 @@ const MenteeProfileContent: React.FC = () => {
         {!editMode && (
           <button
             onClick={() => setEditMode(true)}
-            className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 flex items-center"
+            className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 flex items-center cursor-pointer"
           >
             <Edit2 size={16} className="mr-2" /> Edit Profile
           </button>
@@ -629,7 +629,7 @@ const MenteeProfileContent: React.FC = () => {
                 </select>
                 <button
                   onClick={addSkill}
-                  className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
+                  className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 cursor-pointer"
                 >
                   Add Skill
                 </button>
@@ -644,14 +644,14 @@ const MenteeProfileContent: React.FC = () => {
           <div className="flex justify-end space-x-3">
             <button
               onClick={cancelEdit}
-              className="px-4 py-2 border border-gray-300 rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-gray-500"
+              className="px-4 py-2 border border-gray-300 rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-gray-500 cursor-pointer"
             >
               Cancel
             </button>
             <button
               onClick={saveChanges}
               disabled={saving}
-              className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 flex items-center disabled:opacity-50"
+              className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 flex items-center disabled:opacity-50 cursor-pointer"
             >
               {saving ? (
                 <>

@@ -442,7 +442,7 @@ const ProfileCompletion = () => {
       console.log('Token header format:', authToken);
       
       // Use deployed API URL
-      const apiUrl = import.meta.env.VITE_API_URL || 'https://mm-be.shaandewang.publicvm.com';
+      const apiUrl = import.meta.env.VITE_API_URL;
       
       // Create role-specific profile
       const userRole = localStorage.getItem('role');
@@ -680,7 +680,7 @@ const ProfileCompletion = () => {
             onChange={handleChange}
             className="w-full p-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
             required 
-            placeholder={role === 'mentor' ? "Your job title (e.g. Senior Developer)" : "Your current role (e.g., Intern, Developer)"}
+            placeholder={role === 'mentor' ? "Your job title (e.g. Senior Developer)" : "Your current designation (e.g., Intern, Developer)"}
           />
         </div>
 

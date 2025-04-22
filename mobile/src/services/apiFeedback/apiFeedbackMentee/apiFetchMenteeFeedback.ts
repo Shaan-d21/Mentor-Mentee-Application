@@ -11,6 +11,8 @@ interface Feedback {
   mentor_name: string;
   domain_name: string;
   feedback_id:number;
+  topic_id:number;
+  topic_name:string;
 }
 
 interface FeedbackResponse {
@@ -51,7 +53,7 @@ export const fetchMenteeFeedback = async (): Promise<Feedback[]> => {
 
 export const summarizeFeedbackAPI = async (feedback: string): Promise<string> => {
     try {
-      const response = await axios.post('https://mm-ai.shaandewang.publicvm.com/summarize',
+      const response = await axios.post(`${process.env.AI_SERVER}summarize`,
        { text:feedback }, 
        {
         headers: {
@@ -69,8 +71,10 @@ export const summarizeFeedbackAPI = async (feedback: string): Promise<string> =>
 
 export const analyzeFeedbackAPI = async (menteeId: number, feedbackId: number): Promise<AnalysisResponse> => {
     try {
+      console.log(process.env.AI_SERVER);
       const response = await axios.get<AnalysisResponse>(
-        `https://mm-ai.shaandewang.publicvm.com/mentee/feedback/${menteeId}/${feedbackId}`,
+        
+        `${process.env.AI_SERVER}mentee/feedback/${menteeId}/${feedbackId}`,
         {
           headers: {
             'accept': 'application/json',

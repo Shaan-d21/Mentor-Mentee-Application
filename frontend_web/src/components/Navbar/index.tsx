@@ -198,7 +198,7 @@ const Navbar = () => {
                 {/* Profile Dropdown */}
                 <div className="relative" ref={dropdownRef}>
                   <button
-                    className="flex items-center space-x-3 focus:outline-none"
+                    className="flex items-center space-x-3 focus:outline-none cursor-pointer"
                     onClick={() => setDropdownOpen(!dropdownOpen)}
                   >
                     <img
@@ -206,7 +206,7 @@ const Navbar = () => {
                       alt="Profile"
                       className="w-8 h-8 rounded-full border border-gray-200"
                     />
-                    <span className="text-sm font-medium text-white">{userInfo?.name || "User"}</span>
+                    <span className="text-sm font-medium text-white cursor-pointer">{userInfo?.name || "User"}</span>
                     <svg
                       className={`w-4 h-4 text-white transition-transform ${dropdownOpen ? 'rotate-180' : ''}`}
                       fill="none"
@@ -221,14 +221,14 @@ const Navbar = () => {
                     <div className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg py-1 ring-1 ring-black ring-opacity-5">
                       <button
                         onClick={handleViewProfile}
-                        className="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-50"
+                        className="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 cursor-pointer"
                       >
                         <FaUser className="mr-3 h-4 w-4 text-gray-400" />
                         View Profile
                       </button>
                       <button
                         onClick={handleLogout}
-                        className="flex items-center w-full px-4 py-2 text-sm text-red-600 hover:bg-gray-50"
+                        className="flex items-center w-full px-4 py-2 text-sm text-red-600 hover:bg-gray-50 cursor-pointer"
                       >
                         <FaSignOutAlt className="mr-3 h-4 w-4 text-red-400" />
                         Logout

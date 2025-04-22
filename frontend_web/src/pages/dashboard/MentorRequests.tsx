@@ -45,7 +45,13 @@ const ApprovalModal: React.FC<ApprovalModalProps> = ({ isOpen, onClose, onSubmit
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center">
       <div className="bg-white p-6 rounded-lg w-96">
         <h3 className="text-lg font-semibold mb-4">
-          {isRejection ? 'Reject Request' : 'Approve Request'}
+          {isRejection ? (
+            <>
+              Reject Request <span className="text-red-500">*</span>
+            </>
+          ) : (
+            'Approve Request'
+          )}
         </h3>
         <textarea
           className="w-full p-2 border rounded mb-4"
@@ -95,7 +101,7 @@ const MentorRequests: React.FC = () => {
         const authToken = accessToken.startsWith('Bearer ') ? accessToken : `Bearer ${accessToken}`;
 
         const response = await axios.get(
-          `${import.meta.env.VITE_API_URL || 'https://mm-be.shaandewang.publicvm.com'}/mentor/get-requests`,
+          `${import.meta.env.VITE_API_URL}/mentor/get-requests`,
           {
             headers: {
               'Token': authToken,
@@ -137,7 +143,7 @@ const MentorRequests: React.FC = () => {
       const authToken = accessToken.startsWith('Bearer ') ? accessToken : `Bearer ${accessToken}`;
 
       await axios.put(
-        `${import.meta.env.VITE_API_URL || 'https://mm-be.shaandewang.publicvm.com'}/mentor-approval/approve-mentee`,
+        `${import.meta.env.VITE_API_URL}/mentor-approval/approve-mentee`,
         {
           status: 'approved',
           mentee_id: request.id,
@@ -151,9 +157,9 @@ const MentorRequests: React.FC = () => {
         }
       );
 
-      console.log('Request approved successfully:', request.id);
+      console.log('Request has been approved successfully:', request.id);
       setRequests(requests.filter(r => r.id !== request.id));
-      toast.success('Request approved successfully');
+      toast.success('Request has been approved successfully');
     } catch (error) {
       console.error('Error approving request:', error);
       setError('Failed to approve request');
@@ -171,7 +177,7 @@ const MentorRequests: React.FC = () => {
       const authToken = accessToken.startsWith('Bearer ') ? accessToken : `Bearer ${accessToken}`;
 
       await axios.put(
-        `${import.meta.env.VITE_API_URL || 'https://mm-be.shaandewang.publicvm.com'}/mentor-approval/approve-mentee`,
+        `${import.meta.env.VITE_API_URL}/mentor-approval/approve-mentee`,
         {
           status: 'not approved',
           mentee_id: request.id,
@@ -185,9 +191,9 @@ const MentorRequests: React.FC = () => {
         }
       );
 
-      console.log('Request rejected successfully:', request.id);
+      console.log('Request has been rejected successfully:', request.id);
       setRequests(requests.filter(r => r.id !== request.id));
-      toast.success('Request rejected successfully');
+      toast.success('Request has been rejected successfully');
     } catch (error) {
       console.error('Error rejecting request:', error);
       setError('Failed to reject request');

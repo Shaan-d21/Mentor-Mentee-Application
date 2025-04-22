@@ -25,16 +25,19 @@ import { useDispatch } from 'react-redux';
 import { AppDispatch } from '../../redux/store';
 import { apiDeleteTopic } from '../../services/apiRoadmap/apiGenerateRoadmapMentor';
 import { addRoadmapTopic, deleteRoadmapThunk, editRoadmapTopic } from '../../redux/slices/sliceMentorRoadmap';
+interface ListRoadmapItemsProps {
+  roadmap: RoadmapResponse;
+}
 
 
-export const ListRoadmapItems = (props: { roadmap: RoadmapResponse }) => {
+export const ListRoadmapItems = ({ roadmap }: ListRoadmapItemsProps) => {
   const dispatch = useDispatch<AppDispatch>();
-  const [localRoadmap, setLocalRoadmap] = useState<RoadmapResponse>(props.roadmap);
+  const [localRoadmap, setLocalRoadmap] = useState<RoadmapResponse>(roadmap);
   
   // Update local state when props change
   useEffect(() => {
-    setLocalRoadmap(props.roadmap);
-  }, [props.roadmap]);
+    setLocalRoadmap(roadmap);
+  }, [roadmap]);
   
   // State for expanded/collapsed topics
   const [expandedTopics, setExpandedTopics] = useState<number[]>([]);
@@ -126,7 +129,8 @@ export const ListRoadmapItems = (props: { roadmap: RoadmapResponse }) => {
       description: "",
       subtopics: [""],
       importance: "",
-      topic_status: "pending"
+      topic_status: "pending",
+      topic_duration_hours: 0,
     };
     
     setIsAddingTopic(true);
@@ -188,6 +192,7 @@ export const ListRoadmapItems = (props: { roadmap: RoadmapResponse }) => {
               <Text style={styles.statValue}>{localRoadmap.topics.length}</Text>
               <Text style={styles.statLabel}>Topics</Text>
             </View>
+            
             <View style={styles.statItem}>
               <Text style={styles.statValue}>
                 {/* {roadmap.topics.filter(topic => topic.topic_status === 'completed').length}% */}
@@ -242,6 +247,11 @@ export const ListRoadmapItems = (props: { roadmap: RoadmapResponse }) => {
                 <View style={styles.topicContent}>
                   <Text style={styles.contentLabel}>Description:</Text>
                   <Text style={styles.topicDescription}>{topic.description}</Text>
+                  <Text style={styles.durationText}>
+  <Text style={styles.contentLabel}>Duration: </Text>
+  <Text style={styles.topicDescription}>{topic.topic_duration_hours} Hours</Text>
+</Text>
+
                   
                   {topic.subtopics.length > 0 && (
                     <>
@@ -305,6 +315,9 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#F3F4F6',
   },
+  durationText:{  flexDirection: 'row',
+    alignItems: 'center',
+    marginTop: 12,},
   scrollView: {
     flex: 1,
     padding: 16,
@@ -334,8 +347,8 @@ const styles = StyleSheet.create({
   statsContainer: {
     flex: 1, 
     justifyContent: 'flex-end', 
-    alignItems: 'center',       
-    paddingBottom: 10 ,
+    alignItems: 'center',
+    paddingTop: 10,
     
   },
   statItem: {

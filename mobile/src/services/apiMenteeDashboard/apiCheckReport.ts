@@ -2,13 +2,13 @@ import axios from 'axios';
 import {MMKV} from 'react-native-mmkv';
 
 const storage = new MMKV();
-const api = axios.create({
-  baseURL: process.env.AI_API_URL,
-  headers: {
-    'Content-Type': 'application/json',
-    token: storage.getString('token'),
-  },
-});
+// const api = axios.create({
+//   // baseURL: process.env.API_URL,
+//   headers: {
+//     'Content-Type': 'application/json',
+//     token: storage.getString('token'),
+//   },
+// });
 
 export const apiFetchReport = async (credentials: {
   mentorId: number;
@@ -25,13 +25,17 @@ export const apiFetchReport = async (credentials: {
     };
     console.log('Request Data:', data); // Debugging log to verify request data
 
-    const response = await api.post('matching_report', JSON.stringify(data), {
-      headers: {
-        accept: 'application/json',
-        'Content-Type': 'application/json',
-        token: storage.getString('token'),
+    const response = await axios.post(
+      `${process.env.AI_SERVER}matching_report`,
+      JSON.stringify(data),
+      {
+        headers: {
+          accept: 'application/json',
+          'Content-Type': 'application/json',
+          token: storage.getString('token'),
+        },
       },
-    });
+    );
     console.log('Raw API Data:', response.data);
 
     if (response.status === 200) {

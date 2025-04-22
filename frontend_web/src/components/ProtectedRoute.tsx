@@ -41,7 +41,7 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children, allowedRoles,
           } else {
             // Try to get profile status from backend
             try {
-              const response = await api.get('http://181.214.44.15:8080/users/all_users');
+              const response = await api.get(`${import.meta.env.VITE_API_URL}/users/all_users`);
               
               if (response.status === 200) {
                 // Find the user with matching email

@@ -1,50 +1,35 @@
 import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
-import { apiGetTopicsOnMenteeScreen, apiMarkTopicAsDone } from "../../services/apiRoadmap/apiGetRoadmap"; // Replace with your actual API functions
-import { RoadmapTopic,RoadmapResponse } from "../../types/ViewRoadmapTypes";
+import { apiGetTopicsOnMenteeScreen, apiMarkTopicAsDone } from "../../services/apiRoadmap/apiGetRoadmap"; 
+import { RoadmapResponse } from "../../types/RoadmapTypes";
 
 enum currentStatus { idle = "idle", loading = "loading", success = "success", failed = "failed" }
 
 // State of the redux
 interface State {
-  roadMapId: number | null;
-  roadmapExplanation: string ;
-  assignedTopics: RoadmapTopic[];
-  markedTopics: RoadmapTopic[];
-  completedTopics: RoadmapTopic[];
-  status: currentStatus;
-  refersh: boolean;
+
+  roadmap: RoadmapResponse | null; // Changed from RoadmapResponse to RoadmapTopic[]
+ status: currentStatus;
+  refresh: boolean;
 }
 
 const initialState: State = {
-  roadMapId: null,
-  roadmapExplanation: '',
-  assignedTopics: [],
-  markedTopics: [],
-  completedTopics: [],
-  refersh: false,
+
+  roadmap: null,
+  refresh: false,
   status: currentStatus.idle,
 };
-
-// API response
 
 // Async thunk to fetch the roadmap data
 export const fetchRoadmap = createAsyncThunk<RoadmapResponse, number, { rejectValue: string }>(
   "menteeRoadmap/fetchRoadmap",
   async (roadmapId, { rejectWithValue }) => { 
     const response = await apiGetTopicsOnMenteeScreen(roadmapId);
-    console.log(response);
-    // Replace with your actual API function
+    
     if (!response) {
       return rejectWithValue("No data returned from API");
     }
-    console.log("Fetched roadmap data:", response.topic);
-    return {
-      topic: response.topic,
-      roadmap_explanation: response.roadmap_explanation,
-      roadmap_id: response.roadmap_id,
-      status_code: response.status_code, // make sure this exists
-      message: response.message,
-    };
+    console.log("Fetched roadmap data:", response.topics);
+    return response;
   }
 );
 
@@ -54,10 +39,8 @@ export const markTopicAsDone = createAsyncThunk<number, { topicId: number }, { r
   async ({ topicId }, { rejectWithValue }) => {
     try {
       await apiMarkTopicAsDone(topicId);
-       
       console.log("Marked topic as done:", topicId);
       return topicId;
-     
     } catch (error: any) {
       return rejectWithValue(error.message || "Failed to mark topic as done");
     }
@@ -76,51 +59,56 @@ const sliceRoadmapTopics = createSlice({
       .addCase(fetchRoadmap.fulfilled, (state, action) => {
         console.log("Roadmap data:", action.payload);
         state.status = currentStatus.success;
-        state.assignedTopics = action.payload.topic.filter(topic => topic.topic_status === "assigned");
-        state.completedTopics = action.payload.topic.filter(topic => topic.topic_status === "completed");
-        state.markedTopics = action.payload.topic.filter(topic => topic.topic_status === "marked");
-        state.roadMapId = action.payload.roadmap_id;
-        state.roadmapExplanation = action.payload.roadmap_explanation;
+        const processedPayload = {
+          ...action.payload,
+          topics: action.payload.topics.map(topic => ({
+            ...topic,
+            // Set default values for potentially null fields
+            topic_duration_hours: topic.topic_duration_hours ?? 0,
+            subtopics: topic.subtopics ?? [],
+          }))
+        };
+        
+        state.roadmap = processedPayload;
       })
       .addCase(fetchRoadmap.rejected, (state, action) => {
         state.status = currentStatus.failed;
         console.error("Failed to fetch roadmap:", action.payload);
       })
-      .addCase(markTopicAsDone.pending, (state, action) => {
-        // Optimistically update the UI
-        const topicId = action.meta.arg.topicId;
-        // console.log("Optimistically marking topic as done:", topicId);
-        // state.assignedTopics = state.assignedTopics.filter(topic => topic.topic_id !== topicId);
-        // state.markedTopics.push(state.assignedTopics.find(topic => topic.topic_id === topicId)!);
+      .addCase(markTopicAsDone.pending, (state) => {
+        // No optimistic updates needed here now
       })
       .addCase(markTopicAsDone.fulfilled, (state, action) => {
-        // Update the state after successfully marking the topic as done
-        const topicId = action.payload;
-        console.log("Successfully marked topic as done:", topicId);
-        state.refersh = !state.refersh;
-        // Find the topic before filtering it out
-        const topicToMove = state.assignedTopics.find(topic => topic.topic_id === topicId);
-        
-        if (topicToMove) {
-          // Update the topic status
-          topicToMove.topic_status = "marked";
-          
-          // Remove from assigned and add to marked
-          state.assignedTopics = state.assignedTopics.filter(topic => topic.topic_id !== topicId);
-          state.markedTopics.push(topicToMove);
-          
-          console.log("Updated assigned topics:", state.assignedTopics);
-          console.log("Updated marked topics:", state.markedTopics);
-        }
-    })
+        // Update the topic status in the single array
+        state.refresh = !state.refresh; // Toggle refresh to trigger UI updates
+  
+      })
       .addCase(markTopicAsDone.rejected, (state, action) => {
-        // If marking as done failed, revert the optimistic update
-        const topicId = action.meta.arg.topicId;
-        state.markedTopics = state.markedTopics.filter(topic => topic.topic_id !== topicId);
-        state.assignedTopics.push(state.markedTopics.find(topic => topic.topic_id === topicId)!);
+        // If marking failed, you might want to handle error state here
         console.error("Failed to mark topic as done:", action.payload);
       });
   },
 });
+
+// Selector functions to filter topics by status - with null checks added
+// export const selectAssignedTopics = (state: { menteeRoadmap: State }) => 
+//   state.menteeRoadmap.roadmapTopics ? 
+//     state.menteeRoadmap.roadmapTopics.filter(topic => topic.topic_status === "assigned") : 
+//     [];
+
+// export const selectMarkedTopics = (state: { menteeRoadmap: State }) => 
+//   state.menteeRoadmap.roadmapTopics ? 
+//     state.menteeRoadmap.roadmapTopics.filter(topic => topic.topic_status === "marked") : 
+//     [];
+
+// export const selectCompletedTopics = (state: { menteeRoadmap: State }) => 
+//   state.menteeRoadmap.roadmapTopics ? 
+//     state.menteeRoadmap.roadmapTopics.filter(topic => topic.topic_status === "completed") : 
+//     [];
+
+// export const selectReassignedTopics = (state: { menteeRoadmap: State }) => 
+//   state.menteeRoadmap.roadmapTopics ? 
+//     state.menteeRoadmap.roadmapTopics.filter(topic => topic.topic_status === "reassigned") : 
+//     [];
 
 export default sliceRoadmapTopics.reducer;

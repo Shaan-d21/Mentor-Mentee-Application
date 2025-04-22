@@ -1,62 +1,62 @@
-import axios from "axios";
+import axios from 'axios';
 
-const baseURL = "http://181.214.44.15:8080"; // FastAPI backend URL
-
-const axiosConfig = {
-  headers: {
-    "Content-Type": "application/json",
-  },
-  Accept: "application/json",
-  withCredentials: true,
-  timeout: 30000, // 30 seconds global timeout
-};
+const baseURL = import.meta.env.VITE_API_URL;
 
 const api = axios.create({
   baseURL,
-  ...axiosConfig,
+  headers: {
+    'Content-Type': 'application/json',
+    'Accept': 'application/json'
+  },
+  withCredentials: true,
+  timeout: 30000
 });
 
-// Add request interceptor for authentication and debugging
+// Request interceptor
 api.interceptors.request.use(
   (config) => {
-    // Add authentication token to all requests
-    const token = localStorage.getItem("accessToken");
+    const token = localStorage.getItem('accessToken');
     if (token) {
-      config.headers.Token = `Bearer ${token}`;
+      config.headers['Token'] = token;
     }
-    console.log('Making request to:', config.url);
     return config;
   },
   (error) => {
-    console.error('Request error:', error);
     return Promise.reject(error);
   }
 );
 
-// Add response interceptor for better error handling
+// Response interceptor
 api.interceptors.response.use(
-  (response) => {
-    console.log('Response received:', response.status);
-    return response;
-  },
+  (response) => response,
   (error) => {
-    console.error("API Error:", error.message);
-    if (error.code === 'ECONNABORTED') {
-      console.error('Request timed out');
-    }
     if (error.response) {
-      console.error("Response data:", error.response.data);
-      console.error("Response status:", error.response.status);
-      
-      // Handle 401 Unauthorized errors
-      if (error.response.status === 401) {
-        localStorage.removeItem("accessToken");
-        localStorage.removeItem("userInfo");
-        window.location.href = "/auth/login";
+      switch (error.response.status) {
+        case 401:
+          // Handle unauthorized access
+          localStorage.removeItem('accessToken');
+          window.location.href = '/auth/login';
+          break;
+        case 403:
+          // Handle forbidden access
+          console.error('Forbidden access');
+          break;
+        case 404:
+          // Handle not found
+          console.error('Resource not found');
+          break;
+        case 405:
+          // Handle method not allowed
+          console.error('Method not allowed');
+          break;
+        case 500:
+          // Handle server error
+          console.error('Server error');
+          break;
       }
     }
     return Promise.reject(error);
   }
 );
 
-export default api;
+export default api; 

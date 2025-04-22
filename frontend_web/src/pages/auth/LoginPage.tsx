@@ -13,6 +13,7 @@ const LoginPage: React.FC = () => {
   const [showPassword, setShowPassword] = useState<boolean>(false);
   const [passwordError, setPasswordError] = useState<string>("");
   const [emailError, setEmailError] = useState<string>("");
+  const [error, setError] = useState<string>("");
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -31,40 +32,55 @@ const LoginPage: React.FC = () => {
       formData.append('password', password);
 
       const response = await axios.post(
-        `${import.meta.env.VITE_API_URL || 'https://mm-be.shaandewang.publicvm.com'}/authentication/login`,
+        `${import.meta.env.VITE_API_URL}/authentication/login`,
         formData,
         {
           headers: {
-            'Content-Type': 'application/x-www-form-urlencoded'
+            'Content-Type': 'application/x-www-form-urlencoded',
+            'Accept': 'application/json'
           }
         }
       );
       
-      console.log('Login response:', response.data);
-      const { access_token, role, user_name, profile_status } = response.data;
-      console.log('Profile completion status:', profile_status);
-      
-      localStorage.setItem('accessToken', access_token);
-      localStorage.setItem('role', role);
-      localStorage.setItem('user_name', user_name);
-      localStorage.setItem('profile_status', profile_status ? 'complete' : 'incomplete');
-      localStorage.setItem('email', email.trim().toLowerCase());
-      localStorage.setItem('name', user_name);
-
-      console.log('Stored profile status:', localStorage.getItem('profile_status'));
-      
-      showToast('Login successful', 'success');
-      
-      if (profile_status) {
-        console.log('Profile is complete, navigating to dashboard');
-        navigate(`/${role}/dashboard`);
+      if (response.data && response.data.access_token) {
+        localStorage.setItem('accessToken', response.data.access_token);
+        localStorage.setItem('role', response.data.role);
+        localStorage.setItem('user_name', response.data.user_name);
+        localStorage.setItem('profile_status', response.data.profile_status ? 'complete' : 'incomplete');
+        localStorage.setItem('email', email.trim().toLowerCase());
+        localStorage.setItem('name', response.data.user_name);
+        
+        showToast('Login successful', 'success');
+        
+        if (response.data.profile_status) {
+          navigate(`/${response.data.role}/dashboard`);
+        } else {
+          navigate('/profile-completion');
+        }
       } else {
-        console.log('Profile is incomplete, navigating to profile completion');
-        navigate('/profile-completion');
+        setError('Invalid response from server');
       }
-    } catch (error) {
-      console.error('Login error:', error);
-      showToast('An error occurred. Please try again');
+    } catch (err: any) {
+      if (err.response) {
+        switch (err.response.status) {
+          case 401:
+            setError('Invalid email or password');
+            break;
+          case 404:
+            setError('User not found');
+            break;
+          case 405:
+            setError('API configuration issue. Please check the endpoint URL and method.');
+            console.error('Method not allowed. Check if the endpoint supports POST method.');
+            break;
+          default:
+            setError('An error occurred. Please try again.');
+        }
+      } else if (err.request) {
+        setError('Unable to connect to server. Please check your internet connection.');
+      } else {
+        setError('An unexpected error occurred.');
+      }
     } finally {
       setLoading(false);
     }
@@ -183,6 +199,12 @@ const LoginPage: React.FC = () => {
             </label>
           </div>
         </div> */}
+
+        {error && (
+          <div className="text-red-600 text-sm mt-2">
+            {error}
+          </div>
+        )}
 
         <div>
           <button

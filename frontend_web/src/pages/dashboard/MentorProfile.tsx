@@ -74,7 +74,7 @@ const MentorProfile: React.FC = () => {
 
       const authToken = accessToken.startsWith('Bearer') ? accessToken.split('Bearer ')[1] : accessToken;
 
-      const response = await axios.get(`${import.meta.env.VITE_API_URL || 'https://mm-be.shaandewang.publicvm.com'}/users/mentor/profile`, {
+      const response = await axios.get(`${import.meta.env.VITE_API_URL}/users/mentor/profile`, {
         headers: {
           'Token': authToken
         }
@@ -262,7 +262,7 @@ const MentorProfile: React.FC = () => {
 
       // Update profile
       const profileResponse = await axios.put(
-        `${import.meta.env.VITE_API_URL || 'https://mm-be.shaandewang.publicvm.com'}/mentor/mentor/profile_creation`,
+        `${import.meta.env.VITE_API_URL}/users/mentor/profile_creation`,
         {
           name: tempProfile.name,
           contact: tempProfile.contact,
@@ -282,7 +282,7 @@ const MentorProfile: React.FC = () => {
         // Update skills
         const skillsToKeep = tempProfile.skills.filter(skill => skill.name);
         const skillsResponse = await axios.post(
-          `${import.meta.env.VITE_API_URL || 'https://mm-be.shaandewang.publicvm.com'}/users/mentor/skills`,
+          `${import.meta.env.VITE_API_URL}/users/mentor/skills`,
           {
             skills: skillsToKeep.map(skill => ({
               skill_name: skill.name,
@@ -297,7 +297,7 @@ const MentorProfile: React.FC = () => {
         if (skillsResponse.status === 200) {
           // Fetch updated profile
           const updatedProfileResponse = await axios.get(
-            `${import.meta.env.VITE_API_URL || 'https://mm-be.shaandewang.publicvm.com'}/users/mentor/profile`,
+            `${import.meta.env.VITE_API_URL}/users/mentor/profile`,
             {
               headers: { Token: accessToken }
             }
@@ -390,7 +390,7 @@ const MentorProfile: React.FC = () => {
         {!editMode && (
           <button
             onClick={() => setEditMode(true)}
-            className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 flex items-center"
+            className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 flex items-center cursor-pointer"
           >
             <Edit2 size={16} className="mr-2" /> Edit Profile
           </button>
@@ -648,7 +648,7 @@ const MentorProfile: React.FC = () => {
                 {getAvailableSkills().length > 0 && (
                   <button
                     onClick={addSkill}
-                    className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 cursor-pointer"
                   >
                     Add Skill
                   </button>
@@ -663,14 +663,14 @@ const MentorProfile: React.FC = () => {
             <div className="flex justify-end space-x-3 mt-8">
               <button
                 onClick={cancelEdit}
-                className="px-4 py-2 border border-gray-300 rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-gray-500"
+                className="px-4 py-2 border border-gray-300 rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-gray-500 cursor-pointer"
               >
                 Cancel
               </button>
               <button
                 onClick={saveChanges}
                 disabled={saving}
-                className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 flex items-center disabled:opacity-50"
+                className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 flex items-center disabled:opacity-50 cursor-pointer"
               >
                 {saving ? (
                   <>

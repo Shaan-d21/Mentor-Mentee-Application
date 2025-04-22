@@ -7,7 +7,7 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 const queryClient = new QueryClient();
 
 // Add console log to verify environment variable
-console.log('API URL:', import.meta.env.VITE_API_URL || 'https://mm-be.shaandewang.publicvm.com');
+console.log('API URL:', import.meta.env.VITE_API_URL);
 
 function App() {
   const location = useLocation();

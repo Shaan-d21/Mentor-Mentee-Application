@@ -13,7 +13,7 @@ import {
 } from "react-native";
 import { useDispatch, useSelector } from "react-redux";
 import { AppDispatch, RootState } from "../../redux/store";
-import { MenteeProfile } from "../../types/MenteeProfileTypes";
+import { MenteeProfile, Skill } from "../../types/MenteeProfileTypes";
 import {
   getmenteeprofile,
   updateProfileData,
@@ -32,9 +32,12 @@ import {
   faEdit,
   faSave,
   faUserCircle,
+  faPlusCircle,
+  faTimes,
+  faCheckCircle,
 } from "@fortawesome/free-solid-svg-icons";
 import AppBar from "../../components/appbar_component";
-import { profileStyles } from "./profileStyle";
+import { profileStyles, mentorSpecificStyles } from "./profileStyle";
 
 const allSkillsList = [
   "Python",
@@ -86,7 +89,8 @@ const MenteeProfileScreen: FC<ScreenProps<"MenteeProfileScreen">> = ({
 
   // States for skills
   const [modalVisible, setModalVisible] = useState(false);
-  const [selectedSkills, setSelectedSkills] = useState<string[]>([]);
+  const [selectedSkills, setSelectedSkills] = useState<{ [key: string]: number }>({});
+  const [expandedSkills, setExpandedSkills] = useState<{ [key: string]: boolean }>({});
 
   const profile_status = useSelector((state: RootState) => state.login.profile_status);
 
@@ -119,6 +123,13 @@ const MenteeProfileScreen: FC<ScreenProps<"MenteeProfileScreen">> = ({
         setEmail(userType.mail);
         setMobile(userType.contact);
         setDesignation(userType.designation);
+        
+        // Convert skills to skillMap format
+        const skillMap: { [key: string]: number } = {};
+        userType.skillSet.forEach(skill => {
+          skillMap[skill.name] = skill.proficiency;
+        });
+        setSelectedSkills(skillMap);
       }
     } else if (currentStatus === "failed") {
       console.log("Failed to fetch user profile data");
@@ -215,43 +226,43 @@ const MenteeProfileScreen: FC<ScreenProps<"MenteeProfileScreen">> = ({
 
   // Open the skill selection modal
   const openSkillModal = () => {
-    setSelectedSkills([]);
+    // Save current skills to temporary state for editing
     setModalVisible(true);
   };
 
   // Close the skill selection modal
   const cancelSkillModal = () => {
-    setSelectedSkills([]);
     setModalVisible(false);
   };
 
   // Save selected skills
   const saveSkills = () => {
     setModalLoading(true);
-    if (selectedSkills.length > 0) {
-      dispatch(updateprofileskill(selectedSkills)).then((res) => {
-        setModalLoading(false);
-      });
-    }
-    setModalVisible(false);
-  };
-
-  // Toggle a skill in the selectedSkills list
-  const toggleSkill = (skill: string) => {
-    setSelectedSkills((prev) => {
-      if (prev.includes(skill)) {
-        return prev.filter((s) => s !== skill);
-      } else {
-        return [...prev, skill];
-      }
+    
+    // Convert the selectedSkills object to array format
+    const skillArray: Skill[] = Object.entries(selectedSkills).map(([name, proficiency]) => ({
+      name,
+      proficiency
+    }));
+    
+    dispatch(updateprofileskill(skillArray)).then(() => {
+      setModalLoading(false);
+      setModalVisible(false);
     });
   };
 
-  // Filter out skills that are already in user's skillSet
-  const getAvailableSkills = () => {
-    if (!userType || !userType.skillSet) return allSkillsList;
-    const userSkills = userType.skillSet;
-    return allSkillsList.filter((skill) => !userSkills.includes(skill));
+  // Toggle skill selection with proficiency level
+  const handleSkillLevel = (skillName: string, level: number) => {
+    setSelectedSkills(prev => ({
+      ...prev,
+      [skillName]: level
+    }));
+    
+    // Collapse the expanded skill
+    setExpandedSkills(prev => ({
+      ...prev,
+      [skillName]: false
+    }));
   };
 
   return currentStatus === "loading" ? (
@@ -342,7 +353,8 @@ const MenteeProfileScreen: FC<ScreenProps<"MenteeProfileScreen">> = ({
           )}
         </View>
       </View>
-
+      
+      {/* Display skills with proficiency */}
       {!!userType?.skillSet?.length && (
         <View style={profileStyles.domainsContainer}>
           <View style={profileStyles.sectionHeaderRow}>
@@ -350,23 +362,31 @@ const MenteeProfileScreen: FC<ScreenProps<"MenteeProfileScreen">> = ({
             <Text style={profileStyles.domainsTitle}>Skills</Text>
           </View>
           <View style={profileStyles.domainsList}>
-            {[...new Set(userType.skillSet)].map((skill: any, index: number) => (
+            {userType.skillSet.map((skill: Skill, index: number) => (
               <View key={index} style={profileStyles.skillItem}>
-                <Text style={profileStyles.skillText}>{skill}</Text>
+                <Text style={profileStyles.skillText}>{skill.name}</Text>
+                <View style={mentorSpecificStyles.skillLevel}>
+                  <Text style={mentorSpecificStyles.levelText}>
+                    Level {skill.proficiency}
+                  </Text>
+                </View>
               </View>
             ))}
           </View>
         </View>
       )}
-
-      {/* Button to open modal for selecting new skills */}
+      
+      {/* Button to add/edit skills */}
       {!isEditing && (
-        <TouchableOpacity style={profileStyles.button} onPress={openSkillModal}>
-          <FontAwesomeIcon icon={faCode} size={16} color="#fff" style={profileStyles.buttonIcon} />
-          <Text style={profileStyles.buttonText}>Add New Skill</Text>
+        <TouchableOpacity 
+          style={[profileStyles.button, {flexDirection: 'row', alignItems: 'center'}]} 
+          onPress={openSkillModal}>
+          <FontAwesomeIcon icon={faPlusCircle} size={16} color="#fff" style={{marginRight: 8}} />
+          <Text style={profileStyles.buttonText}>Add / Edit Skills</Text>
         </TouchableOpacity>
       )}
 
+      {/* Button to update profile or save changes */}
       {!isEditing ? (
         <TouchableOpacity style={profileStyles.button} onPress={handleEditToggle}>
           <FontAwesomeIcon icon={faEdit} size={16} color="#fff" style={profileStyles.buttonIcon} />
@@ -379,45 +399,103 @@ const MenteeProfileScreen: FC<ScreenProps<"MenteeProfileScreen">> = ({
         </TouchableOpacity>
       )}
 
-      {/* Modal for skill selection */}
-      <Modal animationType="slide" transparent visible={modalVisible}>
-        <View style={styles.modalOverlay}>
-          <View style={styles.modalContainer}>
-            <Text style={styles.modalTitle}>Select Skills</Text>
-            <ScrollView style={styles.modalScroll}>
-              {getAvailableSkills().map((skill, idx) => {
-                const isSelected = selectedSkills.includes(skill);
+      {/* Modal for skill selection with proficiency levels - match mentor UI */}
+      <Modal
+        animationType="fade"
+        transparent={true}
+        visible={modalVisible}
+        onRequestClose={cancelSkillModal}>
+        <View style={mentorSpecificStyles.modalBackground}>
+          <View style={mentorSpecificStyles.modalContainer}>
+            <Text style={mentorSpecificStyles.modalTitle}>
+              Add / Edit Skills
+            </Text>
+
+            <ScrollView style={{ maxHeight: 400, width: '100%' }}>
+              {allSkillsList.map((skillName: string) => {
+                const currentLevel = selectedSkills[skillName] || 0;
+                const isExpanded = expandedSkills[skillName] || false;
+                
                 return (
-                  <TouchableOpacity
-                    key={idx}
-                    style={styles.skillOption}
-                    onPress={() => toggleSkill(skill)}
-                  >
-                    <View style={styles.skillCheckbox}>
-                      <View
-                        style={[
-                          styles.checkbox,
-                          isSelected && styles.checkboxSelected,
-                        ]}
-                      />
-                    </View>
-                    <Text style={styles.skillOptionText}>{skill}</Text>
-                  </TouchableOpacity>
+                  <View key={skillName} style={mentorSpecificStyles.expandableSkillItem}>
+                    <TouchableOpacity
+                      style={mentorSpecificStyles.expandableSkillHeader}
+                      onPress={() => {
+                        if (!isExpanded) {
+                          setExpandedSkills(prev => ({ ...prev, [skillName]: true }));
+                        }
+                      }}
+                      disabled={isExpanded}
+                    >
+                      <Text style={mentorSpecificStyles.skillLabel}>{skillName}</Text>
+                      {currentLevel > 0 && (
+                        <View style={mentorSpecificStyles.selectedLevelBadge}>
+                          <Text style={mentorSpecificStyles.selectedLevelText}>
+                            Level {currentLevel}
+                          </Text>
+                        </View>
+                      )}
+                    </TouchableOpacity>
+                    
+                    {isExpanded && (
+                      <View style={mentorSpecificStyles.levelButtonRow}>
+                        {[1, 2, 3].map((level: number) => (
+                          <TouchableOpacity
+                            key={level}
+                            style={[
+                              mentorSpecificStyles.levelButton,
+                              currentLevel === level && mentorSpecificStyles.levelButtonSelected,
+                            ]}
+                            onPress={() => {
+                              handleSkillLevel(skillName, level);
+                            }}
+                          >
+                            <Text style={[
+                              mentorSpecificStyles.levelButtonText,
+                              currentLevel === level && mentorSpecificStyles.levelButtonTextSelected,
+                            ]}>
+                              Level {level}
+                            </Text>
+                          </TouchableOpacity>
+                        ))}
+                      </View>
+                    )}
+                  </View>
                 );
               })}
             </ScrollView>
-            <View style={styles.modalButtonRow}>
-             {
-              !modalLoading?( <TouchableOpacity style={styles.modalButtonCancel} onPress={cancelSkillModal}>
-                <Text style={styles.modalButtonText}>Cancel</Text>
-              </TouchableOpacity>):(<></>)
-             }
-            {!modalLoading  ?(<TouchableOpacity style={styles.modalButtonSave} onPress={saveSkills}>
-                <Text style={styles.modalButtonText}>Save</Text>
-              </TouchableOpacity>):( <ActivityIndicator
-                                color={'#fff'}
-                                />
-              )}
+            <View style={{flexDirection: 'row', marginTop: 20}}>
+              {!modalLoading ? (
+                <TouchableOpacity
+                  style={[profileStyles.button, {marginRight: 10, backgroundColor: '#7f8c8d'}]}
+                  onPress={cancelSkillModal}>
+                  <FontAwesomeIcon
+                    icon={faTimes}
+                    size={16}
+                    color="#fff"
+                    style={profileStyles.buttonIcon}
+                  />
+                  <Text style={profileStyles.buttonText}>Cancel</Text>
+                </TouchableOpacity>
+              ) : null}
+
+              <TouchableOpacity
+                style={[profileStyles.button, {marginLeft: 10}]}
+                onPress={saveSkills}>
+                {modalLoading ? (
+                  <ActivityIndicator color="#fff" />
+                ) : (
+                  <>
+                    <FontAwesomeIcon
+                      icon={faCheckCircle}
+                      size={16}
+                      color="#fff"
+                      style={profileStyles.buttonIcon}
+                    />
+                    <Text style={profileStyles.buttonText}>Save</Text>
+                  </>
+                )}
+              </TouchableOpacity>
             </View>
           </View>
         </View>
@@ -428,89 +506,3 @@ const MenteeProfileScreen: FC<ScreenProps<"MenteeProfileScreen">> = ({
 };
 
 export default MenteeProfileScreen;
-
-const styles = StyleSheet.create({
-  addSkillButton:{
-    backgroundColor: "#3498db",
-    padding: 10,
-    borderRadius: 8,
-    marginTop: 10,
-    flexDirection: "row",
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  modalOverlay: {
-    flex: 1,
-    backgroundColor: "rgba(0,0,0,0.5)",
-    justifyContent: "center",
-    padding: 20,
-  },
-  modalContainer: {
-    backgroundColor: "#fff",
-    borderRadius: 8,
-    padding: 16,
-    maxHeight: "80%",
-  },
-  modalTitle: {
-    fontSize: 18,
-    fontWeight: "600",
-    marginBottom: 10,
-    textAlign: "center",
-    color: "#3498db",
-  },
-  modalScroll: {
-    marginVertical: 10,
-  },
-  skillOption: {
-    flexDirection: "row",
-    alignItems: "center",
-    paddingVertical: 8,
-  },
-  skillCheckbox: {
-    width: 24,
-    height: 24,
-    marginRight: 10,
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  checkbox: {
-    width: 20,
-    height: 20,
-    borderWidth: 2,
-    borderColor: "#cccccc",
-    borderRadius: 3,
-  },
-  checkboxSelected: {
-    backgroundColor: "#3498db",
-    borderColor: "#3498db",
-  },
-  skillOptionText: {
-    fontSize: 16,
-    color: "#333",
-  },
-  modalButtonRow: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    marginTop: 14,
-  },
-  modalButtonCancel: {
-    backgroundColor: "#ccc",
-    padding: 10,
-    borderRadius: 8,
-    flex: 1,
-    marginRight: 5,
-    alignItems: "center",
-  },
-  modalButtonSave: {
-    backgroundColor: "#3498db",
-    padding: 10,
-    borderRadius: 8,
-    flex: 1,
-    marginLeft: 5,
-    alignItems: "center",
-  },
-  modalButtonText: {
-    color: "#fff",
-    fontSize: 16,
-  },
-});

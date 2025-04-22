@@ -1,17 +1,16 @@
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
+import axios from 'axios';
+import { ChevronRightIcon, BookOpenIcon, DocumentTextIcon, CheckIcon, ArrowPathIcon } from '@heroicons/react/24/outline';
 import toast from 'react-hot-toast';
-import { ChevronRightIcon, BookOpenIcon, DocumentTextIcon, CheckCircleIcon, CheckIcon, ArrowPathIcon } from '@heroicons/react/24/outline';
 
 interface Mentor {
   mentor_id: number;
   mentor_name: string;
-  email: string;
-  designation: string;
   domain: string;
   domain_id: number;
-  experience: string;
+  has_roadmap: boolean;
+  roadmap_id: number | null;
 }
 
 interface Topic {
@@ -36,7 +35,6 @@ const MenteeRoadmap: React.FC = () => {
   const [mentors, setMentors] = useState<Mentor[]>([]);
   const [selectedRoadmap, setSelectedRoadmap] = useState<RoadmapResponse | null>(null);
   const [loading, setLoading] = useState(true);
-  const [loadingTopics, setLoadingTopics] = useState(false);
   const [showConfirmation, setShowConfirmation] = useState(false);
   const [selectedTopic, setSelectedTopic] = useState<Topic | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -57,7 +55,7 @@ const MenteeRoadmap: React.FC = () => {
       }
       
       const response = await axios.get(
-        `${import.meta.env.VITE_API_URL || 'https://mm-be.shaandewang.publicvm.com'}/mentee/mentor-roadmap-details`,
+        `${import.meta.env.VITE_API_URL}/mentee/mentor-roadmap-details`,
         {
           headers: {
             'Token': accessToken,
@@ -71,13 +69,18 @@ const MenteeRoadmap: React.FC = () => {
         const mappedMentors = response.data.object.map((mentor: any) => ({
           mentor_id: mentor.mentor_id,
           mentor_name: mentor.mentor_name,
-          email: mentor.email,
-          designation: mentor.designation,
-          experience: mentor.experience,
           domain: mentor.domain_name,
-          domain_id: mentor.domain_id
+          domain_id: mentor.domain_id,
+          has_roadmap: mentor.roadmap_id !== null,
+          roadmap_id: mentor.roadmap_id
         }));
         setMentors(mappedMentors);
+
+        // If there's only one mentor with a roadmap, automatically select it
+        const mentorsWithRoadmap = mappedMentors.filter((mentor: Mentor) => mentor.has_roadmap);
+        if (mentorsWithRoadmap.length === 1) {
+          fetchRoadmapTopics(mentorsWithRoadmap[0]);
+        }
       } else {
         setError('No mentor data found in response');
       }
@@ -97,7 +100,6 @@ const MenteeRoadmap: React.FC = () => {
 
   const fetchRoadmapTopics = async (mentor: Mentor) => {
     try {
-      setLoadingTopics(true);
       const accessToken = localStorage.getItem('accessToken');
       
       if (!accessToken) {
@@ -105,8 +107,21 @@ const MenteeRoadmap: React.FC = () => {
         return;
       }
 
+      // First check if the mentor has a roadmap
+      if (!mentor.has_roadmap) {
+        toast.error('No roadmap has been assigned by this mentor yet');
+        return;
+      }
+
+      // Get the roadmap_id from the mentor data
+      const mentorData = mentors.find(m => m.mentor_id === mentor.mentor_id);
+      if (!mentorData) {
+        toast.error('Mentor data not found');
+        return;
+      }
+
       const response = await axios.get(
-        `${import.meta.env.VITE_API_URL || 'https://mm-be.shaandewang.publicvm.com'}/mentee/roadmap-topics/${mentor.mentor_id}`,
+        `${import.meta.env.VITE_API_URL}/mentee/roadmap-topics/${mentorData.roadmap_id}`,
         {
           headers: {
             'Token': accessToken,
@@ -116,16 +131,33 @@ const MenteeRoadmap: React.FC = () => {
         }
       );
 
-      if (response.data.status_code === 200) {
+      console.log('Roadmap response:', response.data);
+
+      if (response.data && response.data.status_code === 200) {
         setSelectedRoadmap(response.data);
+        toast.success('Roadmap loaded successfully');
       } else {
-        toast.error('Failed to fetch roadmap topics');
+        toast.error('No roadmap has been assigned yet');
       }
     } catch (error) {
       console.error('Error fetching roadmap topics:', error);
-      toast.error('Failed to fetch roadmap topics');
-    } finally {
-      setLoadingTopics(false);
+      if (axios.isAxiosError(error)) {
+        if (error.response?.status === 404) {
+          toast.error('No roadmap found for this mentor');
+          // Update the mentor's has_roadmap status
+          setMentors(prevMentors => 
+            prevMentors.map(m => 
+              m.mentor_id === mentor.mentor_id 
+                ? { ...m, has_roadmap: false }
+                : m
+            )
+          );
+        } else {
+          toast.error(error.response?.data?.message || 'No roadmap has been assigned yet');
+        }
+      } else {
+        toast.error('No roadmap has been assigned yet');
+      }
     }
   };
 
@@ -144,8 +176,8 @@ const MenteeRoadmap: React.FC = () => {
         return;
       }
 
-      const response = await axios.post(
-        `${import.meta.env.VITE_API_URL || 'https://mm-be.shaandewang.publicvm.com'}/progress/mark_done`,
+      const response = await axios.put(
+        `${import.meta.env.VITE_API_URL}/progress/mark_done`,
         { topic_id: selectedTopic.topic_id },
         {
           headers: {
@@ -165,7 +197,7 @@ const MenteeRoadmap: React.FC = () => {
           );
           setSelectedRoadmap({ ...selectedRoadmap, topic: updatedTopics });
         }
-        toast.success('Topic marked as complete');
+        toast.success('Topic is marked as complete');
       } else {
         toast.error('Failed to mark topic as complete');
       }
@@ -204,51 +236,110 @@ const MenteeRoadmap: React.FC = () => {
           <div className="bg-white rounded-lg shadow-md p-6 mb-8">
             <button
               onClick={() => setSelectedRoadmap(null)}
-              className="mb-4 text-blue-600 hover:text-blue-800 flex items-center"
+              className="flex items-center text-gray-600 hover:text-gray-800 mb-6 transition-colors duration-200 cursor-pointer"
             >
-              <ChevronRightIcon className="h-5 w-5 transform rotate-180 mr-1" />
-              Back to Roadmaps
+              <ChevronRightIcon className="h-5 w-5 transform rotate-180 mr-2" />
+              Back
             </button>
 
             <div className="mb-8">
               <h2 className="text-2xl font-semibold text-gray-900 mb-4">Roadmap Overview</h2>
-              <div className="bg-blue-50 p-4 rounded-lg">
-                <p className="text-gray-700">{selectedRoadmap.roadmap_explanation}</p>
+              <div className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl p-6 shadow-sm border border-blue-100">
+                <p className="text-gray-700 leading-relaxed">{selectedRoadmap.roadmap_explanation}</p>
               </div>
             </div>
 
+            {/* Progress Overview Section */}
+            {selectedRoadmap?.topic && selectedRoadmap.topic.length > 0 && (
+              <div className="mb-8 bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+                <h2 className="text-xl font-semibold text-gray-800 mb-4">Progress Overview</h2>
+                
+                {/* Progress Bar */}
+                <div className="mb-6">
+                  <div className="flex justify-between mb-2">
+                    <span className="text-sm font-medium text-gray-700">Overall Progress</span>
+                    <span className="text-sm font-medium text-gray-700">
+                      {Math.round((selectedRoadmap.topic.filter(t => t.topic_status === 'complete' || t.topic_status === 'completed').length / selectedRoadmap.topic.length) * 100)}%
+                    </span>
+                  </div>
+                  <div className="w-full bg-gray-200 rounded-full h-2.5">
+                    <div 
+                      className="bg-blue-600 h-2.5 rounded-full transition-all duration-500"
+                      style={{ 
+                        width: `${(selectedRoadmap.topic.filter(t => t.topic_status === 'complete' || t.topic_status === 'completed').length / selectedRoadmap.topic.length) * 100}%` 
+                      }}
+                    ></div>
+                  </div>
+                </div>
+
+                {/* Status Distribution */}
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                  <div className="bg-purple-50 p-4 rounded-lg">
+                    <div className="text-2xl font-bold text-purple-700">{selectedRoadmap.topic.length}</div>
+                    <div className="text-sm text-purple-600">Total Topics</div>
+                  </div>
+                  <div className="bg-green-50 p-4 rounded-lg">
+                    <div className="text-2xl font-bold text-green-700">
+                      {selectedRoadmap.topic.filter(t => t.topic_status === 'complete' || t.topic_status === 'completed').length}
+                    </div>
+                    <div className="text-sm text-green-600">Completed</div>
+                  </div>
+                  <div className="bg-yellow-50 p-4 rounded-lg">
+                    <div className="text-2xl font-bold text-yellow-700">
+                      {selectedRoadmap.topic.filter(t => t.topic_status === 'marked').length}
+                    </div>
+                    <div className="text-sm text-yellow-600">Marked</div>
+                  </div>
+                  <div className="bg-blue-50 p-4 rounded-lg">
+                    <div className="text-2xl font-bold text-blue-700">
+                      {selectedRoadmap.topic.filter(t => t.topic_status === 'in_progress' || t.topic_status === 'assigned').length}
+                    </div>
+                    <div className="text-sm text-blue-600">In Progress</div>
+                  </div>
+                </div>
+              </div>
+            )}
+
             <div className="space-y-6">
-              {selectedRoadmap.topic.map((topic) => (
-                <div key={topic.topic_id} className="bg-white border border-gray-200 rounded-lg p-6 shadow-sm">
+              {selectedRoadmap.topic?.map((topic) => (
+                <div 
+                  key={topic.topic_id} 
+                  className="group bg-white rounded-xl shadow-sm border border-gray-100 p-6 transition-all duration-300 hover:shadow-lg hover:border-blue-200 hover:scale-[1.02] hover:-translate-y-1"
+                >
                   <div className="flex items-start justify-between">
                     <div className="flex-1">
                       <div className="flex items-start gap-4">
                         <button
                           onClick={() => handleMarkComplete(topic)}
-                          className={`flex-shrink-0 w-8 h-8 rounded-full border-2 flex items-center justify-center transition-colors duration-200 ${
+                          className={`flex-shrink-0 w-8 h-8 rounded-full border-2 flex items-center justify-center transition-colors duration-200 cursor-pointer ${
                             topic.topic_status === 'marked'
+                              ? 'bg-yellow-500 border-yellow-500 text-white'
+                              : topic.topic_status === 'complete' || topic.topic_status === 'completed'
                               ? 'bg-green-500 border-green-500 text-white'
                               : 'border-gray-300 hover:border-blue-500'
                           }`}
-                          disabled={topic.topic_status === 'marked'}
+                          disabled={topic.topic_status === 'marked' || topic.topic_status === 'complete' || topic.topic_status === 'completed'}
                         >
                           {topic.topic_status === 'marked' && (
                             <CheckIcon className="h-5 w-5" />
                           )}
+                          {topic.topic_status === 'complete' || topic.topic_status === 'completed' && (
+                            <CheckIcon className="h-5 w-5" />
+                          )}
                         </button>
                         <div>
-                          <h3 className="text-xl font-semibold text-gray-900 mb-2">{topic.name}</h3>
-                          <p className="text-gray-600 mb-4">{topic.description}</p>
+                          <h3 className="text-xl font-semibold text-gray-900 mb-2 group-hover:text-blue-700 transition-colors duration-300">{topic.name}</h3>
+                          <p className="text-gray-600 mb-4 group-hover:text-gray-700 transition-colors duration-300">{topic.description}</p>
                         </div>
                       </div>
-                      
+
                       <div className="mb-4 ml-12">
-                        <h4 className="text-sm font-medium text-gray-700 mb-2">Subtopics</h4>
+                        <h4 className="text-sm font-medium text-gray-700 mb-2 group-hover:text-blue-700 transition-colors duration-300">Subtopics</h4>
                         <div className="flex flex-wrap gap-2">
-                          {topic.subtopics.map((subtopic, index) => (
+                          {topic.subtopics?.map((subtopic, _) => (
                             <span
-                              key={index}
-                              className="bg-gray-100 text-gray-800 px-3 py-1 rounded-full text-sm"
+                              key={_}
+                              className="px-3 py-1 bg-gray-100 text-gray-700 rounded-full text-sm hover:bg-gray-200 hover:shadow-sm transition-all duration-200"
                             >
                               {subtopic}
                             </span>
@@ -256,34 +347,13 @@ const MenteeRoadmap: React.FC = () => {
                         </div>
                       </div>
 
-                      <div className="bg-yellow-50 p-3 rounded-lg ml-12">
-                        <p className="text-sm text-gray-700">
-                          <span className="font-medium">Importance:</span> {topic.importance}
-                        </p>
+                      <div className="ml-12">
+                        <div className="bg-indigo-50 p-3 rounded-lg group-hover:bg-indigo-100 transition-colors duration-300">
+                          <p className="text-sm text-gray-700 group-hover:text-gray-800 transition-colors duration-300">
+                            <span className="font-medium text-indigo-700 group-hover:text-indigo-800 transition-colors duration-300">Importance:</span> {topic.importance}
+                          </p>
+                        </div>
                       </div>
-                    </div>
-                    <div className="ml-4">
-                      <span className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium ${
-                        topic.topic_status === 'marked' 
-                          ? 'bg-green-100 text-green-800' 
-                          : topic.topic_status === 'assigned'
-                          ? 'bg-blue-100 text-blue-800'
-                          : 'bg-gray-100 text-gray-800'
-                      }`}>
-                        {topic.topic_status === 'marked' ? (
-                          <>
-                            <CheckCircleIcon className="h-4 w-4 mr-1" />
-                            Completed
-                          </>
-                        ) : topic.topic_status === 'assigned' ? (
-                          <>
-                            <CheckCircleIcon className="h-4 w-4 mr-1" />
-                            Assigned
-                          </>
-                        ) : (
-                          'Pending'
-                        )}
-                      </span>
                     </div>
                   </div>
                 </div>
@@ -295,7 +365,9 @@ const MenteeRoadmap: React.FC = () => {
             {mentors.map((mentor) => (
               <div
                 key={mentor.mentor_id}
-                className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow duration-300"
+                className={`bg-white rounded-lg shadow-md overflow-hidden transition-shadow duration-300 ${
+                  mentor.has_roadmap ? 'hover:shadow-lg' : 'opacity-75'
+                }`}
               >
                 <div className="p-6">
                   <div className="flex items-center mb-4">
@@ -307,18 +379,20 @@ const MenteeRoadmap: React.FC = () => {
                       Mentor: <span className="font-medium">{mentor.mentor_name}</span>
                     </p>
                     <p className="text-gray-600">
-                      Designation: <span className="font-medium">{mentor.designation}</span>
-                    </p>
-                    <p className="text-gray-600">
-                      Experience: <span className="font-medium">{mentor.experience}</span>
+                      Domain: <span className="font-medium">{mentor.domain}</span>
                     </p>
                   </div>
                   <button
                     onClick={() => fetchRoadmapTopics(mentor)}
-                    className="w-full bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 transition-colors duration-200 flex items-center justify-center"
+                    className={`w-full py-2 px-4 rounded-md transition-colors duration-200 flex items-center justify-center cursor-pointer ${
+                      mentor.has_roadmap
+                        ? 'bg-blue-600 text-white hover:bg-blue-700'
+                        : 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                    }`}
+                    disabled={!mentor.has_roadmap}
                   >
                     <DocumentTextIcon className="h-5 w-5 mr-2" />
-                    View Roadmap
+                    {mentor.has_roadmap ? 'View Roadmap' : 'No Roadmap Assigned'}
                   </button>
                 </div>
               </div>
@@ -329,36 +403,26 @@ const MenteeRoadmap: React.FC = () => {
         {/* Confirmation Modal */}
         {showConfirmation && selectedTopic && (
           <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-            <div className="bg-white rounded-lg p-6 max-w-md w-full mx-4">
+            <div className="bg-white rounded-lg p-6 max-w-md w-full">
               <h3 className="text-lg font-semibold text-gray-900 mb-4">Mark Topic as Complete</h3>
               <p className="text-gray-600 mb-6">
                 Are you sure you want to mark "{selectedTopic.name}" as complete?
               </p>
-              <div className="flex justify-end gap-4">
+              <div className="flex justify-end space-x-4">
                 <button
-                  onClick={() => {
-                    setShowConfirmation(false);
-                    setSelectedTopic(null);
-                  }}
-                  className="px-4 py-2 text-gray-600 hover:text-gray-800"
+                  onClick={() => setShowConfirmation(false)}
+                  className="px-4 py-2 text-gray-600 hover:text-gray-800 cursor-pointer"
                 >
                   Cancel
                 </button>
                 <button
                   onClick={confirmMarkComplete}
-                  className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
+                  className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 cursor-pointer"
                 >
-                  Yes, Mark Complete
+                  Confirm
                 </button>
               </div>
             </div>
-          </div>
-        )}
-
-        {loadingTopics && (
-          <div className="fixed inset-0 bg-gray-50 bg-opacity-50 flex items-center justify-center">
-            <ArrowPathIcon className="h-8 w-8 animate-spin text-blue-600" />
-            <span className="ml-2 text-gray-600">Loading...</span>
           </div>
         )}
       </div>
