@@ -1,9 +1,9 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
-import { showToast } from '../../utils/toast';
 import AuthLayout from "./AuthLayout";
 import { EyeIcon, EyeSlashIcon } from "@heroicons/react/24/outline";
+import { toast } from 'react-hot-toast';
 
 const LoginPage: React.FC = () => {
   const navigate = useNavigate();
@@ -13,7 +13,6 @@ const LoginPage: React.FC = () => {
   const [showPassword, setShowPassword] = useState<boolean>(false);
   const [passwordError, setPasswordError] = useState<string>("");
   const [emailError, setEmailError] = useState<string>("");
-  const [error, setError] = useState<string>("");
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -21,7 +20,7 @@ const LoginPage: React.FC = () => {
 
     // Validate input
     if (!email || !password) {
-      showToast('Please fill in all fields');
+      toast.error('Please fill in all fields');
       setLoading(false);
       return;
     }
@@ -50,7 +49,7 @@ const LoginPage: React.FC = () => {
         localStorage.setItem('email', email.trim().toLowerCase());
         localStorage.setItem('name', response.data.user_name);
         
-        showToast('Login successful', 'success');
+        toast.success('Login successful');
         
         if (response.data.profile_status) {
           navigate(`/${response.data.role}/dashboard`);
@@ -58,28 +57,26 @@ const LoginPage: React.FC = () => {
           navigate('/profile-completion');
         }
       } else {
-        setError('Invalid response from server');
+        toast.error('Invalid credentials');
       }
     } catch (err: any) {
       if (err.response) {
         switch (err.response.status) {
           case 401:
-            setError('Invalid email or password');
-            break;
           case 404:
-            setError('User not found');
+            toast.error('Invalid credentials');
             break;
           case 405:
-            setError('API configuration issue. Please check the endpoint URL and method.');
             console.error('Method not allowed. Check if the endpoint supports POST method.');
+            toast.error('An error occurred. Please try again.');
             break;
           default:
-            setError('An error occurred. Please try again.');
+            toast.error('An error occurred. Please try again.');
         }
       } else if (err.request) {
-        setError('Unable to connect to server. Please check your internet connection.');
+        toast.error('Unable to connect to server. Please check your internet connection.');
       } else {
-        setError('An unexpected error occurred.');
+        toast.error('An unexpected error occurred.');
       }
     } finally {
       setLoading(false);
@@ -105,7 +102,6 @@ const LoginPage: React.FC = () => {
 
   const validatePassword = (password: string): string => {
     if (!password) return "Password is required";
-    if (password.length < 6) return "Password must be at least 6 characters";
     return "";
   };
 
@@ -123,14 +119,14 @@ const LoginPage: React.FC = () => {
 
   return (
     <AuthLayout>
-      <div className="mb-8 text-center">
+      <div className="mb-4 text-center">
         <h1 className="text-2xl font-bold text-gray-900">Login to your account</h1>
-        <p className="mt-2 text-sm text-gray-600">
+        <p className="mt-1 text-sm text-gray-600">
           Please enter your credentials to continue
         </p>
       </div>
       
-      <form onSubmit={handleSubmit} className="space-y-6">
+      <form onSubmit={handleSubmit} className="space-y-4">
         <div>
           <label htmlFor="email" className="block text-sm font-medium text-gray-700">
             Email
@@ -171,7 +167,7 @@ const LoginPage: React.FC = () => {
             />
             <button
               type="button"
-              className="absolute inset-y-0 right-0 pr-3 flex items-center"
+              className="absolute inset-y-0 right-0 pr-3 flex items-center cursor-pointer"
               onClick={() => setShowPassword(!showPassword)}
             >
               {showPassword ? (
@@ -186,32 +182,12 @@ const LoginPage: React.FC = () => {
           </div>
         </div>
 
-        {/* <div className="flex items-center justify-between">
-          <div className="flex items-center">
-            <input
-              id="remember-me"
-              name="remember-me"
-              type="checkbox"
-              className="h-4 w-4 text-blue-700 focus:ring-blue-700 border-gray-300 rounded"
-            />
-            <label htmlFor="remember-me" className="ml-2 block text-sm text-gray-900">
-              Remember me
-            </label>
-          </div>
-        </div> */}
-
-        {error && (
-          <div className="text-red-600 text-sm mt-2">
-            {error}
-          </div>
-        )}
-
         <div>
           <button
             type="submit"
             disabled={loading}
             className={`w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-700 hover:bg-blue-700-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-700 ${
-              loading ? "opacity-70 cursor-not-allowed" : ""
+              loading ? "opacity-70 cursor-not-allowed" : "cursor-pointer"
             }`}
           >
             {loading ? "Logging in..." : "Login"}
@@ -221,7 +197,7 @@ const LoginPage: React.FC = () => {
         <div className="text-center mt-4">
           <p className="text-sm text-gray-600">
             Don't have an account?{" "}
-            <a href="/auth/register" className="font-medium text-blue-700 hover:text-blue-700">
+            <a href="/auth/register" className="font-medium text-blue-700 hover:text-blue-700 cursor-pointer">
               Register here
             </a>
           </p>

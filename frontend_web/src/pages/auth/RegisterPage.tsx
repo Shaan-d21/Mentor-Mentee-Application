@@ -179,11 +179,11 @@ const RegisterPage: React.FC = () => {
   return (
     <AuthLayout>
       <form onSubmit={handleSubmit}>
-        <h2 className="text-2xl font-bold text-center text-gray-800 mb-6">
+        <h2 className="text-2xl font-bold text-center text-gray-800 mb-4">
           Create Account
         </h2>
         <select
-          className="w-full p-3 mb-4 border border-gray-300 rounded-lg bg-white focus:ring-2 focus:ring-blue-500"
+          className="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-blue-700 focus:border-blue-700 sm:text-sm cursor-pointer"
           onChange={(e) => setUserType(e.target.value)}
           value={userType}
           disabled={isSubmitting}
@@ -191,13 +191,13 @@ const RegisterPage: React.FC = () => {
           <option value="mentee">Mentee</option>
           <option value="mentor">Mentor</option>
         </select>
-        <div className="space-y-1">
+        <div className="space-y-1 mt-2">
           <input
             type="text"
             placeholder="Full Name"
-            className={`w-full p-3 border ${
-              nameError ? "border-red-500" : "border-gray-300"
-            } rounded-lg bg-white focus:ring-2 focus:ring-blue-500`}
+            className={`appearance-none block w-full px-3 py-2 border ${
+              nameError ? "border-red-300" : "border-gray-300"
+            } rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-blue-700 focus:border-blue-700 sm:text-sm`}
             value={name}
             onChange={handleNameChange}
             disabled={isSubmitting}
@@ -206,13 +206,13 @@ const RegisterPage: React.FC = () => {
           />
           {nameError && <p className="text-red-500 text-sm">{nameError}</p>}
         </div>
-        <div className="space-y-1 mt-4">
+        <div className="space-y-1 mt-2">
           <input
             type="email"
             placeholder="Email"
-            className={`w-full p-3 border ${
-              emailError ? "border-red-500" : "border-gray-300"
-            } rounded-lg bg-white focus:ring-2 focus:ring-blue-500`}
+            className={`appearance-none block w-full px-3 py-2 border ${
+              emailError ? "border-red-300" : "border-gray-300"
+            } rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-blue-700 focus:border-blue-700 sm:text-sm`}
             value={email}
             onChange={handleEmailChange}
             disabled={isSubmitting}
@@ -220,14 +220,14 @@ const RegisterPage: React.FC = () => {
           />
           {emailError && <p className="text-red-500 text-sm">{emailError}</p>}
         </div>
-        <div className="space-y-1 mt-4">
+        <div className="space-y-1 mt-2">
           <div className="relative">
             <input
               type={showPassword ? "text" : "password"}
               placeholder="Password"
-              className={`w-full p-3 border ${
-                passwordError ? "border-red-500" : "border-gray-300"
-              } rounded-lg bg-white focus:ring-2 focus:ring-blue-500`}
+              className={`appearance-none block w-full px-3 py-2 border ${
+                passwordError ? "border-red-300" : "border-gray-300"
+              } rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-blue-700 focus:border-blue-700 sm:text-sm pr-10`}
               value={password}
               onChange={handlePasswordChange}
               disabled={isSubmitting}
@@ -236,7 +236,7 @@ const RegisterPage: React.FC = () => {
             />
             <button
               type="button"
-              className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-600 hover:text-gray-800"
+              className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-600 hover:text-gray-800 cursor-pointer"
               onClick={() => setShowPassword(!showPassword)}
               aria-label={showPassword ? "Hide password" : "Show password"}
             >
@@ -251,18 +251,18 @@ const RegisterPage: React.FC = () => {
         </div>
         <button
           type="submit"
-          className={`w-full p-3 mt-6 text-white rounded-lg transition-colors duration-200 ${
+          className={`w-full p-2 mt-4 text-white rounded-lg transition-colors duration-200 ${
             isSubmitting || emailError || passwordError || nameError
               ? "bg-blue-400 cursor-not-allowed"
-              : "bg-blue-600 hover:bg-blue-700"
+              : "bg-blue-600 hover:bg-blue-700 cursor-pointer"
           }`}
           disabled={isSubmitting || !!emailError || !!passwordError || !!nameError}
         >
           {isSubmitting ? "Processing..." : `Register as ${userType}`}
         </button>
-        <p className="mt-4 text-center text-gray-600">
+        <p className="mt-2 text-center text-gray-600">
           Already have an account?{" "}
-          <a href="/auth/login" className="text-blue-500 hover:underline">
+          <a href="/auth/login" className="text-blue-500 hover:underline cursor-pointer">
             Log In
           </a>
         </p>

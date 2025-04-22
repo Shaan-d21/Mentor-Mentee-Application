@@ -8,7 +8,8 @@ interface Topic {
   topic_id: number;
   name: string;
   description: string;
-  subtopics: string[];
+  subtopics: string[] | null;
+  topic_duration_days: number | null;
   importance: string;
   topic_status: string;
 }
@@ -18,7 +19,7 @@ interface RoadmapResponse {
   message: string;
   roadmap_id: number;
   roadmap_explanation: string;
-  topic: Topic[];
+  topics: Topic[];
 }
 
 interface ApprovalModalProps {
@@ -181,6 +182,8 @@ const MenteeRoadmapView: React.FC = () => {
         return 'bg-gray-100 text-gray-800';
       case 'assigned':
         return 'bg-blue-100 text-blue-800';
+      case 'reassigned':
+        return 'bg-orange-100 text-orange-800';
       case 'complete':
         return 'bg-green-100 text-green-800';
       case 'completed':
@@ -200,6 +203,8 @@ const MenteeRoadmapView: React.FC = () => {
         return 'Not Started';
       case 'assigned':
         return 'Assigned';
+      case 'reassigned':
+        return 'Reassigned';
       case 'complete':
         return 'Completed';
       case 'completed':
@@ -243,7 +248,7 @@ const MenteeRoadmapView: React.FC = () => {
           if (!prev) return null;
           return {
             ...prev,
-            topic: prev.topic.map(t => 
+            topics: prev.topics.map(t => 
               t.topic_id === topic.topic_id 
                 ? { ...t, topic_status: 'complete' }
                 : t
@@ -295,7 +300,7 @@ const MenteeRoadmapView: React.FC = () => {
           if (!prev) return null;
           return {
             ...prev,
-            topic: prev.topic.map(t => 
+            topics: prev.topics.map(t => 
               t.topic_id === topic.topic_id 
                 ? { ...t, topic_status: 'assigned' }
                 : t
@@ -345,7 +350,7 @@ const MenteeRoadmapView: React.FC = () => {
       </div>
 
       {/* Progress Overview Section */}
-      {roadmap.topic && roadmap.topic.length > 0 && (
+      {roadmap.topics && roadmap.topics.length > 0 && (
         <div className="mb-8 bg-white rounded-xl shadow-sm border border-gray-100 p-6">
           <h2 className="text-xl font-semibold text-gray-800 mb-4">Progress Overview</h2>
           
@@ -354,14 +359,14 @@ const MenteeRoadmapView: React.FC = () => {
             <div className="flex justify-between mb-2">
               <span className="text-sm font-medium text-gray-700">Overall Progress</span>
               <span className="text-sm font-medium text-gray-700">
-                {Math.round((roadmap.topic.filter(t => t.topic_status === 'complete' || t.topic_status === 'completed').length / roadmap.topic.length) * 100)}%
+                {Math.round((roadmap.topics.filter(t => t.topic_status === 'complete' || t.topic_status === 'completed').length / roadmap.topics.length) * 100)}%
               </span>
             </div>
             <div className="w-full bg-gray-200 rounded-full h-2.5">
               <div 
                 className="bg-blue-600 h-2.5 rounded-full transition-all duration-500"
                 style={{ 
-                  width: `${(roadmap.topic.filter(t => t.topic_status === 'complete' || t.topic_status === 'completed').length / roadmap.topic.length) * 100}%` 
+                  width: `${(roadmap.topics.filter(t => t.topic_status === 'complete' || t.topic_status === 'completed').length / roadmap.topics.length) * 100}%` 
                 }}
               ></div>
             </div>
@@ -370,24 +375,24 @@ const MenteeRoadmapView: React.FC = () => {
           {/* Status Distribution */}
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             <div className="bg-purple-50 p-4 rounded-lg">
-              <div className="text-2xl font-bold text-purple-700">{roadmap.topic.length}</div>
+              <div className="text-2xl font-bold text-purple-700">{roadmap.topics.length}</div>
               <div className="text-sm text-purple-600">Total Topics</div>
             </div>
             <div className="bg-green-50 p-4 rounded-lg">
               <div className="text-2xl font-bold text-green-700">
-                {roadmap.topic.filter(t => t.topic_status === 'complete' || t.topic_status === 'completed').length}
+                {roadmap.topics.filter(t => t.topic_status === 'complete' || t.topic_status === 'completed').length}
               </div>
               <div className="text-sm text-green-600">Completed</div>
             </div>
             <div className="bg-yellow-50 p-4 rounded-lg">
               <div className="text-2xl font-bold text-yellow-700">
-                {roadmap.topic.filter(t => t.topic_status === 'marked').length}
+                {roadmap.topics.filter(t => t.topic_status === 'marked').length}
               </div>
               <div className="text-sm text-yellow-600">Marked</div>
             </div>
             <div className="bg-blue-50 p-4 rounded-lg">
               <div className="text-2xl font-bold text-blue-700">
-                {roadmap.topic.filter(t => t.topic_status === 'in_progress' || t.topic_status === 'assigned').length}
+                {roadmap.topics.filter(t => t.topic_status === 'in_progress' || t.topic_status === 'assigned').length}
               </div>
               <div className="text-sm text-blue-600">In Progress</div>
             </div>
@@ -396,8 +401,8 @@ const MenteeRoadmapView: React.FC = () => {
       )}
 
       <div className="space-y-8">
-        {roadmap.topic && roadmap.topic.length > 0 ? (
-          roadmap.topic.map((topic) => (
+        {roadmap.topics && roadmap.topics.length > 0 ? (
+          roadmap.topics.map((topic) => (
             <div 
               key={topic.topic_id} 
               className="group bg-white rounded-xl shadow-sm border border-gray-100 p-6 transition-all duration-300 hover:shadow-lg hover:border-blue-200 hover:scale-[1.02] hover:-translate-y-1"
@@ -409,8 +414,38 @@ const MenteeRoadmapView: React.FC = () => {
                     <span className={`px-3 py-1 rounded-full text-sm font-medium ${getStatusColor(topic.topic_status)} group-hover:shadow-sm transition-all duration-300`}>
                       {getStatusText(topic.topic_status)}
                     </span>
+                    {topic.topic_duration_days && (
+                      <span className="px-3 py-1 rounded-full text-sm font-medium bg-blue-100 text-blue-800">
+                        {topic.topic_duration_days } hours
+                      </span>
+                    )}
                   </div>
                   <p className="text-gray-600 mb-4 group-hover:text-gray-700 transition-colors duration-300">{topic.description}</p>
+                  
+                  {topic.subtopics && topic.subtopics.length > 0 && (
+                    <div className="mb-4">
+                      <h3 className="text-sm font-medium text-gray-700 mb-2">Subtopics:</h3>
+                      <div className="flex flex-wrap gap-2">
+                        {topic.subtopics.map((subtopic, index) => {
+                          const durationMatch = subtopic.match(/\((\d+)\s*hours\)/);
+                          const name = subtopic.replace(/\s*\(\d+\s*hours\)$/, '');
+                          const duration = durationMatch ? durationMatch[1] : null;
+                          
+                          return (
+                            <div key={index} className="flex items-center bg-gradient-to-r from-indigo-100 to-purple-100 px-3 py-1.5 rounded-full border border-indigo-200 shadow-sm">
+                              <span className="text-sm font-medium text-indigo-800">{name}</span>
+                              {duration && (
+                                <span className="ml-2 text-xs font-medium text-indigo-600 bg-white/50 px-2 py-0.5 rounded-full">
+                                  {duration}h
+                                </span>
+                              )}
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  )}
+                  
                   <div className="bg-indigo-50 rounded-lg p-4 inline-block group-hover:bg-indigo-100 transition-colors duration-300">
                     <p className="text-sm text-indigo-700 group-hover:text-indigo-800 transition-colors duration-300">
                       <span className="font-medium">Importance:</span> {topic.importance}
@@ -436,27 +471,11 @@ const MenteeRoadmapView: React.FC = () => {
                   </div>
                 )}
               </div>
-
-              {topic.subtopics && topic.subtopics.length > 0 && (
-                <div className="mt-6">
-                  <h3 className="text-lg font-medium text-gray-700 mb-4 group-hover:text-blue-700 transition-colors duration-300">Subtopics</h3>
-                  <div className="flex flex-wrap gap-3">
-                    {topic.subtopics.map((subtopic, index) => (
-                      <span
-                        key={index}
-                        className="px-4 py-2 bg-gray-50 text-gray-700 rounded-lg text-sm border border-gray-200 hover:bg-gray-100 hover:border-gray-300 hover:shadow-sm transition-all duration-200"
-                      >
-                        {subtopic}
-                      </span>
-                    ))}
-                  </div>
-                </div>
-              )}
             </div>
           ))
         ) : (
-          <div className="text-center py-12 bg-white rounded-xl shadow-sm border border-gray-100">
-            <p className="text-gray-600">No topics available in this roadmap</p>
+          <div className="text-center py-8">
+            <p className="text-gray-600">No topics available</p>
           </div>
         )}
       </div>

@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { Edit2, Save, Loader2, User } from 'lucide-react';
+import React, { useState, useEffect, useRef } from 'react';
+import { Edit2, Save, Loader2, User, Plus } from 'lucide-react';
 import axios from 'axios';
 import toast from 'react-hot-toast';
 import { useNavigate } from 'react-router-dom';
@@ -31,6 +31,11 @@ interface ValidationErrors {
   experience?: string;
 }
 
+interface SelectedSkill {
+  name: string;
+  proficiency: number;
+}
+
 const MentorProfile: React.FC = () => {
   const [profile, setProfile] = useState<MentorProfile | null>(null);
   const [tempProfile, setTempProfile] = useState<MentorProfile | null>(null);
@@ -40,6 +45,9 @@ const MentorProfile: React.FC = () => {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const dropdownRef = useRef<HTMLDivElement>(null);
+  const [showAddSkillsModal, setShowAddSkillsModal] = useState(false);
+  const [selectedNewSkills, setSelectedNewSkills] = useState<SelectedSkill[]>([]);
 
   const predefinedSkills = [
     "Python", "Java", "JavaScript", "C++", "SQL", "Node JS", "SpringBoot",
@@ -209,42 +217,17 @@ const MentorProfile: React.FC = () => {
     }
   };
 
-  const handleSkillChange = (index: number, field: 'name' | 'proficiency', value: string | number) => {
-    if (!tempProfile) return;
-    const newSkills = [...tempProfile.skills];
-    newSkills[index] = {
-      ...newSkills[index],
-      [field]: value
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+        setShowAddSkillsModal(false);
+      }
     };
-    setTempProfile({
-      ...tempProfile,
-      skills: newSkills
-    });
-  };
 
-  const addSkill = () => {
-    if (!tempProfile) return;
-    const availableSkills = getAvailableSkills();
-    if (availableSkills.length > 0) {
-      setTempProfile({
-        ...tempProfile,
-        skills: [...tempProfile.skills, { name: '', proficiency: 2 }]
-      });
-    }
-  };
-
-  const getAvailableSkills = () => {
-    if (!tempProfile) return predefinedSkills;
-    const selectedSkills = tempProfile.skills.map(skill => skill.name);
-    return predefinedSkills.filter(skill => !selectedSkills.includes(skill));
-  };
-
-  const isSkillSelected = (skillName: string, currentSkillIndex: number) => {
-    if (!tempProfile) return false;
-    return tempProfile.skills.some((skill, index) => 
-      skill.name === skillName && index !== currentSkillIndex
-    );
-  };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
 
   const saveChanges = async () => {
     if (!tempProfile || !validateProfile()) return;
@@ -360,6 +343,38 @@ const MentorProfile: React.FC = () => {
     }
   };
 
+  // Remove unused functions
+  const handleSkillChange = (index: number, field: 'name' | 'proficiency', value: string | number) => {
+    if (!tempProfile) return;
+    const newSkills = [...tempProfile.skills];
+    newSkills[index] = {
+      ...newSkills[index],
+      [field]: value
+    };
+    setTempProfile({
+      ...tempProfile,
+      skills: newSkills
+    });
+  };
+
+  const handleAddNewSkills = () => {
+    if (!tempProfile) return;
+    setTempProfile({
+      ...tempProfile,
+      skills: [...tempProfile.skills, ...selectedNewSkills]
+    });
+    setSelectedNewSkills([]);
+    setShowAddSkillsModal(false);
+  };
+
+  const handleRemoveSkill = (skillName: string) => {
+    if (!tempProfile) return;
+    setTempProfile({
+      ...tempProfile,
+      skills: tempProfile.skills.filter(skill => skill.name !== skillName)
+    });
+  };
+
   if (loading) {
     return (
       <div className="flex justify-center items-center h-64">
@@ -446,27 +461,26 @@ const MentorProfile: React.FC = () => {
               </div>
 
               {/* Skills */}
-              <div className="bg-gray-50 p-4 rounded-lg">
-                <h3 className="text-lg font-semibold text-gray-800 mb-3">Skills</h3>
-                {profile?.skills && profile.skills.length > 0 ? (
+              <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-100">
+                <h3 className="text-lg font-semibold text-gray-800 mb-4">Skills</h3>
+                <div className="space-y-6">
+                  {/* Selected Skills Display */}
                   <div className="grid grid-cols-2 gap-4">
-                    {profile.skills.map((skill, index) => (
+                    {profile?.skills.map((skill, index) => (
                       <div 
                         key={index} 
-                        className="bg-white p-4 rounded shadow-sm hover:shadow-md transition-shadow duration-200"
+                        className="bg-gray-50 p-4 rounded-lg border border-gray-200"
                       >
                         <div className="flex justify-between items-center">
-                          <span className="font-medium">{skill.name}</span>
-                          <span className="text-sm px-3 py-1 rounded-full bg-blue-100 text-blue-800">
-                            {getProficiencyText(skill.proficiency)}
-                          </span>
+                          <span className="font-medium text-gray-800">{skill.name}</span>
+                          <div className="flex items-center space-x-3">
+                            <span className="text-sm text-gray-500">{getProficiencyText(skill.proficiency)}</span>
+                          </div>
                         </div>
                       </div>
                     ))}
                   </div>
-                ) : (
-                  <p className="text-gray-600">No skills specified</p>
-                )}
+                </div>
               </div>
             </div>
           </>
@@ -576,85 +590,59 @@ const MentorProfile: React.FC = () => {
             </div>
 
             {/* Skills */}
-            <div className="bg-gray-50 p-4 rounded-lg">
-              <h3 className="text-lg font-semibold text-gray-800 mb-3">Skills</h3>
-              <div className="space-y-4">
-                {tempProfile?.skills.map((skill, index) => (
-                  <div key={index} className="space-y-2">
-                    <div className="flex items-center gap-2">
-                      {skill.name && profile?.skills.some(s => s.name === skill.name) ? (
-                        <div className="w-full px-4 py-2 border border-gray-300 rounded bg-gray-50 text-gray-700">
-                          {skill.name}
-                        </div>
-                      ) : (
-                        <>
+            <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-100">
+              <h3 className="text-lg font-semibold text-gray-800 mb-4">Skills</h3>
+              <div className="space-y-6">
+                {/* Selected Skills Display */}
+                <div className="grid grid-cols-2 gap-4">
+                  {tempProfile?.skills.map((skill, index) => (
+                    <div 
+                      key={index} 
+                      className="bg-gray-50 p-4 rounded-lg border border-gray-200 hover:border-blue-200 hover:shadow-md hover:scale-[1.02] transition-all duration-300 ease-in-out"
+                    >
+                      <div className="flex justify-between items-center">
+                        <span className="font-medium text-gray-800">{skill.name}</span>
+                        <div className="flex items-center space-x-3">
                           <select
-                            className={`w-full px-4 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-                              validationErrors.skills ? 'border-red-500' : 'border-gray-300'
-                            }`}
-                            value={skill.name}
-                            onChange={(e) => handleSkillChange(index, 'name', e.target.value)}
+                            className="text-sm border border-gray-300 rounded-md px-2 py-1 bg-white hover:border-blue-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors duration-200"
+                            value={skill.proficiency}
+                            onChange={(e) => handleSkillChange(index, 'proficiency', parseInt(e.target.value))}
                           >
-                            <option value="">Select a skill</option>
-                            {predefinedSkills.map((skillName) => (
-                              <option 
-                                key={skillName} 
-                                value={skillName}
-                                disabled={isSkillSelected(skillName, index)}
-                              >
-                                {skillName}
+                            {[1, 2, 3].map((level) => (
+                              <option key={level} value={level}>
+                                {getProficiencyText(level)}
                               </option>
                             ))}
                           </select>
-                          <button
-                            onClick={() => {
-                              if (!tempProfile) return;
-                              const newSkills = [...tempProfile.skills];
-                              newSkills.splice(index, 1);
-                              setTempProfile({
-                                ...tempProfile,
-                                skills: newSkills
-                              });
-                            }}
-                            className="p-2 text-red-500 hover:text-red-700"
-                          >
-                            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                              <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" />
-                            </svg>
-                          </button>
-                        </>
-                      )}
-                    </div>
-                    <div className="flex items-center space-x-2">
-                      <span className="text-sm text-gray-600">Proficiency:</span>
-                      <div className="flex items-center space-x-2">
-                        {[1, 2, 3].map((level) => (
-                          <button
-                            key={level}
-                            onClick={() => handleSkillChange(index, 'proficiency', level)}
-                            className={`px-3 py-1 rounded-full text-sm ${
-                              skill.proficiency === level
-                                ? 'bg-blue-600 text-white'
-                                : 'bg-gray-200 text-gray-600 hover:bg-gray-300'
-                            }`}
-                          >
-                            {getProficiencyText(level)}
-                          </button>
-                        ))}
+                          {!profile?.skills.some(s => s.name === skill.name) && (
+                            <button
+                              onClick={() => handleRemoveSkill(skill.name)}
+                              className="text-gray-400 hover:text-red-500 hover:scale-110 transition-all duration-200"
+                            >
+                              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                                <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" />
+                              </svg>
+                            </button>
+                          )}
+                        </div>
                       </div>
                     </div>
-                  </div>
-                ))}
-                {getAvailableSkills().length > 0 && (
+                  ))}
+                </div>
+
+                {/* Add Skills Button */}
+                <div className="flex justify-center">
                   <button
-                    onClick={addSkill}
-                    className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 cursor-pointer"
+                    onClick={() => setShowAddSkillsModal(true)}
+                    className="inline-flex items-center px-4 py-2 text-sm font-medium text-blue-600 bg-blue-50 rounded-lg hover:bg-blue-100 hover:shadow-md hover:scale-105 transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 cursor-pointer"
                   >
-                    Add Skill
+                    <Plus className="h-4 w-4 mr-2" />
+                    <span>Add Skills</span>
                   </button>
-                )}
+                </div>
+
                 {validationErrors.skills && (
-                  <p className="text-sm text-red-500 mt-1">{validationErrors.skills}</p>
+                  <p className="text-sm text-red-500 mt-1 text-center">{validationErrors.skills}</p>
                 )}
               </div>
             </div>
@@ -688,6 +676,75 @@ const MentorProfile: React.FC = () => {
           </div>
         )}
       </div>
+
+      {/* Add Skills Modal */}
+      {showAddSkillsModal && (
+        <div className="fixed inset-0 bg-gray-900/30 backdrop-blur-sm flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg p-6 max-w-md w-full">
+            <h3 className="text-lg font-medium text-gray-900 mb-4">Add New Skills</h3>
+            <div className="space-y-4">
+              <div className="max-h-60 overflow-y-auto">
+                {predefinedSkills
+                  .filter(skill => !tempProfile?.skills.some(s => s.name === skill))
+                  .map((skill) => (
+                    <div key={skill} className="flex items-center justify-between px-3 py-2 hover:bg-gray-50">
+                      <div className="flex items-center">
+                        <input
+                          type="checkbox"
+                          className="mr-2"
+                          checked={selectedNewSkills.some(s => s.name === skill)}
+                          onChange={(e) => {
+                            if (e.target.checked) {
+                              setSelectedNewSkills([...selectedNewSkills, { name: skill, proficiency: 2 }]);
+                            } else {
+                              setSelectedNewSkills(selectedNewSkills.filter(s => s.name !== skill));
+                            }
+                          }}
+                        />
+                        <span>{skill}</span>
+                      </div>
+                      {selectedNewSkills.some(s => s.name === skill) && (
+                        <select
+                          className="text-sm border rounded p-1 cursor-pointer"
+                          value={selectedNewSkills.find(s => s.name === skill)?.proficiency || 2}
+                          onChange={(e) => {
+                            setSelectedNewSkills(selectedNewSkills.map(s => 
+                              s.name === skill ? { ...s, proficiency: parseInt(e.target.value) } : s
+                            ));
+                          }}
+                        >
+                          {[1, 2, 3].map((level) => (
+                            <option key={level} value={level}>
+                              {getProficiencyText(level)}
+                            </option>
+                          ))}
+                        </select>
+                      )}
+                    </div>
+                  ))}
+              </div>
+              <div className="flex justify-end space-x-3 pt-4">
+                <button
+                  onClick={() => {
+                    setShowAddSkillsModal(false);
+                    setSelectedNewSkills([]);
+                  }}
+                  className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-md hover:bg-gray-200 cursor-pointer"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleAddNewSkills}
+                  disabled={selectedNewSkills.length === 0}
+                  className="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700 disabled:opacity-50 cursor-pointer"
+                >
+                  Add Selected Skills
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
