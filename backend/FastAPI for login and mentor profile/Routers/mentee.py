@@ -1,3 +1,4 @@
+from enum import Enum
 from typing import Annotated, List
 from fastapi import APIRouter, Depends, HTTPException, Path
 from pydantic import BaseModel, Field
@@ -57,8 +58,14 @@ async def mentor_profile_completion(user : user_dependency, db : db_dependency, 
         db.rollback()
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=f'Error: {str(e)}')
 
+class ProficiencyLevel(Enum):
+    beginner = 1
+    intermediate = 2
+    advanced = 3
+
 class Skillset(BaseModel):
     skill_name : str
+    proficiency : ProficiencyLevel
 
 class SkillAdd(BaseModel):
     skills : List[Skillset]
@@ -69,16 +76,8 @@ async def update_skills(user : user_dependency, db : db_dependency, skills_list:
         if user is None or user.get('role') != 'mentee':
             return HTTPException(status_code=401, detail="Authentication Error")
         
-        print(f"Updating mentee skills: {[skill.skill_name for skill in skills_list.skills]}")
-        
-        # First clear existing skills to prevent duplicates
-        # existing_skills = db.query(MenteeSkill).filter(MenteeSkill.mentee_id == user.get('user_id')).all()
-        # for skill in existing_skills:
-        #     db.delete(skill)
-        # db.commit()
-        
-        # Add the new skills
         skills_list = skills_list.skills
+        # print(skills_list[0])
         for skill in skills_list:
             skill_model = db.query(Skill).filter(Skill.name == skill.skill_name).first()
             if skill_model is None:
@@ -87,42 +86,55 @@ async def update_skills(user : user_dependency, db : db_dependency, skills_list:
                 )
                 db.add(skill_model)
                 db.commit()
-            
             skill_model = db.query(Skill).filter(Skill.name == skill.skill_name).first()
-            skill_assign = MenteeSkill(
-                mentee_id = user.get('user_id'),
-                skill_id = skill_model.id
-            )
-            db.add(skill_assign)
+            proficiency_enum = ProficiencyLevel(skill.proficiency)
+
+            mentee_skill = db.query(MenteeSkill).filter(
+                MenteeSkill.mentee_id == user.get('user_id'),
+                MenteeSkill.skill_id == skill_model.id
+            ).first()
+
+            if mentee_skill:
+                mentee_skill.proficiency = proficiency_enum.name
+            else:
+                mentee_skill = MenteeSkill(
+                    mentee_id=user.get('user_id'),
+                    skill_id=skill_model.id,
+                    proficiency=proficiency_enum.name
+                )
+                db.add(mentee_skill)
+
             db.commit()
-        
-        return {"Message": "Mentee skills updated", 'status_code': 200}
-    except Exception as e:
-        print(f"Error in update_skills: {str(e)}")
-        db.rollback()
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=f'Error: {str(e)}')
+    except :
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail='error')
+    else :
+        return {"Message" : "Mentee skills updated",'status_code': 200}
+       
         
 @router.get('/mentee/profile',status_code=status.HTTP_200_OK)
 def mentee_profile(user: user_dependency, db: db_dependency):
     if user is None or user.get('role') != 'mentee':
         return HTTPException(status_code=401, detail="Authentication Error")
-    mentee_updates = db.query(User).filter(User.id == user.get('user_id')).first()
-    skill_id_model = db.query(MenteeSkill).filter(MenteeSkill.mentee_id == user.get('user_id')).all()
-    skills_model = []
-    for i in skill_id_model:
-        sk = {
-            'name': i.skill.name
-        }
-        skills_model.append(sk)
-    profile_details = {
-        'name' : mentee_updates.name,
-        'mail' : mentee_updates.mail,
-        'role' : mentee_updates.role,
-        'contact' : mentee_updates.contact,
-        'designation' : mentee_updates.designation,
-        'Skill set' : skills_model
+    mentee = db.query(User).filter(User.id == user.get('user_id')).first()
+    if mentee is None:
+        raise HTTPException(status_code=404, detail="Mentor not found")
+
+    domain_name = mentee.domain.name if mentee.domain else None
+
+    skill_data = db.query(MenteeSkill).filter(MenteeSkill.mentee_id == mentee.id).all()
+    skills = [{"name": s.skill.name, "proficiency": s.proficiency} for s in skill_data]
+
+    profile_data = {
+        "name": mentee.name,
+        "mail": mentee.mail,
+        "role": mentee.role,
+        "exp": mentee.exp,
+        "designation": mentee.designation,
+        "contact": mentee.contact,
+        "domain": domain_name,  
+        "Skill set": skills
     }
-    return profile_details
+    return profile_data
 
 
 class Req_model(BaseModel):
@@ -182,6 +194,7 @@ async def show_sent_requests(user: user_dependency, db: db_dependency):
             MentorMentee.comment,
             User.name.label("mentor_name"),
             User.mail.label("mentor_mail"),
+            User.id.label('mentor_id'),
             User.designation.label("mentor_designation"),
             Domain.name.label("domain_name")
         )
@@ -194,6 +207,7 @@ async def show_sent_requests(user: user_dependency, db: db_dependency):
     result = [
         {
             "mentor_name": r.mentor_name,
+            'mentor_id': r.mentor_id,
             "mentor_mail": r.mentor_mail,
             "mentor_designation": r.mentor_designation,
             "domain_name": r.domain_name,

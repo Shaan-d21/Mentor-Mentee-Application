@@ -12,9 +12,11 @@ RUN npm ci
 
 # Copy the rest of the frontend code
 COPY . .
-# Set build arg and env variable
-ARG VITE_SERVER_ENDPOINT
-ENV VITE_SERVER_ENDPOINT=${VITE_SERVER_ENDPOINT}
+# # Set build arg and env variable
+# ARG VITE_SERVER_ENDPOINT
+# ENV VITE_SERVER_ENDPOINT=${VITE_SERVER_ENDPOINT}
+ARG VITE_API_URL
+ENV VITE_API_URL=${VITE_API_URL}
 
 RUN npm run build && ls -l /app/dist
 
