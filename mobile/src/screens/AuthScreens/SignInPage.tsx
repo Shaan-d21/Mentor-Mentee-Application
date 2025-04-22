@@ -42,7 +42,7 @@ const SignInPage: React.FC<ScreenProps<'SignInPage'>> = ({ navigation }) => {
   const handleFormSubmit = async () => {
     const isEmailValid = emailRegex.test(emailLocal);
     const isPasswordValid = passwordLocal.length >= 6;
-
+  
     if (!isEmailValid && !isPasswordValid) {
       Alert.alert('Invalid Username and Password');
       return;
@@ -55,16 +55,20 @@ const SignInPage: React.FC<ScreenProps<'SignInPage'>> = ({ navigation }) => {
       Alert.alert('Invalid Password');
       return;
     }
-
+  
     const email = emailLocal.toLowerCase();
-
-    // ✅ Store rememberMe flag
+  
+    // ✅ Store rememberMe flag, email, and password
     if (rememberMe) {
       await AsyncStorage.setItem('rememberMe', 'true');
+      await AsyncStorage.setItem('email', email);
+      await AsyncStorage.setItem('password', passwordLocal);
     } else {
       await AsyncStorage.removeItem('rememberMe');
+      await AsyncStorage.removeItem('email');
+      await AsyncStorage.removeItem('password');
     }
-
+  
     dispatch(loginUser({ email: email, password: passwordLocal }));
   };
 

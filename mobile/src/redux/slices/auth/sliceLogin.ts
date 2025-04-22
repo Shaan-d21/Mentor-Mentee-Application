@@ -1,6 +1,7 @@
 import { createAsyncThunk, createSlice, PayloadAction } from '@reduxjs/toolkit';
 import { apiLoginUser } from '../../../services/apiLogin';
 import { MMKV } from 'react-native-mmkv';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const storage = new MMKV();
 
@@ -18,7 +19,7 @@ interface User {
   status: currentStatus;
   name: string;
   profile_status: boolean;
-  role: 'mentee' | 'mentor' | '';
+  role: string;
   rememberMe: boolean; // ✅ ADDED
 }
 
@@ -46,7 +47,9 @@ const sliceLogin = createSlice({
       state.status = currentStatus.idle;
       state.profile_status = false;
       state.rememberMe = false; // ✅ RESET
-      storage.delete("rememberMe"); // ✅ DELETE FROM MMKV
+      AsyncStorage.removeItem("rememberMe"); // ✅ DELETE FROM MMKV
+      AsyncStorage.removeItem("email");
+      AsyncStorage.removeItem("password");
     },
     changeProfileStatus(state, action: PayloadAction<boolean>) {
       state.profile_status = action.payload;
@@ -65,7 +68,21 @@ const sliceLogin = createSlice({
     setRememberMe(state, action: PayloadAction<boolean>) { // ✅ NEW REDUCER
       state.rememberMe = action.payload;
       storage.set("rememberMe", JSON.stringify(action.payload)); // ✅ STORE IN MMKV
-    }
+    },
+    loginSuccess(state, action: PayloadAction<{ email: string; password: string; role: string; rememberMe: boolean }>) {
+      state.email = action.payload.email;
+      state.password = action.payload.password;
+      state.role = action.payload.role;
+      state.rememberMe = action.payload.rememberMe;
+    
+      if (action.payload.rememberMe) {
+        storage.set("rememberMe", true); // ✅ Save to MMKV
+        storage.set("email", action.payload.email);
+        storage.set("password", action.payload.password);
+        storage.set("role", action.payload.role);
+      }
+    },
+    
   },
 
   extraReducers(builder) {

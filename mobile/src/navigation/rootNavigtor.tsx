@@ -21,9 +21,13 @@ import MenteeRequests from '../screens/Dashboards/mentee_requests';
 import MentorProgress from '../screens/progress_screens/mentor_progress';
 import MenteeFeedback from '../screens/Feedback/menteeFeedback';
 import { useEffect, useState } from 'react';
+import { useDispatch } from 'react-redux';
+import { loginUser } from '../redux/slices/auth/sliceLogin';
+import { AppDispatch } from '../redux/store';
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
 export const RootNavigator: FC = () => {
+  const dispatch= useDispatch<AppDispatch>();
   const [initialRoute, setInitialRoute] = useState<keyof RootStackParamList>('SignInPage');
 
   useEffect(() => {
@@ -37,6 +41,16 @@ export const RootNavigator: FC = () => {
         } else {
           setInitialRoute('MenteeDashboard'); // Otherwise, navigate to MenteeDashboard
         }
+
+        const email = (await AsyncStorage.getItem('email')) || '';
+        const password = (await AsyncStorage.getItem('password')) || '';
+        // console.log("Email is", email);
+        // console.log("Password is", password);
+        
+        dispatch(loginUser({ email: email, password: password }));
+
+        // console.log("Email is ", AsyncStorage.getItem('email').toString());
+        // console.log("Password is ", AsyncStorage.getItem('password'));
       } else {
         setInitialRoute('SignInPage'); // If "Remember Me" is false, navigate to SignInPage
       }
