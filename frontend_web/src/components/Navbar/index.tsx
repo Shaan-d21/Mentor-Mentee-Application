@@ -150,7 +150,8 @@ const Navbar = () => {
   };
 
   return (
-    <nav className="bg-gradient-to-r from-blue-800 to-blue-600 shadow-md">
+    <>
+      <nav className="fixed top-0 left-0 right-0 bg-gradient-to-r from-blue-800 to-blue-600 shadow-md z-50">
       <div className="max-w-full mx-auto px-6 lg:px-10">
         <div className="flex justify-between h-16">
           {/* Logo */}
@@ -269,6 +270,9 @@ const Navbar = () => {
           </div>
         </div>
       </div>
+      </nav>
+      {/* Add spacer to prevent content from being hidden behind navbar */}
+      <div className="h-16"></div>
 
       {/* Mobile Menu */}
       <div className={`${isMenuOpen ? "block" : "hidden"} sm:hidden`}>
@@ -372,7 +376,7 @@ const Navbar = () => {
           </div>
         </div>
       )}
-    </nav>
+    </>
   );
 };
 

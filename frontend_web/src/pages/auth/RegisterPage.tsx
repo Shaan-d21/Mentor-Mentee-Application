@@ -60,10 +60,27 @@ const RegisterPage: React.FC = () => {
 
   const validateName = (name: string): string => {
     if (!name) return "Name is required";
-    if (name.trim().length < 2) return "Name must be at least 2 characters long";
-    if (name.includes("  ")) return "Name cannot contain consecutive spaces";
-    if (/[0-9!@#$%^&*(),.?":{}|<>]/.test(name)) return "Name cannot contain numbers or special characters";
-    if (name.trim() !== name) return "Name cannot start or end with spaces";
+    
+    // Clean the name by:
+    // 1. Trimming spaces from start and end
+    // 2. Replacing multiple consecutive spaces with a single space
+    // 3. Capitalizing first letter of each word
+    const cleanedName = name
+      .trim()
+      .replace(/\s+/g, ' ')
+      .split(' ')
+      .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+      .join(' ');
+    
+    if (cleanedName.length < 2) return "Name must be at least 2 characters long";
+    if (!/^[a-zA-Z\s]+$/.test(cleanedName)) return "Name can only contain letters and spaces";
+    if (/\d/.test(cleanedName)) return "Name cannot contain numbers";
+    
+    // Update the name state with the cleaned version
+    if (name !== cleanedName) {
+      setName(cleanedName);
+    }
+    
     return "";
   };
 
@@ -81,18 +98,32 @@ const RegisterPage: React.FC = () => {
 
   const handleNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const newName = e.target.value;
-    setName(newName);
-    setNameError(validateName(newName));
+    // Only allow letters and spaces while typing
+    const filteredName = newName.replace(/[^a-zA-Z\s]/g, '');
+    setName(filteredName);
+    
+    // Validate the cleaned name for errors
+    const cleanedName = filteredName
+      .trim()
+      .replace(/\s+/g, ' ')
+      .split(' ')
+      .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+      .join(' ');
+    setNameError(validateName(cleanedName));
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (isSubmitting) return;
 
+    // Clean the name before validation and submission
+    const cleanedName = name.trim().replace(/\s+/g, ' ');
+    setName(cleanedName);
+
     // Validate all fields before submission
     const emailValidationError = validateEmail(email);
     const passwordValidationError = validatePassword(password);
-    const nameValidationError = validateName(name);
+    const nameValidationError = validateName(cleanedName);
 
     setEmailError(emailValidationError);
     setPasswordError(passwordValidationError);
@@ -107,7 +138,7 @@ const RegisterPage: React.FC = () => {
     try {
       // Prepare user data exactly as expected by the backend
       const userData = {
-        name: name.trim(),
+        name: cleanedName,
         mail: email.trim().toLowerCase(),
         pwd: password,
         role: userType.toLowerCase()

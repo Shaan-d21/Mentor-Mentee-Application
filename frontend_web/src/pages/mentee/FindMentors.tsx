@@ -578,61 +578,76 @@ const FindMentors: React.FC = () => {
         <div className="mb-8">
           <h3 className="text-lg font-semibold mb-4">Compatible Mentors for {compatibilityDomain}</h3>
           
-          {/* Combined Mentors Table */}
-          <div className="relative w-full overflow-x-auto bg-white rounded-lg shadow" style={{ maxHeight: '500px' }}>
-            <div className="min-w-[1000px]">
-              {compatibleMentors.length > 0 ? (
+          {/* Responsive Table */}
+          <div className="bg-white rounded-lg shadow overflow-hidden">
+            <div className="overflow-x-auto">
                 <table className="w-full divide-y divide-gray-200">
-                  <thead className="bg-gray-50 sticky top-0 z-10">
+                <thead className="bg-gray-50">
                     <tr>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Name</th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Email</th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Designation</th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Experience</th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Domain</th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Compatibility Score</th>
+                    <th scope="col" className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-1/6">Name</th>
+                    <th scope="col" className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-1/6">Email</th>
+                    <th scope="col" className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-1/6">Designation</th>
+                    <th scope="col" className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-[10%]">Experience</th>
+                    <th scope="col" className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-[15%]">Domain</th>
+                    <th scope="col" className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-[15%]">Score</th>
                     </tr>
                   </thead>
                   <tbody className="bg-white divide-y divide-gray-200">
-                    {compatibleMentors
+                  {compatibleMentors.length > 0 ? (
+                    compatibleMentors
                       .filter(mentor => !requestedMentorIds.has(mentor.id || ''))
                       .map((mentor) => (
                         <tr key={mentor.id} className={mentor.domain === compatibilityDomain ? 'bg-blue-50' : ''}>
-                          <td className="px-6 py-4 whitespace-nowrap">{mentor.name}</td>
-                          <td className="px-6 py-4 whitespace-nowrap">{mentor.email}</td>
-                          <td className="px-6 py-4 whitespace-nowrap">{mentor.designation}</td>
-                          <td className="px-6 py-4 whitespace-nowrap">{mentor.experience} years</td>
-                          <td className="px-6 py-4 whitespace-nowrap">
-                            <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+                          <td className="px-3 py-3 whitespace-normal text-sm text-gray-900 max-w-[150px] truncate">{mentor.name}</td>
+                          <td className="px-3 py-3 whitespace-normal text-sm text-gray-600 max-w-[150px] truncate">{mentor.email}</td>
+                          <td className="px-3 py-3 whitespace-normal text-sm text-gray-600 max-w-[150px] truncate">{mentor.designation}</td>
+                          <td className="px-2 py-3 whitespace-nowrap text-sm text-gray-600">{mentor.experience} years</td>
+                          <td className="px-2 py-3 whitespace-nowrap">
+                            <div className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
                               mentor.domain === compatibilityDomain 
-                                ? 'bg-blue-100 text-blue-800' 
-                                : 'bg-gray-100 text-gray-800'
+                                ? 'bg-blue-50 text-blue-700 border border-blue-200' 
+                                : 'bg-gray-50 text-gray-600 border border-gray-200'
                             }`}>
                               {mentor.domain}
-                            </span>
+                            </div>
                           </td>
-                          <td className="px-6 py-4 whitespace-nowrap">
+                          <td className="px-3 py-3 whitespace-normal">
                             <button
                               onClick={() => handleViewCompatibilityReport(mentor)}
-                              className={`px-4 py-2 rounded-full font-semibold text-sm transition-all duration-200 transform hover:scale-105 cursor-pointer ${
+                              className={`inline-flex items-center px-2 py-1 rounded-full font-semibold text-sm transition-all duration-200 transform hover:scale-105 cursor-pointer ${
                                 mentor.score >= 90 ? 'bg-green-100 text-green-800 hover:bg-green-200' :
                                 mentor.score >= 70 ? 'bg-yellow-100 text-yellow-800 hover:bg-yellow-200' :
                                 'bg-red-100 text-red-800 hover:bg-red-200'
                               }`}
                             >
-                              {mentor.score}%
+                              <span className="mr-1">{mentor.score}%</span>
+                              <svg 
+                                className="w-3 h-3" 
+                                fill="none" 
+                                stroke="currentColor" 
+                                viewBox="0 0 24 24"
+                              >
+                                <path 
+                                  strokeLinecap="round" 
+                                  strokeLinejoin="round" 
+                                  strokeWidth={2} 
+                                  d="M9 5l7 7-7 7" 
+                                />
+                              </svg>
                             </button>
                           </td>
                         </tr>
-                      ))}
+                      ))
+                  ) : (
+                    <tr>
+                      <td colSpan={6} className="px-4 py-4 text-center text-sm text-gray-500">
+                        No compatible mentors found for {compatibilityDomain}.
+                        <p className="text-xs text-gray-400 mt-1">Please try a different domain or check back later.</p>
+                      </td>
+                    </tr>
+                  )}
                   </tbody>
                 </table>
-              ) : (
-                <div className="p-6 text-center">
-                  <p className="text-gray-500">No compatible mentors found for {compatibilityDomain}.</p>
-                  <p className="text-sm text-gray-400 mt-2">Please try a different domain or check back later.</p>
-                </div>
-              )}
             </div>
           </div>
         </div>

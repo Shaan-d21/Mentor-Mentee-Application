@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import { Plus, Trash2, Edit2, ChevronDown, ChevronRight, GripVertical } from 'lucide-react';
+import { Plus, Trash2, Edit2, ChevronDown, ChevronRight} from 'lucide-react';
 
 interface Mentee {
     id: number;
@@ -79,6 +79,15 @@ const RoadmapGenerator: React.FC = () => {
     const [newSubtopic, setNewSubtopic] = useState({
         name: ''
     });
+
+    const validateHours = (hours: number): boolean => {
+        return hours >= 0 && hours <= 255;
+    };
+
+    const handleNameInput = (name: string): string => {
+        // Allow spaces between words, only trim leading/trailing spaces
+        return name.trim();
+    };
 
     const fetchMentees = async () => {
         try {
@@ -246,10 +255,19 @@ const RoadmapGenerator: React.FC = () => {
             if (response.data) {
                 if (response.data.topics && Array.isArray(response.data.topics)) {
                     setRoadmapDescription(response.data.roadmap_explanation);
-                    const transformedTopics = response.data.topics.map((topic: Topic) => ({
+                    const transformedTopics = response.data.topics.map((topic: Topic) => {
+                        // Calculate total hours from subtopics
+                        const totalHours = topic.subtopics.reduce((sum, subtopic) => {
+                            const match = subtopic.match(/\((\d+)\s*hours\)/);
+                            return sum + (match ? parseInt(match[1]) : 0);
+                        }, 0);
+
+                        return {
                         ...topic,
-                        isExpanded: false
-                    }));
+                            isExpanded: false,
+                            topic_duration_hours: totalHours
+                        };
+                    });
                     
                     setTopics(transformedTopics);
                     setCurrentRoadmapId(response.data.roadmap_id);
@@ -363,23 +381,26 @@ const RoadmapGenerator: React.FC = () => {
     };
 
     const handleAddTopic = () => {
-        if (!newTopic.name.trim()) {
+        if (!newTopic.name) {
             setError('Topic name is required');
             return;
         }
 
+        // Calculate total hours without any validation
+        const totalHours = newTopicSubtopics.reduce((sum, s) => {
+            const match = s.match(/\((\d+)\s*hours\)/);
+            return sum + (match ? parseInt(match[1]) : 0);
+        }, 0);
+
         const topic: Topic = {
-            topic_id: Date.now(), // Temporary ID
+            topic_id: Date.now(),
             name: newTopic.name,
             description: newTopic.description,
             subtopics: newTopicSubtopics,
             importance: newTopic.importance,
             topic_status: 'pending',
             isExpanded: false,
-            topic_duration_hours: newTopicSubtopics.reduce((sum, s) => {
-                const match = s.match(/\((\d+)\s*hours\)/);
-                return sum + (match ? parseInt(match[1]) : 0);
-            }, 0)
+            topic_duration_hours: totalHours
         };
 
         setTopics([...topics, topic]);
@@ -389,29 +410,38 @@ const RoadmapGenerator: React.FC = () => {
     };
 
     const handleAddSubtopic = () => {
-        if (!newSubtopic.name.trim()) {
+        if (!newSubtopicForm.name) {
             setError('Subtopic name is required');
             return;
         }
 
-        const subtopic: Subtopic = {
-            id: Date.now(), // Temporary ID
-            name: newSubtopic.name,
-            duration: 0
-        };
+        if (!editingTopic) {
+            setError('No topic selected for editing');
+            return;
+        }
 
-        setTopics(topics.map(topic => {
-            if (topic.topic_id === editingTopic?.topic_id) {
-                return {
-                    ...topic,
-                    subtopics: [...topic.subtopics, subtopic.name]
-                };
-            }
-            return topic;
-        }));
-
-        setNewSubtopic({ name: '' });
+        const value = newSubtopicForm.duration;
+        if (value >= 0 && value <= 255) {  // Only validate individual subtopic hours
+            const newSubtopic = `${newSubtopicForm.name} (${value} hours)`;
+            const updatedSubtopics = [...editingTopic.subtopics, newSubtopic];
+            const newTotalDuration = updatedSubtopics.reduce((sum, s) => {
+                const match = s.match(/\((\d+)\s*hours\)/);
+                return sum + (match ? parseInt(match[1]) : 0);
+            }, 0);
+            setEditingTopic({
+                ...editingTopic,
+                subtopics: updatedSubtopics,
+                topic_duration_hours: newTotalDuration,
+                topic_id: editingTopic.topic_id,
+                name: editingTopic.name,
+                description: editingTopic.description,
+                importance: editingTopic.importance,
+                topic_status: editingTopic.topic_status,
+                isExpanded: editingTopic.isExpanded
+            });
+            setNewSubtopicForm({ name: '', duration: 0 });
         setShowAddSubtopicModal(false);
+        }
     };
 
     const handleEditTopic = (topic: Topic) => {
@@ -475,16 +505,43 @@ const RoadmapGenerator: React.FC = () => {
         setShowDeleteTopicConfirmation({ show: true, topicId });
     };
 
-    const handleConfirmDeleteTopic = () => {
+    const handleConfirmDeleteTopic = async () => {
         if (showDeleteTopicConfirmation.topicId !== null) {
+            try {
+                const token = localStorage.getItem('accessToken');
+                if (!token) {
+                    setError('No authentication token found');
+                    return;
+                }
+
+                const response = await axios.delete(
+                    `${import.meta.env.VITE_API_URL}/roadmap/delete_topic`,
+                    {
+                        headers: {
+                            'Token': token,
+                            'Content-Type': 'application/json',
+                            'Accept': 'application/json'
+                        },
+                        data: {
+                            topic_id: showDeleteTopicConfirmation.topicId
+                        }
+                    }
+                );
+
+                if (response.data) {
             setTopics(topics.filter(topic => topic.topic_id !== showDeleteTopicConfirmation.topicId));
             setShowDeleteTopicConfirmation({ show: false, topicId: null });
         }
+            } catch (error) {
+                console.error('Error deleting topic:', error);
+                if (axios.isAxiosError(error)) {
+                    setError(`Failed to delete topic: ${error.response?.data?.detail || error.message}`);
+                } else {
+                    setError('Failed to delete topic');
+                }
+            }
+        }
     };
-
-    // const handleDeleteSubtopic = (topicId: number, subtopicIndex: number) => {
-    //     setShowDeleteSubtopicConfirmation({ show: true, topicId, subtopicIndex });
-    // };
 
     const handleConfirmDeleteSubtopic = () => {
         if (showDeleteSubtopicConfirmation) {
@@ -515,20 +572,6 @@ const RoadmapGenerator: React.FC = () => {
             return topic;
         }));
     };
-
-    // const handleUpdateSubtopic = (topicId: number, updatedSubtopic: { id: number; name: string }) => {
-    //     setTopics(topics.map(topic => {
-    //         if (topic.topic_id === topicId) {
-    //             return {
-    //                 ...topic,
-    //                 subtopics: topic.subtopics.map((subtopic, index) => 
-    //                     index === updatedSubtopic.id ? updatedSubtopic.name : subtopic
-    //                 )
-    //             };
-    //         }
-    //         return topic;
-    //     }));
-    // };
 
     useEffect(() => {
         fetchMentees();
@@ -620,7 +663,7 @@ const RoadmapGenerator: React.FC = () => {
                                             <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                                             <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                                         </svg>
-                                        Generating...
+                                        Generating
                                     </div>
                                 ) : 'Generate Roadmap'}
                             </button>
@@ -669,7 +712,6 @@ const RoadmapGenerator: React.FC = () => {
                                         >
                                             <div className="flex justify-between items-center">
                                                 <div className="flex items-center space-x-3">
-                                                    <GripVertical className="h-5 w-5 text-gray-400 cursor-move" />
                                                     <button
                                                         onClick={() => handleToggleTopic(topic.topic_id)}
                                                         className="text-indigo-600 hover:text-indigo-800 transform hover:scale-110 transition-transform duration-200 cursor-pointer"
@@ -754,7 +796,7 @@ const RoadmapGenerator: React.FC = () => {
 
             {/* Add Topic Modal */}
             {showAddTopicModal && (
-                <div className="fixed inset-0 bg-gray-500 bg-opacity-75 flex items-center justify-center p-4">
+                <div className="fixed inset-0 bg-gray-500 bg-opacity-75 flex items-center justify-center p-4 z-[1000]">
                     <div className="bg-white rounded-lg w-full max-w-[1000px] max-h-[90vh] flex flex-col">
                         <div className="p-6 border-b border-gray-200">
                             <h3 className="text-xl font-medium text-indigo-800">Add New Topic</h3>
@@ -769,7 +811,10 @@ const RoadmapGenerator: React.FC = () => {
                                         <input
                                             type="text"
                                             value={newTopic.name}
-                                            onChange={(e) => setNewTopic({ ...newTopic, name: e.target.value })}
+                                            onChange={(e) => {
+                                                const value = e.target.value;
+                                                setNewTopic(prev => ({ ...prev, name: value }));
+                                            }}
                                             className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 p-2"
                                         />
                                     </div>
@@ -816,15 +861,23 @@ const RoadmapGenerator: React.FC = () => {
                                                         type="text"
                                                         placeholder="Subtopic name"
                                                         value={newTopicSubtopicForm.name}
-                                                        onChange={(e) => setNewTopicSubtopicForm({ ...newTopicSubtopicForm, name: e.target.value })}
+                                                        onChange={(e) => {
+                                                            const value = e.target.value;
+                                                            setNewTopicSubtopicForm(prev => ({ ...prev, name: value }));
+                                                        }}
                                                         className="flex-1 rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 p-2 text-sm"
                                                     />
                                                     <input
                                                         type="number"
                                                         min="0"
-                                                        placeholder="Duration"
+                                                        max="255"
                                                         value={newTopicSubtopicForm.duration}
-                                                        onChange={(e) => setNewTopicSubtopicForm({ ...newTopicSubtopicForm, duration: parseInt(e.target.value) || 0 })}
+                                                        onChange={(e) => {
+                                                            const value = parseInt(e.target.value) || 0;
+                                                            if (value >= 0 && value <= 255) {
+                                                                setNewTopicSubtopicForm({ ...newTopicSubtopicForm, duration: value });
+                                                            }
+                                                        }}
                                                         className="w-20 rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 p-2 text-sm"
                                                     />
                                                     <span className="text-sm text-gray-500">hours</span>
@@ -941,7 +994,7 @@ const RoadmapGenerator: React.FC = () => {
 
             {/* Edit Topic Modal */}
             {editingTopic && (
-                <div className="fixed inset-0 bg-gray-500 bg-opacity-75 flex items-center justify-center p-4">
+                <div className="fixed inset-0 bg-gray-500 bg-opacity-75 flex items-center justify-center p-4 z-[1000]">
                     <div className="bg-white rounded-lg w-full max-w-[1000px] max-h-[90vh] flex flex-col">
                         <div className="p-6 border-b border-gray-200">
                             <h3 className="text-xl font-medium text-indigo-800">Edit Topic</h3>
@@ -956,7 +1009,7 @@ const RoadmapGenerator: React.FC = () => {
                                         <input
                                             type="text"
                                             value={editingTopic.name}
-                                            onChange={(e) => setEditingTopic({ ...editingTopic, name: e.target.value })}
+                                            onChange={(e) => setEditingTopic({ ...editingTopic, name: handleNameInput(e.target.value) })}
                                             className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 p-2"
                                         />
                                     </div>
@@ -1003,15 +1056,20 @@ const RoadmapGenerator: React.FC = () => {
                                                         type="text"
                                                         placeholder="Subtopic name"
                                                         value={newSubtopicForm.name}
-                                                        onChange={(e) => setNewSubtopicForm({ ...newSubtopicForm, name: e.target.value })}
+                                                        onChange={(e) => setNewSubtopicForm({ ...newSubtopicForm, name: handleNameInput(e.target.value) })}
                                                         className="flex-1 rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 p-2 text-sm"
                                                     />
                                                     <input
                                                         type="number"
                                                         min="0"
-                                                        placeholder="Duration"
+                                                        max="255"
                                                         value={newSubtopicForm.duration}
-                                                        onChange={(e) => setNewSubtopicForm({ ...newSubtopicForm, duration: parseInt(e.target.value) || 0 })}
+                                                        onChange={(e) => {
+                                                            const value = parseInt(e.target.value) || 0;
+                                                            if (value >= 0 && value <= 255) {
+                                                                setNewSubtopicForm({ ...newSubtopicForm, duration: value });
+                                                            }
+                                                        }}
                                                         className="w-20 rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 p-2 text-sm"
                                                     />
                                                     <span className="text-sm text-gray-500">hours</span>
@@ -1019,14 +1077,14 @@ const RoadmapGenerator: React.FC = () => {
                                                         <button
                                                             onClick={() => {
                                                                 if (newSubtopicForm.name.trim()) {
-                                                                    const newSubtopics = [...editingTopic.subtopics, `${newSubtopicForm.name} (${newSubtopicForm.duration} hours)`];
-                                                                    const newTotalDuration = newSubtopics.reduce((sum, s) => {
+                                                                    const updatedSubtopics = [...editingTopic.subtopics, `${newSubtopicForm.name} (${newSubtopicForm.duration} hours)`];
+                                                                    const newTotalDuration = updatedSubtopics.reduce((sum, s) => {
                                                                         const match = s.match(/\((\d+)\s*hours\)/);
                                                                         return sum + (match ? parseInt(match[1]) : 0);
                                                                     }, 0);
                                                                     setEditingTopic({
                                                                         ...editingTopic,
-                                                                        subtopics: newSubtopics,
+                                                                        subtopics: updatedSubtopics,
                                                                         topic_duration_hours: newTotalDuration
                                                                     });
                                                                     setNewSubtopicForm({ name: '', duration: 0 });
@@ -1064,11 +1122,11 @@ const RoadmapGenerator: React.FC = () => {
                                                                 type="text"
                                                                 value={name}
                                                                 onChange={(e) => {
-                                                                    const newSubtopics = [...editingTopic.subtopics];
-                                                                    newSubtopics[index] = `${e.target.value} (${duration} hours)`;
+                                                                    const updatedSubtopics = [...editingTopic.subtopics];
+                                                                    updatedSubtopics[index] = `${handleNameInput(e.target.value)} (${duration} hours)`;
                                                                     setEditingTopic({
                                                                         ...editingTopic,
-                                                                        subtopics: newSubtopics
+                                                                        subtopics: updatedSubtopics
                                                                     });
                                                                 }}
                                                                 className="w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 p-2 text-sm"
@@ -1078,20 +1136,23 @@ const RoadmapGenerator: React.FC = () => {
                                                             <input
                                                                 type="number"
                                                                 min="0"
+                                                                max="255"
                                                                 value={duration}
                                                                 onChange={(e) => {
-                                                                    const newDuration = parseInt(e.target.value) || 0;
-                                                                    const newSubtopics = [...editingTopic.subtopics];
-                                                                    newSubtopics[index] = `${name} (${newDuration} hours)`;
-                                                                    const newTotalDuration = newSubtopics.reduce((sum, s) => {
+                                                                    const value = parseInt(e.target.value) || 0;
+                                                                    if (value >= 0 && value <= 255) {
+                                                                        const updatedSubtopics = [...editingTopic.subtopics];
+                                                                        updatedSubtopics[index] = `${name} (${value} hours)`;
+                                                                        const newTotalDuration = updatedSubtopics.reduce((sum, s) => {
                                                                         const match = s.match(/\((\d+)\s*hours\)/);
                                                                         return sum + (match ? parseInt(match[1]) : 0);
                                                                     }, 0);
                                                                     setEditingTopic({
                                                                         ...editingTopic,
-                                                                        subtopics: newSubtopics,
+                                                                            subtopics: updatedSubtopics,
                                                                         topic_duration_hours: newTotalDuration
                                                                     });
+                                                                    }
                                                                 }}
                                                                 className="w-20 rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 p-2 text-sm"
                                                             />
