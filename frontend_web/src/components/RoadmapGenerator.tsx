@@ -19,12 +19,6 @@ interface Mentee {
     has_roadmap?: boolean;
 }
 
-interface Subtopic {
-    id: number;
-    name: string;
-    duration: number;
-}
-
 interface Topic {
     topic_id: number;
     name: string;
@@ -79,10 +73,6 @@ const RoadmapGenerator: React.FC = () => {
     const [newSubtopic, setNewSubtopic] = useState({
         name: ''
     });
-
-    const validateHours = (hours: number): boolean => {
-        return hours >= 0 && hours <= 255;
-    };
 
     const handleNameInput = (name: string): string => {
         // Allow spaces between words, only trim leading/trailing spaces
