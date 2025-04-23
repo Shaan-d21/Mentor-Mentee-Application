@@ -145,18 +145,24 @@ const MenteeRequests: FC<ScreenProps<'MenteeRequests'>> = ({navigation}) => {
   return (
     <View style={styles.container}>
       <AppBar
-        onProfilePress={() => {
-          navigation.navigate('MenteeProfileScreen');
-        }}
-        openDrawer={() => {}}
-        title="My Requests"
+      onProfilePress={() => {
+        navigation.navigate('MenteeProfileScreen');
+      }}
+      openDrawer={() => {}}
+      title="My Requests"
       />
+      {(!requests || requests.length === 0) ? (
+      <View style={{flex: 1, justifyContent: 'center', alignItems: 'center'}}>
+        <Text style={{fontSize: 16, color: '#888'}}>No requests found.</Text>
+      </View>
+      ) : (
       <FlatList
         data={requests}
         renderItem={renderItem}
         keyExtractor={item => item.mentor_id.toString()}
         contentContainerStyle={styles.flatListContent}
       />
+      )}
     </View>
   );
 };

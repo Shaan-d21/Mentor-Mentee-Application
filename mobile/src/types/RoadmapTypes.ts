@@ -13,7 +13,7 @@ export interface RoadmapTopic {
     subtopics: string[];
     importance: string;
     topic_status: string;
-    topic_duration_hours: number;
+    topic_duration_days: number;
 
 }
 
