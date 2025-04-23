@@ -30,8 +30,8 @@ const FeedbackCard: React.FC<FeedbackCardProps> = ({
       <View style={styles.cardHeader}>
         <Text style={styles.topicName}>{topic_name}</Text>
         <View style={styles.mentorInfo}>
-          <Text style={styles.domainName}>{domain_name}</Text>
-          <Text style={styles.mentorName}>by {mentor_name}</Text>
+          {/* <Text style={styles.domainName}>{domain_name}</Text> */}
+          <Text style={styles.mentorName}> {mentor_name}</Text>
         </View>
       </View>
       
@@ -130,3 +130,5 @@ const styles = StyleSheet.create({
 });
 
 export default FeedbackCard;
+
+

@@ -84,7 +84,7 @@ export const apiUpdateMentorProfile = async (name: string, exp: string, designat
 export const apiaddMentorProfileSkill = async (skills:SkillMap) => {
 
     const api = axios.create({
-      baseURL: "http://181.214.44.15:8080/",
+      baseURL: process.env.API_URL,
       headers: {
         accept: "application/json",
         "Content-Type": "application/json", // Add this header
