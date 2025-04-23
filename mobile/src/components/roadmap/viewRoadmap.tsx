@@ -146,7 +146,7 @@ export const ViewListRoadmapItems = (props: { roadmap: RoadmapResponse | null })
                                         <Text style={styles.topicDescription}>{topic.description}</Text>
                                         <Text style={styles.durationText}>
                                             <Text style={styles.contentLabel}>Duration: </Text>
-                                            <Text style={styles.topicDescription}>{topic.topic_duration_hours} Hours</Text>
+                                            <Text style={styles.topicDescription}>{topic.topic_duration_days} Hours</Text>
                                         </Text>
 
                                         {topic.subtopics.length > 0 && (

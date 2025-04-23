@@ -64,7 +64,7 @@ const sliceRoadmapTopics = createSlice({
           topics: action.payload.topics.map(topic => ({
             ...topic,
             // Set default values for potentially null fields
-            topic_duration_hours: topic.topic_duration_hours ?? 0,
+            topic_duration_days: topic.topic_duration_days ?? 0,
             subtopics: topic.subtopics ?? [],
           }))
         };

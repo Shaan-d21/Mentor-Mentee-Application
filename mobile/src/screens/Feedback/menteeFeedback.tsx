@@ -468,12 +468,18 @@ const MenteeFeedbackScreen: React.FC<Props> = ({ navigation }) => {
             <ActivityIndicator size="large" color="#5474E8" />
           </View>
         ) : (
-          <FlatList
-            data={Object.keys(groupedFeedback)}
-            renderItem={renderDomainSection}
-            keyExtractor={(item) => item}
-            contentContainerStyle={styles.flatListContent}
-          />
+          Object.keys(groupedFeedback)?.length === 0 ? (
+            <View style={styles.loadingContainer}>
+              <Text style={{ color: '#6B7280', fontSize: 16 }}>No feedback available.</Text>
+            </View>
+          ) : (
+            <FlatList
+              data={Object.keys(groupedFeedback)}
+              renderItem={renderDomainSection}
+              keyExtractor={(item) => item}
+              contentContainerStyle={styles.flatListContent}
+            />
+          )
         )}
 
         <Modal 

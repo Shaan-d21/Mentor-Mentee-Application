@@ -46,6 +46,7 @@ export const MentorRoadmapGeneration: FC<ScreenProps<'MentorRoadmapGeneration'>>
   }, [isFocused]);
 
 
+
   useEffect(() => {
     dispatch(fetchApprovedMentees());
 
@@ -53,6 +54,7 @@ export const MentorRoadmapGeneration: FC<ScreenProps<'MentorRoadmapGeneration'>>
 
   useEffect(() => {
     if (assignStatus === 1) {
+     
       Alert.alert("Roadmap Assigned Successfully", "The roadmap has been assigned to the mentee successfully.",);
     }
 
