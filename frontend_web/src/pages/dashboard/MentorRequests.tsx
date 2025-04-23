@@ -42,39 +42,46 @@ const ApprovalModal: React.FC<ApprovalModalProps> = ({ isOpen, onClose, onSubmit
   };
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center">
-      <div className="bg-white p-6 rounded-lg w-96">
-        <h3 className="text-lg font-semibold mb-4">
-          {isRejection ? (
-            <>
-              Reject Request <span className="text-red-500">*</span>
-            </>
-          ) : (
-            'Approve Request'
-          )}
-        </h3>
-        <textarea
-          className="w-full p-2 border rounded mb-4"
-          placeholder={isRejection ? 'Please provide a reason for rejection' : 'Add a comment (optional)'}
-          value={comment}
-          onChange={(e) => setComment(e.target.value)}
-          rows={3}
-        />
-        <div className="flex justify-end space-x-4">
-          <button
-            className="px-4 py-2 bg-gray-200 rounded hover:bg-gray-300"
-            onClick={onClose}
-          >
-            Cancel
-          </button>
-          <button
-            className={`px-4 py-2 rounded ${
-              isRejection ? 'bg-red-500 hover:bg-red-600' : 'bg-green-500 hover:bg-green-600'
-            } text-white`}
-            onClick={handleSubmit}
-          >
-            {isRejection ? 'Reject' : 'Approve'}
-          </button>
+    <div className="fixed inset-0 z-50 overflow-y-auto">
+      {/* Backdrop with blur effect - no click handler */}
+      <div 
+        className="fixed inset-0 bg-black/50 backdrop-blur-sm transition-opacity"
+      />
+      
+      <div className="flex min-h-full items-center justify-center p-4 text-center">
+        <div className="relative transform overflow-hidden rounded-lg bg-white px-4 pb-4 pt-5 text-left shadow-xl transition-all sm:my-8 sm:w-full sm:max-w-lg sm:p-6">
+          <h3 className="text-lg font-semibold mb-4">
+            {isRejection ? (
+              <>
+                Reject Request <span className="text-red-500">*</span>
+              </>
+            ) : (
+              'Approve Request'
+            )}
+          </h3>
+          <textarea
+            className="w-full p-2 border rounded mb-4"
+            placeholder={isRejection ? 'Please provide a reason for rejection' : 'Add a comment (optional)'}
+            value={comment}
+            onChange={(e) => setComment(e.target.value)}
+            rows={3}
+          />
+          <div className="flex justify-end space-x-4">
+            <button
+              className="px-4 py-2 bg-gray-200 rounded hover:bg-gray-300"
+              onClick={onClose}
+            >
+              Cancel
+            </button>
+            <button
+              className={`px-4 py-2 rounded ${
+                isRejection ? 'bg-red-500 hover:bg-red-600' : 'bg-green-500 hover:bg-green-600'
+              } text-white`}
+              onClick={handleSubmit}
+            >
+              {isRejection ? 'Reject' : 'Approve'}
+            </button>
+          </div>
         </div>
       </div>
     </div>

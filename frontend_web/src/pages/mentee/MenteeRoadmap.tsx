@@ -83,17 +83,29 @@ const MenteeRoadmap: React.FC = () => {
   const [selectedTopic, setSelectedTopic] = useState<Topic | null>(null);
   const [error, setError] = useState<string | null>(null);
 
+  // Reset states and fetch mentors when component mounts or refreshes
   useEffect(() => {
-    fetchMentors();
+    const initializePage = async () => {
+      // Reset all states first
+      setSelectedRoadmap(null);
+      setSelectedTopic(null);
+      setShowConfirmation(false);
+      setError(null);
+      setLoading(true);
+      
+      // Then fetch mentors
+      await fetchMentors();
+    };
+
+    initializePage();
   }, []);
 
   const fetchMentors = async () => {
     try {
-      setLoading(true);
       const accessToken = localStorage.getItem('accessToken');
       
       if (!accessToken) {
-        toast.error('Please login to view your roadmaps');
+        toast.error('Please login to view your roadmaps', { id: 'login-error' });
         navigate('/auth/login');
         return;
       }
@@ -119,25 +131,20 @@ const MenteeRoadmap: React.FC = () => {
           roadmap_id: mentor.roadmap_id
         }));
         setMentors(mappedMentors);
-
-        // If there's only one mentor with a roadmap, automatically select it
-        const mentorsWithRoadmap = mappedMentors.filter((mentor: Mentor) => mentor.has_roadmap);
-        if (mentorsWithRoadmap.length === 1) {
-          fetchRoadmapTopics(mentorsWithRoadmap[0]);
-        }
+        setLoading(false);
       } else {
         setError('No mentor data found in response');
+        setLoading(false);
       }
     } catch (err: any) {
       console.error('Error fetching mentors:', err);
       if (err.response?.status === 401) {
-        toast.error('Session expired. Please log in again.');
+        toast.error('Session expired. Please log in again.', { id: 'session-expired' });
         localStorage.removeItem('accessToken');
         navigate('/auth/login');
       } else {
         setError(err.response?.data?.message || 'Failed to fetch mentors. Please try again later.');
       }
-    } finally {
       setLoading(false);
     }
   };
@@ -147,28 +154,24 @@ const MenteeRoadmap: React.FC = () => {
       const accessToken = localStorage.getItem('accessToken');
       
       if (!accessToken) {
-        toast.error('Please login to view roadmap topics');
+        toast.error('Please login to view roadmap topics', { id: 'login-error' });
         return;
       }
 
       // First check if the mentor has a roadmap
       if (!mentor.has_roadmap) {
-        toast.error('No roadmap has been assigned by this mentor yet');
+        toast.error('No roadmap has been assigned by this mentor yet', { id: 'no-roadmap' });
         return;
       }
 
-      // Get the roadmap_id from the mentor data
-      const mentorData = mentors.find(m => m.mentor_id === mentor.mentor_id);
-      if (!mentorData) {
-        toast.error('Mentor data not found');
+      // Use the mentor parameter directly instead of searching again
+      if (!mentor.roadmap_id) {
+        toast.error('No roadmap ID found for this mentor', { id: 'no-roadmap-id' });
         return;
       }
-
-      console.log('Fetching roadmap topics for mentor:', mentorData);
-      console.log('Roadmap ID:', mentorData.roadmap_id);
 
       const response = await axios.get(
-        `${import.meta.env.VITE_API_URL}/mentee/roadmap-topics/${mentorData.roadmap_id}`,
+        `${import.meta.env.VITE_API_URL}/mentee/roadmap-topics/${mentor.roadmap_id}`,
         {
           headers: {
             'Token': accessToken,
@@ -178,27 +181,17 @@ const MenteeRoadmap: React.FC = () => {
         }
       );
 
-      console.log('Raw API response:', response);
-      console.log('Response data:', response.data);
-
       if (response.data && response.data.status_code === 200) {
-        console.log('Setting roadmap data:', response.data);
         setSelectedRoadmap(response.data);
-        toast.success('Roadmap loaded successfully');
+        toast.success('Roadmap loaded successfully', { id: 'roadmap-loaded' });
       } else {
-        console.log('Invalid response format:', response.data);
-        toast.error('No roadmap has been assigned yet');
+        toast.error('No roadmap has been assigned yet', { id: 'no-roadmap-assigned' });
       }
     } catch (error) {
       console.error('Error fetching roadmap topics:', error);
       if (axios.isAxiosError(error)) {
-        console.log('Axios error details:', {
-          status: error.response?.status,
-          data: error.response?.data,
-          headers: error.response?.headers
-        });
         if (error.response?.status === 404) {
-          toast.error('No roadmap found for this mentor');
+          toast.error('No roadmap found for this mentor', { id: 'roadmap-not-found' });
           // Update the mentor's has_roadmap status
           setMentors(prevMentors => 
             prevMentors.map(m => 
@@ -208,10 +201,10 @@ const MenteeRoadmap: React.FC = () => {
             )
           );
         } else {
-          toast.error(error.response?.data?.message || 'No roadmap has been assigned yet');
+          toast.error(error.response?.data?.message || 'No roadmap has been assigned yet', { id: 'roadmap-error' });
         }
       } else {
-        toast.error('No roadmap has been assigned yet');
+        toast.error('No roadmap has been assigned yet', { id: 'roadmap-error' });
       }
     }
   };
@@ -227,7 +220,7 @@ const MenteeRoadmap: React.FC = () => {
     try {
       const accessToken = localStorage.getItem('accessToken');
       if (!accessToken) {
-        toast.error('Please login to mark topics as complete');
+        toast.error('Please login to mark topics as complete', { id: 'login-error' });
         return;
       }
 
@@ -252,13 +245,13 @@ const MenteeRoadmap: React.FC = () => {
           );
           setSelectedRoadmap({ ...selectedRoadmap, topics: updatedTopics });
         }
-        toast.success('Topic is marked as complete');
+        toast.success('Topic marked as complete', { id: 'topic-marked' });
       } else {
-        toast.error('Failed to mark topic as complete');
+        toast.error('Failed to mark topic as complete', { id: 'mark-error' });
       }
     } catch (error) {
       console.error('Error marking topic as complete:', error);
-      toast.error('Failed to mark topic as complete');
+      toast.error('Failed to mark topic as complete', { id: 'mark-error' });
     } finally {
       setShowConfirmation(false);
       setSelectedTopic(null);

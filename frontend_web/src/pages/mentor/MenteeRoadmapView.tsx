@@ -44,38 +44,45 @@ const ApprovalModal: React.FC<ApprovalModalProps> = ({ isOpen, onClose, onSubmit
   };
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center">
-      <div className="bg-white p-6 rounded-lg w-96">
-        <h3 className="text-lg font-semibold mb-4">
-          {isReassign ? 'Reassign Topic' : 'Approve Topic'}
-        </h3>
-        <div className="mb-4">
-          <label className="block text-sm font-medium text-gray-700 mb-1">
-            Comments <span className="text-red-500">*</span>
-          </label>
-          <textarea
-            className="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-            rows={3}
-            value={feedback}
-            onChange={(e) => setFeedback(e.target.value)}
-            placeholder="Enter your comments..."
-          />
-        </div>
-        <div className="flex justify-end space-x-4">
-          <button
-            className="px-4 py-2 bg-gray-200 rounded hover:bg-gray-300 cursor-pointer"
-            onClick={onClose}
-          >
-            Cancel
-          </button>
-          <button
-            className={`px-4 py-2 rounded cursor-pointer ${
-              isReassign ? 'bg-yellow-500 hover:bg-yellow-600' : 'bg-green-500 hover:bg-green-600'
-            } text-white`}
-            onClick={handleSubmit}
-          >
-            {isReassign ? 'Reassign' : 'Approve'}
-          </button>
+    <div className="fixed inset-0 z-50 overflow-y-auto">
+      {/* Backdrop with blur effect - no click handler */}
+      <div 
+        className="fixed inset-0 bg-black/50 backdrop-blur-sm transition-opacity"
+      />
+      
+      <div className="flex min-h-full items-center justify-center p-4 text-center">
+        <div className="relative transform overflow-hidden rounded-lg bg-white px-4 pb-4 pt-5 text-left shadow-xl transition-all sm:my-8 sm:w-full sm:max-w-lg sm:p-6">
+          <h3 className="text-lg font-semibold mb-4">
+            {isReassign ? 'Reassign Topic' : 'Approve Topic'}
+          </h3>
+          <div className="mb-4">
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Comments <span className="text-red-500">*</span>
+            </label>
+            <textarea
+              className="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              rows={3}
+              value={feedback}
+              onChange={(e) => setFeedback(e.target.value)}
+              placeholder="Enter your comments..."
+            />
+          </div>
+          <div className="flex justify-end space-x-4">
+            <button
+              className="px-4 py-2 bg-gray-200 rounded hover:bg-gray-300 cursor-pointer"
+              onClick={onClose}
+            >
+              Cancel
+            </button>
+            <button
+              className={`px-4 py-2 rounded cursor-pointer ${
+                isReassign ? 'bg-yellow-500 hover:bg-yellow-600' : 'bg-green-500 hover:bg-green-600'
+              } text-white`}
+              onClick={handleSubmit}
+            >
+              {isReassign ? 'Reassign' : 'Approve'}
+            </button>
+          </div>
         </div>
       </div>
     </div>
@@ -416,7 +423,7 @@ const MenteeRoadmapView: React.FC = () => {
                     </span>
                     {topic.topic_duration_days && (
                       <span className="px-3 py-1 rounded-full text-sm font-medium bg-blue-100 text-blue-800">
-                        {topic.topic_duration_days } hours
+                        {topic.topic_duration_days} hours
                       </span>
                     )}
                   </div>
