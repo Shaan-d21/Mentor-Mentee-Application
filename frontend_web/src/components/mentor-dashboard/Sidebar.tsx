@@ -55,11 +55,20 @@ const Sidebar: React.FC<SidebarProps> = ({ userRole }) => {
   return (
     <div className={`bg-slate-800 text-white shadow-lg transition-all duration-300 relative ${isCollapsed ? 'w-16' : 'w-64'}`}>
       {/* Logo or brand area */}
-      <div className="p-4 border-b border-slate-700 flex items-center justify-center h-16">
+      <div className="p-4 border-b border-slate-700 flex items-center justify-between h-16">
         {isCollapsed ? (
           <Menu size={24} className="text-white cursor-pointer" onClick={toggleSidebar} />
         ) : (
+          <>
           <h1 className="text-lg font-bold text-white">{isMentor ? "Mentor Dashboard" : "Mentee Dashboard"}</h1>
+            <button
+              onClick={toggleSidebar}
+              className="bg-slate-700 text-white w-8 h-8 rounded-full flex items-center justify-center shadow-md border border-slate-600 hover:bg-slate-600 focus:outline-none"
+              aria-label={isCollapsed ? "Expand sidebar" : "Collapse sidebar"}
+            >
+              {isCollapsed ? <ChevronRight size={16} /> : <ChevronLeft size={16} />}
+            </button>
+          </>
         )}
       </div>
 
@@ -92,17 +101,6 @@ const Sidebar: React.FC<SidebarProps> = ({ userRole }) => {
           );
         })}
       </nav>
-
-      {/* Toggle button at the bottom */}
-      <div className="absolute bottom-0 left-0 right-0 p-4 border-t border-slate-700 flex justify-center">
-        <button
-          onClick={toggleSidebar}
-          className="bg-slate-700 text-white w-8 h-8 rounded-full flex items-center justify-center shadow-md border border-slate-600 hover:bg-slate-600 focus:outline-none"
-          aria-label={isCollapsed ? "Expand sidebar" : "Collapse sidebar"}
-        >
-          {isCollapsed ? <ChevronRight size={16} /> : <ChevronLeft size={16} />}
-        </button>
-      </div>
     </div>
   );
 };
