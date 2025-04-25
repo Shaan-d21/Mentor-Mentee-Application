@@ -33,6 +33,7 @@ export const apiConfirmPassword= async(password: string)=>{
         
     }catch(error){
         console.error("Internal Server Error ", error);
+        return null
     }
 }
 
@@ -68,6 +69,8 @@ export const apiVerifyEmail= async(email: string)=>{
         
     }catch(error){
         console.error("Internal Server Error ", error);
+        return null
+
     }
 }
 
@@ -105,5 +108,7 @@ export const apiVerifyOtp= async(email: string, otp: number)=>{
         
     }catch(error){
         console.error("Internal Server Error ", error);
+        return null
+
     }
 }

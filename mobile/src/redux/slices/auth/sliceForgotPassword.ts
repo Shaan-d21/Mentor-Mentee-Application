@@ -1,5 +1,5 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
-import { apiVerifyEmail, apiVerifyOtp, apiConfirmPassword } from '../../services/authService';
+import { apiVerifyEmail, apiVerifyOtp, apiConfirmPassword } from '../../../services/apiForgotPassword';
 
 interface AuthState {
   status: 'idle' | 'loading' | 'success' | 'failed';
@@ -19,7 +19,10 @@ export const verifyEmailThunk = createAsyncThunk(
   async (email: string, { rejectWithValue }) => {
     try {
       const response = await apiVerifyEmail(email);
-      if (response.status_code !== 200) throw new Error(response.message);
+      // Check if the response is null or undefined
+      if (!response || response.status_code !== 200) {
+        throw new Error(response?.message || 'Incorrect Email');
+      }
       return response.message;
     } catch (err: any) {
       return rejectWithValue(err.message);
@@ -32,8 +35,11 @@ export const verifyOtpThunk = createAsyncThunk(
   'auth/verifyOtp',
   async ({ otp, email }: { otp: number; email: string }, { rejectWithValue }) => {
     try {
-      const response = await apiVerifyOtp(otp, email);
-      if (response.status_code !== 200) throw new Error(response.message);
+      const response = await apiVerifyOtp(email, otp);
+      // Check if the response is null or undefined
+      if (!response || response.status_code !== 200) {
+        throw new Error(response?.message || 'Incorrect Otp');
+      }
       return response.message;
     } catch (err: any) {
       return rejectWithValue(err.message);
@@ -44,10 +50,13 @@ export const verifyOtpThunk = createAsyncThunk(
 // Confirm Password Thunk
 export const confirmPasswordThunk = createAsyncThunk(
   'auth/confirmPassword',
-  async ({ password, email }: { password: string; email: string }, { rejectWithValue }) => {
+  async ({ password }: { password: string }, { rejectWithValue }) => {
     try {
-      const response = await apiConfirmPassword(password, email);
-      if (response.status_code !== 200) throw new Error(response.message);
+      const response = await apiConfirmPassword(password);
+      // Check if the response is null or undefined
+      if (!response || response.status_code !== 200) {
+        throw new Error(response?.message || 'Incorrect Password');
+      }
       return response.message;
     } catch (err: any) {
       return rejectWithValue(err.message);
