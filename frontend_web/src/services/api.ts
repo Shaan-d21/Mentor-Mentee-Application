@@ -156,7 +156,14 @@ const apiService = {
   // Registration function
   register: async (userData: { name: string, mail: string, pwd: string, role: string }) => {
     const formData = new URLSearchParams();
-    formData.append('name', userData.name.trim());
+    // Format name: trim spaces, replace multiple spaces with single space, and capitalize first letter of each word
+    const formattedName = userData.name
+      .trim()
+      .replace(/\s+/g, ' ')
+      .split(' ')
+      .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+      .join(' ');
+    formData.append('name', formattedName);
     formData.append('mail', userData.mail.trim().toLowerCase());
     formData.append('pwd', userData.pwd);
     formData.append('role', userData.role);

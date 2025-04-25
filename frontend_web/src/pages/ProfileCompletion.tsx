@@ -776,7 +776,10 @@ const ProfileCompletion = () => {
             <div className="absolute z-10 w-full mt-1 bg-white border rounded-md shadow-lg max-h-60 overflow-y-auto">
               {availableSkills.map((skill) => (
                 <div key={skill} className="mb-2">
-                  <div className="flex items-center px-3 py-2 hover:bg-gray-50">
+                  <div 
+                    className="flex items-center px-3 py-2 hover:bg-gray-50 cursor-pointer"
+                    onClick={() => handleSkillToggle(skill)}
+                  >
                     <input
                       type="checkbox"
                       className="mr-2"
@@ -785,7 +788,7 @@ const ProfileCompletion = () => {
                       )}
                       onChange={() => handleSkillToggle(skill)}
                     />
-                    <span>{skill}</span>
+                    <span className="flex-1">{skill}</span>
                   </div>
                   
                   {profile.skills.some(s => 

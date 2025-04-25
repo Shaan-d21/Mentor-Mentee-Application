@@ -211,7 +211,7 @@ def mentor_profile(user: user_dependency, db: db_dependency):
     domain_name = mentor.domain.name if mentor.domain else None
 
     skill_data = db.query(MentorSkill).filter(MentorSkill.mentor_id == mentor.id).all()
-    skills = [{"name": s.skill.name, "proficiency": s.proficiency} for s in skill_data]
+    skills = [{"name": s.skill.name, "proficiency": s.proficiency, "skill_id": s.skill_id} for s in skill_data]
 
     profile_data = {
         "name": mentor.name,
@@ -225,3 +225,23 @@ def mentor_profile(user: user_dependency, db: db_dependency):
     }
 
     return profile_data
+
+class RequestDelete(BaseModel):
+    skill_id : int
+       
+@router.delete("/mentor/skill_delete", status_code=status.HTTP_200_OK)
+async def mentor_skill_delete(user: user_dependency, db: db_dependency, req: RequestDelete):
+    if user is None or user.get('role') != 'mentor':
+        raise HTTPException(status_code=401, detail="Authentication Error")
+    skill_model = db.query(MentorSkill).filter(MentorSkill.mentor_id == user.get('user_id'), MentorSkill.skill_id == req.skill_id).first()
+    if skill_model is None:
+        raise HTTPException(status_code=404, detail='Skill not found')
+    db.query(MentorSkill).filter(MentorSkill.mentor_id == user.get('user_id'), MentorSkill.skill_id == req.skill_id).delete()
+    db.commit()
+    skill_model_updated = db.query(MentorSkill).filter(MentorSkill.mentor_id == user.get('user_id')).all()
+    # print(skill_model_updated)
+    if skill_model_updated == []:
+        return{'status_code':200, 'Message': 'Skill Deleted Successfully', 'profile_status': 'Incomplete'}
+    return{'status_code':200, 'Message': 'Skill Deleted Successfully', 'profile_status': 'Complete'}
+    
+
