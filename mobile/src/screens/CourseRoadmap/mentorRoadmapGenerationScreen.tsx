@@ -11,7 +11,7 @@ import DomainView from '../../components/roadmap/domainView';
 import { MMKV } from 'react-native-mmkv';
 import { useIsFocused } from '@react-navigation/native';
 import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome';
-import { faArrowLeft } from '@fortawesome/free-solid-svg-icons';
+import {  faChevronLeft } from '@fortawesome/free-solid-svg-icons';
 
 export const MentorRoadmapGeneration: FC<ScreenProps<'MentorRoadmapGeneration'>> = ({ navigation }) => {
   const dispatch = useDispatch<AppDispatch>();
@@ -149,7 +149,7 @@ export const MentorRoadmapGeneration: FC<ScreenProps<'MentorRoadmapGeneration'>>
                   dispatch(initialStateMentorRoadmap())
                   dispatch(fetchApprovedMentees());
                 }}>
-                <FontAwesomeIcon icon={faArrowLeft} size={24} color="#007bff" />
+                <FontAwesomeIcon icon={faChevronLeft} size={24} color="#007bff" />
               </TouchableOpacity>
 
               <Text style={styles.header}>
