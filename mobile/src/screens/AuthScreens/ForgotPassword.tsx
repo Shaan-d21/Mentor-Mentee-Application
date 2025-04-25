@@ -11,6 +11,7 @@ import {
 } from 'react-native';
 import { ScreenProps } from '../../navigation/types';
 import { authStyles } from './authStyle';
+import { apiVerifyEmail } from '../../services/apiForgotPassword';
 
 const ForgotPassword: React.FC<ScreenProps<'ForgotPassword'>> = ({ navigation }) => {
   const [email, setEmail] = useState('');
@@ -26,7 +27,9 @@ const ForgotPassword: React.FC<ScreenProps<'ForgotPassword'>> = ({ navigation })
 
     setIsLoading(true);
     try {
-    
+const response = await apiVerifyEmail(email);
+        if (response && response.status_code == 200) {
+
       Alert.alert(
         'OTP Sent',
         "We've sent a verification code to your email id.",
@@ -37,7 +40,11 @@ const ForgotPassword: React.FC<ScreenProps<'ForgotPassword'>> = ({ navigation })
           },
         ]
       );
-    } catch (error) {
+    }else {
+        Alert.alert('Error', 'Email not found. Please check your email address.');
+    }
+}
+catch (error) {
       Alert.alert('Error', 'Something went wrong. Please try again later.');
     } finally {
       setIsLoading(false);

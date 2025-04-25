@@ -11,6 +11,7 @@ import {
 } from 'react-native';
 import { ScreenProps } from '../../navigation/types';
 import { authStyles } from './authStyle';
+import { apiVerifyEmail, apiVerifyOtp } from '../../services/apiForgotPassword';
 
 const OTPVerification: React.FC<ScreenProps<'OTPVerification'>> = ({ route, navigation }) => {
   const { email } = route.params;
@@ -49,13 +50,16 @@ const OTPVerification: React.FC<ScreenProps<'OTPVerification'>> = ({ route, navi
   };
 
   const handleResendOtp = async () => {
+
     if (!canResend) return;
     setIsLoading(true);
     try {
       // API call would go here
+      const response =await apiVerifyEmail(email);
+      if(response && response.status_code===200){
       setTimer(59);
       setCanResend(false);
-      Alert.alert('Success', 'OTP has been resent to your email');
+      Alert.alert('Success', 'OTP has been resent to your email');}
     } catch (error) {
       Alert.alert('Error', 'Failed to resend OTP');
     } finally {
@@ -64,6 +68,7 @@ const OTPVerification: React.FC<ScreenProps<'OTPVerification'>> = ({ route, navi
   };
 
   const handleVerify = async () => {
+    
     const otpString = otp.join('');
     if (otpString.length !== 4) {
       Alert.alert('Invalid OTP', 'Please enter a valid 4-digit OTP');
@@ -73,7 +78,9 @@ const OTPVerification: React.FC<ScreenProps<'OTPVerification'>> = ({ route, navi
     setIsLoading(true);
     try {
       // Verify OTP API call would go here
-    navigation.navigate('ResetPassword', { email });
+      const response = await apiVerifyOtp(email,otpString);
+      if (response && response.status_code === 200) {
+    navigation.navigate('ResetPassword', { email });}
     } catch (error) {
       Alert.alert('Error', 'Invalid OTP');
     } finally {

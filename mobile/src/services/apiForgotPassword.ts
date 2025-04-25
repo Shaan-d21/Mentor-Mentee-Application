@@ -74,7 +74,7 @@ export const apiVerifyEmail= async(email: string)=>{
 }
 
 
-export const apiVerifyOtp= async(email: string, otp: number)=>{
+export const apiVerifyOtp= async(email: string, otp: string)=>{
     const api= axios.create({
         baseURL: process.env.API_URL,
         headers:{
