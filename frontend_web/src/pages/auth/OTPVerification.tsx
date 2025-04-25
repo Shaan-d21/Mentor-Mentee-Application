@@ -52,7 +52,7 @@ const OTPVerification: React.FC<OTPVerificationProps> = ({ email }) => {
     setIsResending(true); // Disable button
     try {
       const response = await axios.get(
-        `http://localhost:8000/verification/otp`,
+        `${import.meta.env.VITE_API_URL}/verification/otp`,
         {
           params: {
             mail: email.trim().toLowerCase(),
@@ -99,7 +99,7 @@ const OTPVerification: React.FC<OTPVerificationProps> = ({ email }) => {
 
     setIsSubmitting(true);
     try {
-      const response = await api.post("http://127.0.0.1:8000/verification/verify-otp", {
+      const response = await api.post(`${import.meta.env.VITE_API_URL}/verification/verify-otp`, {
         mail: email,
         otp: otpValue,
       });

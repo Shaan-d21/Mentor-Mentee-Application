@@ -45,7 +45,7 @@ const ResetPasswordPage = () => {
 
     try {
       const response = await axios.patch(
-        `http://127.0.0.1:8000/OTP/change_password`,
+        `${import.meta.env.VITE_API_URL}/OTP/change_password`,
         {
           mail: email.trim().toLowerCase(),
           pwd: newPassword,

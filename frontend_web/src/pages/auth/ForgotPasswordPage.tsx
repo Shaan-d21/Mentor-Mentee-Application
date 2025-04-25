@@ -16,7 +16,7 @@ const ForgotPasswordPage = () => {
     try {
       // Send GET request with mail as query parameter
       const response = await axios.get(
-        `http://localhost:8000/verification/otp`,
+        `${import.meta.env.VITE_API_URL}/verification/otp`,
         {
           params: {
             mail: email.trim().toLowerCase(),
