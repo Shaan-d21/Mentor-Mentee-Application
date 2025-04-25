@@ -5,7 +5,7 @@ import models
 from database import engine
 
 from Routers import auth, user, mentee, mentor_approval,get_approved_mentees, get_approved_mentors, get_requests, \
-    predict, mentee_roadmap, assign_roadmap, roadmap_route, mentor_topics_update, progress_tracking, view_feedback
+    predict, mentee_roadmap, assign_roadmap, roadmap_route, mentor_topics_update, progress_tracking, view_feedback, verify_email_and_send_otp_to_mail
 
 from fastapi.middleware.cors import CORSMiddleware
 from starlette import status
@@ -36,6 +36,7 @@ app.include_router(assign_roadmap.router)
 app.include_router(mentor_topics_update.router)
 app.include_router(progress_tracking.router)
 app.include_router(view_feedback.router)
+app.include_router(verify_email_and_send_otp_to_mail.router)
 
 @app.get("/")
 def read_root():

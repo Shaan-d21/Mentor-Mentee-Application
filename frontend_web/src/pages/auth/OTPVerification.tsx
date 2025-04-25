@@ -2,22 +2,25 @@ import React, { useRef, useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import toast from "react-hot-toast";
 import api from "~/config/api";
+import axios from "axios";
 
 type OTPVerificationProps = {
   email: string;
-  onBack?: () => void;
-  onVerificationSuccess?: () => void;
 };
 
-const OTPVerification: React.FC<OTPVerificationProps> = ({ 
-  email, 
-  onBack, 
-  onVerificationSuccess 
-}) => {
-  const [otp, setOTP] = useState<string[]>(Array(6).fill(""));
+const OTPVerification: React.FC<OTPVerificationProps> = ({ email }) => {
+  const [otp, setOTP] = useState<string[]>(Array(4).fill(""));
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [timeLeft, setTimeLeft] = useState(30);
-  const otpRefs = useRef<Array<HTMLInputElement | null>>(Array(6).fill(null));
+  const otpRefs = useRef<Array<HTMLInputElement | null>>(Array(4).fill(null));
+  const navigate = useNavigate();
+
+  // Redirect to forgot-password if email is missing
+  useEffect(() => {
+    if (!email) {
+      toast.error("Email is required for OTP verification");
+      navigate("/auth/forgot-password", { replace: true });
+    }
+  }, [email, navigate]);
 
   useEffect(() => {
     // Focus on the first input when component mounts
@@ -25,13 +28,7 @@ const OTPVerification: React.FC<OTPVerificationProps> = ({
     if (firstInput) {
       firstInput.focus();
     }
-
-    // Countdown timer for resend button
-    const timer = timeLeft > 0 && setInterval(() => setTimeLeft(timeLeft - 1), 1000);
-    return () => {
-      if (timer) clearInterval(timer);
-    };
-  }, [timeLeft]);
+  }, []);
 
   const handleChange = (index: number, value: string) => {
     // Only allow numbers
@@ -42,13 +39,39 @@ const OTPVerification: React.FC<OTPVerificationProps> = ({
     setOTP(newOTP);
 
     // Auto-focus next input after filling current one
-    if (value && index < 5) {
+    if (value && index < 3) {
       const nextInput = otpRefs.current[index + 1];
       if (nextInput) {
         nextInput.focus();
       }
     }
   };
+
+  const resend_otp = async () => {
+    try {
+      const response = await axios.get(
+        `http://localhost:8000/verification/otp`,
+        {
+          params: {
+            mail: email.trim().toLowerCase(),
+          },
+          headers: {
+            'Accept': 'application/json',
+          },
+        }
+      );
+  
+      // Check response data for success
+      if (response.status === 200 && response.data.status_code === 200) {
+        toast.success("Password reset OTP has been sent to your email!");
+        navigate("/otp-verification", { state: { email: email.trim().toLowerCase() } });
+      } else {
+        toast.error(response.data.Message || "Failed to send OTP. Please try again.");
+      }
+    } catch (error) {
+      toast.error("Failed to send OTP. Please try again.");
+    }
+  }
 
   const handleKeyDown = (index: number, e: React.KeyboardEvent<HTMLInputElement>) => {
     // Move to previous input on backspace
@@ -65,139 +88,101 @@ const OTPVerification: React.FC<OTPVerificationProps> = ({
     if (isSubmitting) return;
 
     const otpValue = otp.join("");
-    if (otpValue.length !== 6) {
-      toast.error("Please enter all 6 digits of the OTP");
+    if (otpValue.length !== 4) {
+      toast.error("Please enter all 4 digits of the OTP");
       return;
     }
 
     setIsSubmitting(true);
     try {
-      const response = await api.post("/auth/verify-otp", {
+      navigate("/reset-password");
+      const response = await api.post("/verify-otp", {
         email,
-        otp: otpValue
+        otp: otpValue,
       });
 
       if (response && response.status === 200) {
         toast.success("OTP verified successfully!");
-        
-        // Call onVerificationSuccess callback if provided, otherwise navigate to login
-        if (onVerificationSuccess) {
-          onVerificationSuccess();
-        } else {
-          setTimeout(() => {
-            // Default navigation to login if no callback provided
-            navigate("/auth/login");
-          }, 1000);
-        }
+        setTimeout(() => {
+          navigate("/reset-password", { state: { email } }); // Pass email to reset password page
+        }, 1000);
       }
     } catch (error: any) {
-      console.error("OTP verification error:", error);
-      
-      const errorMessage = 
-        error?.response?.data?.detail || 
-        error?.message || 
+      const errorMessage =
+        error?.response?.data?.detail ||
+        error?.message ||
         "Failed to verify OTP. Please try again.";
-      
       toast.error(errorMessage);
     } finally {
       setIsSubmitting(false);
     }
   };
 
-  const handleResendOtp = async () => {
-    if (timeLeft > 0 || isSubmitting) return;
-    
-    setIsSubmitting(true);
-    try {
-      const response = await api.post("/auth/resend-otp", { email });
-      
-      if (response && response.status === 200) {
-        toast.success("OTP has been resent to your email");
-        setTimeLeft(30); // Reset the timer
-      }
-    } catch (error: any) {
-      console.error("Error resending OTP:", error);
-      
-      const errorMessage = 
-        error?.response?.data?.detail || 
-        error?.message || 
-        "Failed to resend OTP. Please try again.";
-      
-      toast.error(errorMessage);
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
-
-  const navigate = useNavigate();
+  // Render nothing while redirecting
+  if (!email) return null;
 
   return (
-    <div className="max-w-md w-full p-6 bg-white rounded-lg shadow-md">
-      <h2 className="text-2xl font-bold text-center text-gray-800 mb-4">
-        OTP Verification
-      </h2>
-      <p className="text-gray-600 text-center mb-6">
-        Enter the verification code sent to<br />
-        <span className="font-medium text-gray-800">{email}</span>
-      </p>
-
-      <form onSubmit={handleSubmit}>
-        <div className="flex justify-between mb-6">
-          {Array(6).fill(0).map((_, index) => (
-            <input
-              key={index}
-              ref={(el) => { 
-                if (el) otpRefs.current[index] = el;
-              }}
-              type="text"
-              maxLength={1}
-              className="w-12 h-12 text-center text-xl font-bold border border-gray-300 rounded-lg focus:border-blue-500 focus:ring-2 focus:ring-blue-500"
-              value={otp[index]}
-              onChange={(e) => handleChange(index, e.target.value)}
-              onKeyDown={(e) => handleKeyDown(index, e)}
-              disabled={isSubmitting}
-              required
-            />
-          ))}
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-100 to-gray-100 p-4">
+      <div className="max-w-md w-full bg-white rounded-2xl shadow-xl p-8">
+        <div className="text-center mb-8">
+          <h2 className="text-3xl font-bold text-gray-800">Verify Your Email</h2>
+          <p className="text-gray-600 mt-2">Enter the 4-digit code sent to your email</p>
         </div>
 
-        <button
-          type="submit"
-          className={`w-full p-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 focus:outline-none ${
-            isSubmitting ? "opacity-50 cursor-not-allowed" : ""
-          }`}
-          disabled={isSubmitting}
-        >
-          {isSubmitting ? "Verifying..." : "Verify OTP"}
-        </button>
-      </form>
+        <div className="mb-6">
+          <label className="block text-sm font-medium text-gray-700 mb-2">
+            Email Address
+          </label>
+          <input
+            type="email"
+            value={email}
+            readOnly
+            className="w-full p-3 bg-gray-100 border border-gray-300 rounded-lg text-gray-800 focus:outline-none"
+          />
+        </div>
 
-      <div className="mt-4 text-center">
-        <p className="text-gray-600 mb-2">
-          Didn't receive the code?{" "}
-          {timeLeft > 0 ? (
-            <span className="font-medium">Resend in {timeLeft}s</span>
-          ) : (
+        <form onSubmit={handleSubmit}>
+          <div className="flex justify-center gap-3 mb-8">
+            {Array(4).fill(0).map((_, index) => (
+              <input
+                key={index}
+                ref={(el) => {
+                  if (el) otpRefs.current[index] = el;
+                }}
+                type="text"
+                maxLength={1}
+                className="w-14 h-14 text-center text-2xl font-semibold border-2 border-gray-300 rounded-lg focus:border-blue-500 focus:ring-2 focus:ring-blue-500 transition-all duration-200 bg-white shadow-sm"
+                value={otp[index]}
+                onChange={(e) => handleChange(index, e.target.value)}
+                onKeyDown={(e) => handleKeyDown(index, e)}
+                disabled={isSubmitting}
+                required
+              />
+            ))}
+          </div>
+
+          <button
+            type="submit"
+            className={`w-full py-3 bg-blue-600 text-white rounded-lg font-semibold hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-all duration-200 ${
+              isSubmitting ? "opacity-60 cursor-not-allowed" : ""
+            }`}
+            disabled={isSubmitting}
+          >
+            {isSubmitting ? "Verifying..." : "Verify OTP"}
+          </button>
+        </form>
+
+        <div className="mt-6 text-center">
+          <p className="mt-4">
             <button
               type="button"
-              className={`text-blue-600 hover:underline focus:outline-none ${
-                isSubmitting ? "opacity-50 cursor-not-allowed" : ""
-              }`}
-              onClick={handleResendOtp}
-              disabled={isSubmitting || timeLeft > 0}
+              className="text-blue-600 font-semibold hover:underline"
+              onClick={() => resend_otp()}
             >
-              Resend OTP
+              Resend Otp
             </button>
-          )}
-        </p>
-        <button
-          type="button"
-          className="text-gray-600 hover:underline focus:outline-none mt-2"
-          onClick={onBack || (() => navigate("/auth/login"))}
-          disabled={isSubmitting}
-        >
-          Back to {onBack ? "registration" : "login"}
-        </button>
+          </p>
+        </div>
       </div>
     </div>
   );
