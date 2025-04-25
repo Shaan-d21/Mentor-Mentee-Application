@@ -1,5 +1,5 @@
-import React, { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import React, { useState, useEffect } from "react";
+import { useNavigate, useLocation } from "react-router-dom";
 import axios from "axios";
 import { toast } from "react-hot-toast";
 import AuthLayout from "./AuthLayout";
@@ -7,6 +7,7 @@ import { EyeIcon, EyeSlashIcon } from "@heroicons/react/24/outline";
 
 const ResetPasswordPage = () => {
   const navigate = useNavigate();
+  const location = useLocation();
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [loading, setLoading] = useState(false);
@@ -14,6 +15,16 @@ const ResetPasswordPage = () => {
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [passwordError, setPasswordError] = useState("");
 
+  // Extract email from location state
+  const email = (location.state as { email?: string } | null)?.email || "";
+
+  // Redirect to forgot-password if email is missing
+  useEffect(() => {
+    if (!email) {
+      toast.error("Email is required to reset password");
+      navigate("/auth/forgot-password", { replace: true });
+    }
+  }, [email, navigate]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -33,20 +44,20 @@ const ResetPasswordPage = () => {
     }
 
     try {
-      const formData = new URLSearchParams();
-      formData.append('new_password', newPassword);
-
-      const response = await axios.post(
-        `${import.meta.env.VITE_TEST_API_URL}/reset-password`,
-        formData,
+      const response = await axios.patch(
+        `http://127.0.0.1:8000/OTP/change_password`,
+        {
+          mail: email.trim().toLowerCase(),
+          pwd: newPassword,
+        },
         {
           headers: {
-            'Content-Type': 'application/x-www-form-urlencoded',
-            'Accept': 'application/json'
-          }
+            'Content-Type': 'application/json',
+            'Accept': 'application/json',
+          },
         }
       );
-      
+
       if (response.status === 200) {
         toast.success("Password has been reset successfully!");
         navigate("/auth/login");
@@ -55,7 +66,7 @@ const ResetPasswordPage = () => {
       if (error.response) {
         switch (error.response.status) {
           case 400:
-            toast.error("Invalid or expired token. Please request a new password reset link.");
+            toast.error("Invalid or expired OTP. Please request a new password reset.");
             break;
           case 404:
             toast.error("User not found. Please try again.");
@@ -71,6 +82,8 @@ const ResetPasswordPage = () => {
     }
   };
 
+  // Render nothing while redirecting
+  if (!email) return null;
 
   return (
     <AuthLayout>
@@ -80,8 +93,25 @@ const ResetPasswordPage = () => {
           Please enter your new password
         </p>
       </div>
-      
+
       <form onSubmit={handleSubmit} className="space-y-4">
+        <div>
+          <label htmlFor="email" className="block text-sm font-medium text-gray-700">
+            Email Address
+          </label>
+          <div className="mt-1">
+            <input
+              id="email"
+              name="email"
+              type="email"
+              value={email}
+              readOnly
+              className="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm bg-gray-100 text-gray-800 focus:outline-none sm:text-sm"
+              placeholder="Email"
+            />
+          </div>
+        </div>
+
         <div>
           <label htmlFor="newPassword" className="block text-sm font-medium text-gray-700">
             New Password
@@ -154,7 +184,7 @@ const ResetPasswordPage = () => {
           <button
             type="submit"
             disabled={loading}
-            className={`w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-700 hover:bg-blue-700-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-700 ${
+            className={`w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-700 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-700 ${
               loading ? "opacity-70 cursor-not-allowed" : "cursor-pointer"
             }`}
           >
@@ -166,4 +196,4 @@ const ResetPasswordPage = () => {
   );
 };
 
-export default ResetPasswordPage; 
+export default ResetPasswordPage;

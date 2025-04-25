@@ -12,7 +12,7 @@ from email.mime.multipart import MIMEMultipart
 
 router = APIRouter(
     prefix='/verification',
-    tags=['otp']
+    tags=['OTP']
 )
 
 def get_db():

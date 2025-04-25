@@ -99,13 +99,12 @@ const OTPVerification: React.FC<OTPVerificationProps> = ({ email }) => {
 
     setIsSubmitting(true);
     try {
-      navigate("/reset-password");
-      const response = await api.post("/verify-otp", {
-        email,
+      const response = await api.post("http://127.0.0.1:8000/verification/verify-otp", {
+        mail: email,
         otp: otpValue,
       });
 
-      if (response && response.status === 200) {
+      if (response && response.status === 200 && response.data.status_code === 200) {
         toast.success("OTP verified successfully!");
         setTimeout(() => {
           navigate("/reset-password", { state: { email } }); // Pass email to reset password page
