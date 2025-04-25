@@ -183,6 +183,14 @@ const LoginPage: React.FC = () => {
         </div>
 
         <div>
+          <div className="flex justify-end mb-2">
+            <a 
+              href="/auth/forgot-password" 
+              className="text-sm font-medium text-orange-600 hover:text-orange-500 cursor-pointer"
+            >
+              Forgot Password?
+            </a>
+          </div>
           <button
             type="submit"
             disabled={loading}
