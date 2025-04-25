@@ -11,7 +11,6 @@ type OTPVerificationProps = {
 const OTPVerification: React.FC<OTPVerificationProps> = ({ email }) => {
   const [otp, setOTP] = useState<string[]>(Array(4).fill(""));
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [isOtpGenerated, setIsOtpGenerated] = useState(true); // Assume OTP was sent by ForgotPasswordPage
   const [isResending, setIsResending] = useState(false); // New state for resend loading
   const otpRefs = useRef<Array<HTMLInputElement | null>>(Array(4).fill(null));
   const navigate = useNavigate();
