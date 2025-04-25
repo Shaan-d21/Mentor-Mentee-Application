@@ -143,11 +143,11 @@ const OTPVerification: React.FC<ScreenProps<'OTPVerification'>> = ({ route, navi
           )}
         </TouchableOpacity>
 
-        <TouchableOpacity
+        {/* <TouchableOpacity
           style={authStyles.backButton}
           onPress={() => navigation.goBack()}>
           <Text style={authStyles.backButtonText}>Back</Text>
-        </TouchableOpacity>
+        </TouchableOpacity> */}
       </View>
     </KeyboardAvoidingView>
   );
