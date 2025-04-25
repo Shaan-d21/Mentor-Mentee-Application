@@ -11,6 +11,8 @@ type OTPVerificationProps = {
 const OTPVerification: React.FC<OTPVerificationProps> = ({ email }) => {
   const [otp, setOTP] = useState<string[]>(Array(4).fill(""));
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isOtpGenerated, setIsOtpGenerated] = useState(true); // Assume OTP was sent by ForgotPasswordPage
+  const [isResending, setIsResending] = useState(false); // New state for resend loading
   const otpRefs = useRef<Array<HTMLInputElement | null>>(Array(4).fill(null));
   const navigate = useNavigate();
 
@@ -48,6 +50,7 @@ const OTPVerification: React.FC<OTPVerificationProps> = ({ email }) => {
   };
 
   const resend_otp = async () => {
+    setIsResending(true); // Disable button
     try {
       const response = await axios.get(
         `http://localhost:8000/verification/otp`,
@@ -70,6 +73,8 @@ const OTPVerification: React.FC<OTPVerificationProps> = ({ email }) => {
       }
     } catch (error) {
       toast.error("Failed to send OTP. Please try again.");
+    } finally {
+      setIsResending(false); // Re-enable button
     }
   }
 
@@ -176,8 +181,11 @@ const OTPVerification: React.FC<OTPVerificationProps> = ({ email }) => {
           <p className="mt-4">
             <button
               type="button"
-              className="text-blue-600 font-semibold hover:underline"
+              className={`text-blue-600 font-semibold hover:underline ${
+                isResending || isSubmitting ? "opacity-50 cursor-not-allowed" : ""
+              }`}
               onClick={() => resend_otp()}
+              disabled={isResending || isSubmitting}
             >
               Resend Otp
             </button>
