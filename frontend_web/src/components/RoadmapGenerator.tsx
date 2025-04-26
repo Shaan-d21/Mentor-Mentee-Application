@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import { Plus, Trash2, Edit2, ChevronDown, ChevronRight} from 'lucide-react';
+import { Plus, Trash2, Edit2, ChevronDown, ChevronRight } from 'lucide-react';
 
 interface Mentee {
     id: number;
@@ -61,21 +61,19 @@ const RoadmapGenerator: React.FC = () => {
     const [showAddModalSubtopicForm, setShowAddModalSubtopicForm] = useState(false);
     const [newTopicSubtopicForm, setNewTopicSubtopicForm] = useState({ name: '', duration: 0 });
     const [newTopicSubtopics, setNewTopicSubtopics] = useState<string[]>([]);
+    const [showRoadmapModal, setShowRoadmapModal] = useState(false);
+    const [showTopicModal, setShowTopicModal] = useState<Topic | null>(null);
 
-    // New topic form state
-    const [newTopic, setNewTopic] = useState({
+    const newTopicInitialState = {
         name: '',
         description: '',
         importance: ''
-    });
+    };
 
-    // New subtopic form state
-    const [newSubtopic, setNewSubtopic] = useState({
-        name: ''
-    });
+    const [newTopic, setNewTopic] = useState(newTopicInitialState);
+    const [newSubtopic, setNewSubtopic] = useState({ name: '' });
 
     const handleNameInput = (name: string): string => {
-        // Allow spaces between words, only trim leading/trailing spaces
         return name.trim();
     };
 
@@ -87,7 +85,7 @@ const RoadmapGenerator: React.FC = () => {
                 return;
             }
 
-            const response = await axios.get( `${import.meta.env.VITE_API_URL}/mentor/get-approved-mentee`, {
+            const response = await axios.get(`${import.meta.env.VITE_API_URL}/mentor/get-approved-mentee`, {
                 headers: {
                     'Token': token,
                     'Content-Type': 'application/json',
@@ -99,7 +97,6 @@ const RoadmapGenerator: React.FC = () => {
             if (response.data && response.data.object) {
                 const menteeList = response.data.object;
                 if (Array.isArray(menteeList) && menteeList.length > 0) {
-                    // Check each mentee's roadmap status from the backend
                     const menteesWithRoadmapStatus = await Promise.all(
                         menteeList.map(async (mentee) => {
                             try {
@@ -160,7 +157,6 @@ const RoadmapGenerator: React.FC = () => {
         
         if (mentee?.has_roadmap) {
             setViewingAssignedRoadmap(true);
-            // Fetch the assigned roadmap for this mentee
             fetchAssignedRoadmap(mentee.id);
         } else {
             setViewingAssignedRoadmap(false);
@@ -215,7 +211,6 @@ const RoadmapGenerator: React.FC = () => {
             return;
         }
 
-        // Check if roadmap is already assigned
         if (selectedMenteeData.has_roadmap) {
             setError('A roadmap has already been assigned to this mentee. Please select a different mentee.');
             return;
@@ -246,14 +241,13 @@ const RoadmapGenerator: React.FC = () => {
                 if (response.data.topics && Array.isArray(response.data.topics)) {
                     setRoadmapDescription(response.data.roadmap_explanation);
                     const transformedTopics = response.data.topics.map((topic: Topic) => {
-                        // Calculate total hours from subtopics
                         const totalHours = topic.subtopics.reduce((sum, subtopic) => {
                             const match = subtopic.match(/\((\d+)\s*hours\)/);
                             return sum + (match ? parseInt(match[1]) : 0);
                         }, 0);
 
                         return {
-                        ...topic,
+                            ...topic,
                             isExpanded: false,
                             topic_duration_hours: totalHours
                         };
@@ -299,7 +293,6 @@ const RoadmapGenerator: React.FC = () => {
                 return;
             }
 
-            // Double check if roadmap is already assigned
             try {
                 const roadmapResponse = await axios.get(
                     `${import.meta.env.VITE_API_URL}/mentor/get-mentee-roadmap/${selectedMenteeData.id}`,
@@ -316,7 +309,6 @@ const RoadmapGenerator: React.FC = () => {
                     return;
                 }
             } catch (error) {
-                // If we get a 404, it means no roadmap exists, which is what we want
                 if (!axios.isAxiosError(error) || error.response?.status !== 404) {
                     console.error('Error checking roadmap status:', error);
                 }
@@ -344,14 +336,12 @@ const RoadmapGenerator: React.FC = () => {
                 setIsAssigned(true);
                 setError(null);
                 
-                // Update the mentee's has_roadmap status
                 setMentees(mentees.map(mentee => 
                     mentee.id === selectedMenteeData.id 
                         ? { ...mentee, has_roadmap: true }
                         : mentee
                 ));
 
-                // Clear the generated roadmap data
                 setTopics([]);
                 setRoadmapDescription('');
                 setCurrentRoadmapId(null);
@@ -376,7 +366,6 @@ const RoadmapGenerator: React.FC = () => {
             return;
         }
 
-        // Calculate total hours without any validation
         const totalHours = newTopicSubtopics.reduce((sum, s) => {
             const match = s.match(/\((\d+)\s*hours\)/);
             return sum + (match ? parseInt(match[1]) : 0);
@@ -394,7 +383,7 @@ const RoadmapGenerator: React.FC = () => {
         };
 
         setTopics([...topics, topic]);
-        setNewTopic({ name: '', description: '', importance: '' });
+        setNewTopic(newTopicInitialState);
         setNewTopicSubtopics([]);
         setShowAddTopicModal(false);
     };
@@ -411,7 +400,7 @@ const RoadmapGenerator: React.FC = () => {
         }
 
         const value = newSubtopicForm.duration;
-        if (value >= 0 && value <= 255) {  // Only validate individual subtopic hours
+        if (value >= 0 && value <= 255) {
             const newSubtopic = `${newSubtopicForm.name} (${value} hours)`;
             const updatedSubtopics = [...editingTopic.subtopics, newSubtopic];
             const newTotalDuration = updatedSubtopics.reduce((sum, s) => {
@@ -421,16 +410,10 @@ const RoadmapGenerator: React.FC = () => {
             setEditingTopic({
                 ...editingTopic,
                 subtopics: updatedSubtopics,
-                topic_duration_hours: newTotalDuration,
-                topic_id: editingTopic.topic_id,
-                name: editingTopic.name,
-                description: editingTopic.description,
-                importance: editingTopic.importance,
-                topic_status: editingTopic.topic_status,
-                isExpanded: editingTopic.isExpanded
+                topic_duration_hours: newTotalDuration
             });
             setNewSubtopicForm({ name: '', duration: 0 });
-        setShowAddSubtopicModal(false);
+            setShowAddSubtopicModal(false);
         }
     };
 
@@ -446,14 +429,12 @@ const RoadmapGenerator: React.FC = () => {
                 return;
             }
 
-            // Extract subtopic names and durations
             const subtopicNames = updatedTopic.subtopics.map(s => s.replace(/\s*\(\d+\s*hours\)$/, ''));
             const subtopicDurations = updatedTopic.subtopics.map(s => {
                 const match = s.match(/\((\d+)\s*hours\)/);
                 return match ? parseInt(match[1]) : 0;
             });
 
-            // Calculate total duration
             const totalDuration = subtopicDurations.reduce((sum, duration) => sum + duration, 0);
 
             const response = await axios.put(
@@ -519,9 +500,9 @@ const RoadmapGenerator: React.FC = () => {
                 );
 
                 if (response.data) {
-            setTopics(topics.filter(topic => topic.topic_id !== showDeleteTopicConfirmation.topicId));
-            setShowDeleteTopicConfirmation({ show: false, topicId: null });
-        }
+                    setTopics(topics.filter(topic => topic.topic_id !== showDeleteTopicConfirmation.topicId));
+                    setShowDeleteTopicConfirmation({ show: false, topicId: null });
+                }
             } catch (error) {
                 console.error('Error deleting topic:', error);
                 if (axios.isAxiosError(error)) {
@@ -536,17 +517,22 @@ const RoadmapGenerator: React.FC = () => {
     const handleConfirmDeleteSubtopic = () => {
         if (showDeleteSubtopicConfirmation) {
             const { topicId, subtopicIndex } = showDeleteSubtopicConfirmation;
-        setTopics(topics.map(topic => {
-            if (topic.topic_id === topicId) {
+            setTopics(topics.map(topic => {
+                if (topic.topic_id === topicId) {
                     const newSubtopics = [...topic.subtopics];
                     newSubtopics.splice(subtopicIndex, 1);
-                return {
-                    ...topic,
-                        subtopics: newSubtopics
-                };
-            }
-            return topic;
-        }));
+                    const newTotalDuration = newSubtopics.reduce((sum, s) => {
+                        const match = s.match(/\((\d+)\s*hours\)/);
+                        return sum + (match ? parseInt(match[1]) : 0);
+                    }, 0);
+                    return {
+                        ...topic,
+                        subtopics: newSubtopics,
+                        topic_duration_hours: newTotalDuration
+                    };
+                }
+                return topic;
+            }));
             setShowDeleteSubtopicConfirmation(null);
         }
     };
@@ -563,10 +549,17 @@ const RoadmapGenerator: React.FC = () => {
         }));
     };
 
+    const handleViewRoadmapDescription = () => {
+        setShowRoadmapModal(true);
+    };
+
+    const handleViewTopicDetails = (topic: Topic) => {
+        setShowTopicModal(topic);
+    };
+
     useEffect(() => {
         fetchMentees();
         
-        // Check if any mentee has a roadmap assigned
         const checkAssignedRoadmaps = async () => {
             try {
                 const token = localStorage.getItem('accessToken');
@@ -599,17 +592,17 @@ const RoadmapGenerator: React.FC = () => {
     }, []);
 
     return (
-        <div className="container mx-auto">
-            <h1 className="text-3xl font-bold mb-8 text-indigo-800">Generate Learning Roadmap</h1>
-            <div className="bg-white rounded-lg shadow-xl border border-gray-200">
-                <div className="p-6">
+        <div className="min-h-screen bg-gradient-to-b from-blue-50 to-indigo-50 py-6 sm:py-8">
+            <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div className="bg-white rounded-lg shadow-sm border border-gray-100 p-4 sm:p-6 lg:p-8">
+                    <h1 className="text-2xl sm:text-3xl font-bold text-gray-800 mb-6 sm:mb-8">Generate Learning Roadmap</h1>
                     <div className="space-y-6">
-                        <div className="bg-indigo-50 p-4 rounded-lg">
-                            <label className="block text-sm font-medium text-indigo-700 mb-2">Select Mentee</label>
+                        <div className="bg-indigo-50 p-3 sm:p-4 rounded-lg">
+                            <label className="block text-sm sm:text-base font-medium text-indigo-700 mb-2">Select Mentee</label>
                             <select
                                 value={selectedMentee}
                                 onChange={handleMenteeSelect}
-                                className="mt-1 block w-full rounded-md border-indigo-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 p-2 bg-white cursor-pointer"
+                                className="block w-full rounded-md border-indigo-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 p-2 text-sm sm:text-base bg-white"
                             >
                                 <option value="">Select a mentee</option>
                                 {mentees.map((mentee) => (
@@ -621,18 +614,14 @@ const RoadmapGenerator: React.FC = () => {
                         </div>
 
                         {selectedMenteeData?.has_roadmap && (
-                            <div className="bg-yellow-50 border-l-4 border-yellow-400 p-4">
-                                <div className="flex">
-                                    <div className="flex-shrink-0">
-                                        <svg className="h-5 w-5 text-yellow-400" viewBox="0 0 20 20" fill="currentColor">
-                                            <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
-                                        </svg>
-                                    </div>
-                                    <div className="ml-3">
-                                        <p className="text-sm text-yellow-700">
-                                            A roadmap has already been assigned to this mentee. You can view it below.
-                                        </p>
-                                    </div>
+                            <div className="bg-yellow-50 border-l-4 border-yellow-400 p-3 sm:p-4 rounded-lg">
+                                <div className="flex items-center">
+                                    <svg className="h-4 w-4 sm:h-5 sm:w-5 text-yellow-400 mr-2 sm:mr-3" viewBox="0 0 20 20" fill="currentColor">
+                                        <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+                                    </svg>
+                                    <p className="text-sm sm:text-base text-yellow-700">
+                                        A roadmap has already been assigned to this mentee. You can view it below.
+                                    </p>
                                 </div>
                             </div>
                         )}
@@ -641,15 +630,15 @@ const RoadmapGenerator: React.FC = () => {
                             <button
                                 onClick={handleGenerateRoadmap}
                                 disabled={loading || !selectedMentee}
-                                className={`w-full flex justify-center py-3 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white ${
+                                className={`w-full py-2 sm:py-3 px-3 sm:px-4 rounded-md text-sm sm:text-base font-medium text-white ${
                                     loading || !selectedMentee
                                         ? 'bg-gray-400 cursor-not-allowed'
-                                        : 'bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 cursor-pointer'
+                                        : 'bg-indigo-600 hover:bg-indigo-700 hover:scale-105 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-all duration-200'
                                 }`}
                             >
                                 {loading ? (
-                                    <div className="flex items-center">
-                                        <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                    <div className="flex items-center justify-center">
+                                        <svg className="animate-spin -ml-1 mr-2 sm:mr-3 h-4 w-4 sm:h-5 sm:w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                                             <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                                             <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                                         </svg>
@@ -660,117 +649,165 @@ const RoadmapGenerator: React.FC = () => {
                         )}
 
                         {error && (
-                            <div className="bg-red-50 border-l-4 border-red-400 p-4">
-                                <div className="flex">
-                                    <div className="flex-shrink-0">
-                                        <svg className="h-5 w-5 text-red-400" viewBox="0 0 20 20" fill="currentColor">
-                                            <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
-                                        </svg>
-                                    </div>
-                                    <div className="ml-3">
-                                        <p className="text-sm text-red-700">{error}</p>
-                                    </div>
+                            <div className="bg-red-50 border-l-4 border-red-400 p-3 sm:p-4 rounded-lg">
+                                <div className="flex items-center">
+                                    <svg className="h-4 w-4 sm:h-5 sm:w-5 text-red-400 mr-2 sm:mr-3" viewBox="0 0 20 20" fill="currentColor">
+                                        <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
+                                    </svg>
+                                    <p className="text-sm sm:text-base text-red-700">{error}</p>
                                 </div>
                             </div>
                         )}
 
                         {topics.length > 0 && (
-                            <div className="mt-8">
+                            <div className="mt-6 sm:mt-8 space-y-6">
                                 {roadmapDescription && (
-                                    <div className="mb-8 p-6 bg-indigo-50 rounded-lg border border-indigo-100">
-                                        <h3 className="text-xl font-semibold text-indigo-800 mb-4">Roadmap Overview</h3>
-                                        <p className="text-gray-700 leading-relaxed">{roadmapDescription}</p>
-                                    </div>
+                                    <>
+                                        <div className="sm:hidden p-3 sm:p-4 bg-indigo-50 rounded-lg border border-indigo-100">
+                                            <h3 className="text-lg font-semibold text-indigo-800 mb-2 sm:mb-4">Roadmap Overview</h3>
+                                            <p className="text-sm text-gray-700 leading-relaxed line-clamp-3">{roadmapDescription}</p>
+                                            <button
+                                                onClick={handleViewRoadmapDescription}
+                                                className="mt-2 inline-flex items-center px-2 sm:px-3 py-1 bg-indigo-50 text-blue-600 rounded-md hover:bg-indigo-100 hover:shadow-md hover:scale-105 transition-all duration-200 text-sm"
+                                            >
+                                                Read More
+                                            </button>
+                                        </div>
+                                        <div className="hidden sm:block p-4 sm:p-6 bg-indigo-50 rounded-lg border border-indigo-100">
+                                            <h3 className="text-xl font-semibold text-indigo-800 mb-4">Roadmap Overview</h3>
+                                            <p className="text-base text-gray-700 leading-relaxed">{roadmapDescription}</p>
+                                        </div>
+                                    </>
                                 )}
 
-                                <div className="flex justify-between items-center mb-6">
-                                    <h3 className="text-xl font-semibold text-indigo-800">Learning Topics</h3>
+                                <div className="flex flex-col sm:flex-row justify-between items-center mb-4 sm:mb-6 gap-3">
+                                    <h3 className="text-lg sm:text-xl font-semibold text-indigo-800">Learning Topics</h3>
                                     <button
                                         onClick={() => setShowAddTopicModal(true)}
-                                        className="flex items-center px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 transform hover:scale-105 transition-transform duration-200 cursor-pointer"
+                                        className="flex items-center px-3 sm:px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 hover:scale-105 transition-all duration-200 text-sm sm:text-base"
                                     >
-                                        <Plus className="h-4 w-4 mr-2" />
+                                        <Plus className="h-4 w-4 sm:h-5 sm:w-5 mr-1 sm:mr-2" />
                                         Add Topic
                                     </button>
                                 </div>
 
-                                <div className="space-y-6">
-                                    {topics.map((topic) => (
-                                        <div 
-                                            key={topic.topic_id} 
-                                            className={`border rounded-lg p-6 bg-white shadow-md hover:shadow-lg transition-shadow duration-200`}
-                                        >
-                                            <div className="flex justify-between items-center">
-                                                <div className="flex items-center space-x-3">
-                                                    <button
-                                                        onClick={() => handleToggleTopic(topic.topic_id)}
-                                                        className="text-indigo-600 hover:text-indigo-800 transform hover:scale-110 transition-transform duration-200 cursor-pointer"
-                                                    >
-                                                        {topic.isExpanded ? <ChevronDown className="h-5 w-5" /> : <ChevronRight className="h-5 w-5" />}
-                                                    </button>
-                                                    <span className="font-medium text-lg text-gray-900">{topic.name}</span>
-                                                    <span className="ml-2 px-3 py-1 text-sm font-semibold text-indigo-700 bg-indigo-100 rounded-full">
-                                                        {topic.topic_duration_hours} hours
-                                                    </span>
-                                                </div>
-                                                <div className="flex space-x-3">
-                                                    <button
-                                                        onClick={() => handleEditTopic(topic)}
-                                                        className="text-indigo-600 hover:text-indigo-800 transform hover:scale-110 transition-transform duration-200 cursor-pointer"
-                                                    >
-                                                        <Edit2 className="h-6 w-6" />
-                                                    </button>
-                                                    <button
-                                                        onClick={() => handleDeleteTopic(topic.topic_id)}
-                                                        className="text-red-600 hover:text-red-800 transform hover:scale-110 transition-transform duration-200 cursor-pointer"
-                                                    >
-                                                        <Trash2 className="h-6 w-6" />
-                                                    </button>
-                                                </div>
+                                <div className="space-y-4 sm:space-y-6">
+                                    <div className="sm:hidden space-y-3">
+                                        {topics.map((topic) => (
+                                            <div
+                                                key={topic.topic_id}
+                                                className="bg-gray-50 p-3 rounded-lg border border-gray-100 hover:shadow-md hover:scale-[1.02] transition-all duration-300"
+                                            >
+                                                <button
+                                                    onClick={() => handleViewTopicDetails(topic)}
+                                                    className="w-full text-left"
+                                                >
+                                                    <div className="flex justify-between items-center min-w-0">
+                                                        <div className="flex-1 min-w-0">
+                                                            <p className="text-sm font-medium text-blue-600 hover:underline truncate">
+                                                                {topic.name}
+                                                            </p>
+                                                            <p className="text-xs text-gray-600">
+                                                                {topic.topic_duration_hours} hours
+                                                            </p>
+                                                        </div>
+                                                        <ChevronRight className="h-4 w-4 text-blue-600" />
+                                                    </div>
+                                                </button>
                                             </div>
-                                            <p className="text-sm text-gray-600 mt-3 pl-8">{topic.description}</p>
-                                            
-                                            {topic.isExpanded && topic.subtopics.length > 0 && (
-                                                <div className="mt-6 pl-8 space-y-4">
-                                                    {topic.subtopics.map((subtopic, index) => {
-                                                        const name = subtopic.replace(/\s*\(\d+\s*hours\)$/, '');
-                                                        const durationMatch = subtopic.match(/\((\d+)\s*hours\)/);
-                                                        const duration = durationMatch ? parseInt(durationMatch[1]) : 0;
-                                                        
-                                                        return (
-                                                        <div key={index} className="border-l-2 border-indigo-300 pl-4 py-3 bg-indigo-50 rounded-r-lg">
-                                                            <div className="flex justify-between items-center">
-                                                                <div>
-                                                                        <span className="font-medium text-gray-900">{name}</span>
-                                                                        <span className="ml-2 text-sm text-gray-500">
-                                                                            ({duration} hours)
-                                                                        </span>
-                                                                </div>
-                                                                </div>
-                                                            </div>
-                                                        );
-                                                    })}
-                                                </div>
-                                            )}
+                                        ))}
+                                    </div>
 
-                                            <div className="mt-4 pl-8">
-                                                <div className="bg-indigo-50/50 p-4 rounded-lg border border-indigo-100/50">
-                                                    <h4 className="text-sm font-medium text-indigo-700 mb-2">Importance</h4>
-                                                    <p className="text-sm text-gray-700 leading-relaxed">{topic.importance}</p>
+                                    <div className="hidden sm:block space-y-6">
+                                        {topics.map((topic) => (
+                                            <div 
+                                                key={topic.topic_id} 
+                                                className="border rounded-lg p-4 sm:p-6 bg-white shadow-md hover:shadow-lg transition-shadow duration-200"
+                                            >
+                                                <div className="flex justify-between items-center">
+                                                    <div className="flex items-center space-x-2 sm:space-x-3 min-w-0">
+                                                        <button
+                                                            onClick={() => handleToggleTopic(topic.topic_id)}
+                                                            className="text-indigo-600 hover:text-indigo-800 hover:scale-110 transition-transform duration-200"
+                                                        >
+                                                            {topic.isExpanded ? <ChevronDown className="h-4 w-4 sm:h-5 sm:w-5" /> : <ChevronRight className="h-4 w-4 sm:h-5 sm:w-5" />}
+                                                        </button>
+                                                        <div className="flex-1 min-w-0">
+                                                            <span className="font-medium text-base sm:text-lg text-gray-900 truncate">{topic.name}</span>
+                                                        </div>
+                                                        <span className="ml-2 px-2 sm:px-3 py-1 text-xs sm:text-sm font-semibold text-indigo-700 bg-indigo-100 rounded-full">
+                                                            {topic.topic_duration_hours} hours
+                                                        </span>
+                                                    </div>
+                                                    <div className="flex space-x-2 sm:space-x-3">
+                                                        <button
+                                                            onClick={() => handleEditTopic(topic)}
+                                                            className="text-indigo-600 hover:text-indigo-800 hover:scale-110 transition-transform duration-200"
+                                                        >
+                                                            <Edit2 className="h-4 w-4 sm:h-5 sm:w-5" />
+                                                        </button>
+                                                        <button
+                                                            onClick={() => handleDeleteTopic(topic.topic_id)}
+                                                            className="text-red-600 hover:text-red-800 hover:scale-110 transition-transform duration-200"
+                                                        >
+                                                            <Trash2 className="h-4 w-4 sm:h-5 sm:w-5" />
+                                                        </button>
+                                                    </div>
+                                                </div>
+                                                <p className="text-sm sm:text-base text-gray-600 mt-2 sm:mt-3 pl-6 sm:pl-8">{topic.description}</p>
+                                                
+                                                {topic.isExpanded && topic.subtopics.length > 0 && (
+                                                    <div className="mt-4 sm:mt-6 pl-6 sm:pl-8 space-y-3 sm:space-y-4">
+                                                        {topic.subtopics.map((subtopic, index) => {
+                                                            const name = subtopic.replace(/\s*\(\d+\s*hours\)$/, '');
+                                                            const durationMatch = subtopic.match(/\((\d+)\s*hours\)/);
+                                                            const duration = durationMatch ? parseInt(durationMatch[1]) : 0;
+                                                            
+                                                            return (
+                                                                <div key={index} className="border-l-2 border-indigo-300 pl-3 sm:pl-4 py-2 sm:py-3 bg-indigo-50 rounded-r-lg">
+                                                                    <div className="flex justify-between items-center">
+                                                                        <div>
+                                                                            <span className="font-medium text-sm sm:text-base text-gray-900">{name}</span>
+                                                                            <span className="ml-2 text-xs sm:text-sm text-gray-500">
+                                                                                ({duration} hours)
+                                                                            </span>
+                                                                        </div>
+                                                                        <button
+                                                                            onClick={() => setShowDeleteSubtopicConfirmation({ show: true, topicId: topic.topic_id, subtopicIndex: index })}
+                                                                            className="text-red-600 hover:text-red-800 text-sm sm:text-base"
+                                                                        >
+                                                                            Remove
+                                                                        </button>
+                                                                    </div>
+                                                                </div>
+                                                            );
+                                                        })}
+                                                    </div>
+                                                )}
+
+                                                <div className="mt-3 sm:mt-4 pl-6 sm:pl-8">
+                                                    <div className="bg-indigo-50/50 p-3 sm:p-4 rounded-lg border border-indigo-100/50">
+                                                        <h4 className="text-sm sm:text-base font-medium text-indigo-700 mb-2">Importance</h4>
+                                                        <p className="text-sm sm:text-base text-gray-700 leading-relaxed">{topic.importance}</p>
+                                                    </div>
                                                 </div>
                                             </div>
-                                        </div>
-                                    ))}
+                                        ))}
+                                    </div>
                                 </div>
 
                                 <button
                                     onClick={handleAssignRoadmap}
                                     disabled={loading || isAssigned}
-                                    className="mt-6 w-full flex justify-center py-3 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 disabled:opacity-50 cursor-pointer"
+                                    className={`w-full py-2 sm:py-3 px-3 sm:px-4 rounded-md text-sm sm:text-base font-medium text-white ${
+                                        loading || isAssigned
+                                            ? 'bg-gray-400 cursor-not-allowed'
+                                            : 'bg-green-600 hover:bg-green-700 hover:scale-105 transition-all duration-200'
+                                    }`}
                                 >
                                     {loading ? (
-                                        <div className="flex items-center">
-                                            <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                        <div className="flex items-center justify-center">
+                                            <svg className="animate-spin -ml-1 mr-2 sm:mr-3 h-4 w-4 sm:h-5 sm:w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                                                 <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                                                 <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                                             </svg>
@@ -784,18 +821,106 @@ const RoadmapGenerator: React.FC = () => {
                 </div>
             </div>
 
+            {/* Roadmap Overview Modal (Mobile) */}
+            {showRoadmapModal && (
+                <div className="fixed inset-0 bg-gray-900/30 backdrop-blur-md flex items-center justify-center z-50 p-4">
+                    <div className="bg-white rounded-lg shadow-sm border border-gray-100 p-4 sm:p-6 max-w-[90vw] sm:max-w-lg max-h-[80vh] overflow-y-auto">
+                        <h3 className="text-lg sm:text-xl font-semibold text-gray-800 mb-4">Roadmap Overview</h3>
+                        <p className="text-sm sm:text-base text-gray-700 leading-relaxed">{roadmapDescription}</p>
+                        <div className="mt-4 sm:mt-6 flex flex-col sm:flex-row justify-end gap-3">
+                            <button
+                                onClick={() => setShowRoadmapModal(false)}
+                                className="px-3 sm:px-4 py-2 text-sm sm:text-base font-medium text-gray-700 bg-gray-100 rounded-md hover:bg-gray-200 hover:scale-105 transition-all duration-200"
+                            >
+                                Close
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* Topic Details Modal (Mobile) */}
+            {showTopicModal && (
+                <div className="fixed inset-0 bg-gray-900/30 backdrop-blur-md flex items-center justify-center z-50 p-4">
+                    <div className="bg-white rounded-lg shadow-sm border border-gray-100 p-4 sm:p-6 max-w-[90vw] sm:max-w-md max-h-[80vh] overflow-y-auto">
+                        <div className="flex-1 min-w-0">
+                            <h3 className="text-lg sm:text-xl font-semibold text-gray-800 mb-4 truncate">{showTopicModal.name}</h3>
+                        </div>
+                        <div className="space-y-4">
+                            <div>
+                                <span className="text-sm sm:text-base font-medium text-gray-600">Description:</span>
+                                <p className="text-sm sm:text-base text-gray-700 mt-1">{showTopicModal.description}</p>
+                            </div>
+                            <div>
+                                <span className="text-sm sm:text-base font-medium text-gray-600">Subtopics:</span>
+                                {showTopicModal.subtopics.length > 0 ? (
+                                    <ul className="mt-1 space-y-2">
+                                        {showTopicModal.subtopics.map((subtopic, index) => {
+                                            const name = subtopic.replace(/\s*\(\d+\s*hours\)$/, '');
+                                            const durationMatch = subtopic.match(/\((\d+)\s*hours\)/);
+                                            const duration = durationMatch ? parseInt(durationMatch[1]) : 0;
+                                            return (
+                                                <li key={index} className="text-sm sm:text-base text-gray-700">
+                                                    {name} ({duration} hours)
+                                                </li>
+                                            );
+                                        })}
+                                    </ul>
+                                ) : (
+                                    <p className="text-sm sm:text-base text-gray-700 mt-1">No subtopics available.</p>
+                                )}
+                            </div>
+                            <div>
+                                <span className="text-sm sm:text-base font-medium text-gray-600">Importance:</span>
+                                <p className="text-sm sm:text-base text-gray-700 mt-1">{showTopicModal.importance}</p>
+                            </div>
+                            <div>
+                                <span className="text-sm sm:text-base font-medium text-gray-600">Duration:</span>
+                                <p className="text-sm sm:text-base text-gray-700 mt-1">{showTopicModal.topic_duration_hours} hours</p>
+                            </div>
+                        </div>
+                        <div className="mt-4 sm:mt-6 flex flex-col sm:flex-row justify-end gap-3">
+                            <button
+                                onClick={() => {
+                                    setShowTopicModal(null);
+                                    handleEditTopic(showTopicModal);
+                                }}
+                                className="px-3 sm:px-4 py-2 text-sm sm:text-base font-medium text-white bg-indigo-600 rounded-md hover:bg-indigo-700 hover:scale-105 transition-all duration-200"
+                            >
+                                Edit
+                            </button>
+                            <button
+                                onClick={() => {
+                                    setShowTopicModal(null);
+                                    handleDeleteTopic(showTopicModal.topic_id);
+                                }}
+                                className="px-3 sm:px-4 py-2 text-sm sm:text-base font-medium text-white bg-red-600 rounded-md hover:bg-red-700 hover:scale-105 transition-all duration-200"
+                            >
+                                Delete
+                            </button>
+                            <button
+                                onClick={() => setShowTopicModal(null)}
+                                className="px-3 sm:px-4 py-2 text-sm sm:text-base font-medium text-gray-700 bg-gray-100 rounded-md hover:bg-gray-200 hover:scale-105 transition-all duration-200"
+                            >
+                                Close
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
             {/* Add Topic Modal */}
             {showAddTopicModal && (
-                <div className="fixed inset-0 bg-gray-500 bg-opacity-75 flex items-center justify-center p-4 z-[1000]">
-                    <div className="bg-white rounded-lg w-full max-w-[1000px] max-h-[90vh] flex flex-col">
-                        <div className="p-6 border-b border-gray-200">
-                            <h3 className="text-xl font-medium text-indigo-800">Add New Topic</h3>
+                <div className="fixed inset-0 bg-gray-900/30 backdrop-blur-md flex items-center justify-center p-4 z-[1000]">
+                    <div className="bg-white rounded-lg w-full max-w-[90vw] sm:max-w-[1000px] max-h-[90vh] flex flex-col">
+                        <div className="p-4 sm:p-6 border-b border-gray-200">
+                            <h3 className="text-lg sm:text-xl font-medium text-indigo-800">Add New Topic</h3>
                         </div>
-                        <div className="flex-1 overflow-y-auto p-6">
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                                <div className="space-y-6 border-r border-gray-200 pr-8">
-                                    <div>
-                                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                        <div className="flex-1 overflow-y-auto p-4 sm:p-6">
+                            <div className="flex flex-col sm:grid sm:grid-cols-2 gap-4 sm:gap-8">
+                                <div className="space-y-4 sm:space-y-6 sm:border-r sm:border-gray-200 sm:pr-8">
+                                    <div className="min-w-0">
+                                        <label className="block text-sm sm:text-base font-medium text-gray-700 mb-2">
                                             Topic Name <span className="text-red-500">*</span>
                                         </label>
                                         <input
@@ -805,48 +930,48 @@ const RoadmapGenerator: React.FC = () => {
                                                 const value = e.target.value;
                                                 setNewTopic(prev => ({ ...prev, name: value }));
                                             }}
-                                            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 p-2"
+                                            className="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 p-2 text-sm sm:text-base overflow-hidden text-ellipsis whitespace-nowrap"
                                         />
                                     </div>
                                     <div>
-                                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                                        <label className="block text-sm sm:text-base font-medium text-gray-700 mb-2">
                                             Description <span className="text-red-500">*</span>
                                         </label>
                                         <textarea
                                             value={newTopic.description}
                                             onChange={(e) => setNewTopic({ ...newTopic, description: e.target.value })}
-                                            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 p-2"
+                                            className="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 p-2 text-sm sm:text-base"
                                             rows={5}
                                         />
                                     </div>
                                     <div>
-                                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                                        <label className="block text-sm sm:text-base font-medium text-gray-700 mb-2">
                                             Importance <span className="text-red-500">*</span>
                                         </label>
                                         <textarea
                                             value={newTopic.importance}
                                             onChange={(e) => setNewTopic({ ...newTopic, importance: e.target.value })}
-                                            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 p-2"
+                                            className="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 p-2 text-sm sm:text-base"
                                             rows={5}
                                         />
                                     </div>
                                 </div>
-                                <div className="space-y-6">
+                                <div className="space-y-4 sm:space-y-6">
                                     <div>
-                                        <div className="flex justify-between items-center mb-4">
-                                            <label className="block text-sm font-medium text-gray-700">Subtopics</label>
+                                        <div className="flex justify-between items-center mb-2 sm:mb-4">
+                                            <label className="block text-sm sm:text-base font-medium text-gray-700">Subtopics</label>
                                             <button
                                                 onClick={() => setShowAddModalSubtopicForm(true)}
-                                                className="text-sm text-indigo-600 hover:text-indigo-800 flex items-center space-x-1 cursor-pointer"
+                                                className="flex items-center space-x-1 text-sm sm:text-base text-indigo-600 hover:text-indigo-800"
                                             >
-                                                <Plus className="h-4 w-4" />
+                                                <Plus className="h-4 w-4 sm:h-5 sm:w-5" />
                                                 <span>Add Subtopic</span>
                                             </button>
                                         </div>
 
                                         {showAddModalSubtopicForm && (
                                             <div className="mb-4 p-4 bg-gray-50 rounded-lg border border-gray-200">
-                                                <div className="flex items-center space-x-2">
+                                                <div className="flex flex-col sm:flex-row items-center gap-2 sm:space-x-2">
                                                     <input
                                                         type="text"
                                                         placeholder="Subtopic name"
@@ -855,22 +980,24 @@ const RoadmapGenerator: React.FC = () => {
                                                             const value = e.target.value;
                                                             setNewTopicSubtopicForm(prev => ({ ...prev, name: value }));
                                                         }}
-                                                        className="flex-1 rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 p-2 text-sm"
+                                                        className="flex-1 rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 p-2 text-sm sm:text-base"
                                                     />
-                                                    <input
-                                                        type="number"
-                                                        min="0"
-                                                        max="255"
-                                                        value={newTopicSubtopicForm.duration}
-                                                        onChange={(e) => {
-                                                            const value = parseInt(e.target.value) || 0;
-                                                            if (value >= 0 && value <= 255) {
-                                                                setNewTopicSubtopicForm({ ...newTopicSubtopicForm, duration: value });
-                                                            }
-                                                        }}
-                                                        className="w-20 rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 p-2 text-sm"
-                                                    />
-                                                    <span className="text-sm text-gray-500">hours</span>
+                                                    <div className="flex items-center gap-2">
+                                                        <input
+                                                            type="number"
+                                                            min="0"
+                                                            max="255"
+                                                            value={newTopicSubtopicForm.duration}
+                                                            onChange={(e) => {
+                                                                const value = parseInt(e.target.value) || 0;
+                                                                if (value >= 0 && value <= 255) {
+                                                                    setNewTopicSubtopicForm({ ...newTopicSubtopicForm, duration: value });
+                                                                }
+                                                            }}
+                                                            className="w-20 rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 p-2 text-sm sm:text-base"
+                                                        />
+                                                        <span className="text-sm sm:text-base text-gray-500">hours</span>
+                                                    </div>
                                                     <div className="flex space-x-2">
                                                         <button
                                                             onClick={() => {
@@ -880,7 +1007,7 @@ const RoadmapGenerator: React.FC = () => {
                                                                     setShowAddModalSubtopicForm(false);
                                                                 }
                                                             }}
-                                                            className="text-sm text-indigo-600 hover:text-indigo-800 cursor-pointer"
+                                                            className="text-sm sm:text-base text-indigo-600 hover:text-indigo-800"
                                                         >
                                                             Add
                                                         </button>
@@ -889,7 +1016,7 @@ const RoadmapGenerator: React.FC = () => {
                                                                 setShowAddModalSubtopicForm(false);
                                                                 setNewTopicSubtopicForm({ name: '', duration: 0 });
                                                             }}
-                                                            className="text-sm text-gray-600 hover:text-gray-800 cursor-pointer"
+                                                            className="text-sm sm:text-base text-gray-600 hover:text-gray-800"
                                                         >
                                                             Cancel
                                                         </button>
@@ -907,13 +1034,13 @@ const RoadmapGenerator: React.FC = () => {
                                                 return (
                                                     <div key={index} className="flex items-center justify-between p-3 bg-gray-50 rounded border border-gray-200">
                                                         <div className="flex-1 mr-4">
-                                                            <span className="font-medium text-gray-900">{name}</span>
+                                                            <span className="font-medium text-sm sm:text-base text-gray-900">{name}</span>
                                                         </div>
                                                         <div className="flex items-center space-x-2">
-                                                            <span className="text-sm text-gray-500">{duration} hours</span>
+                                                            <span className="text-sm sm:text-base text-gray-500">{duration} hours</span>
                                                             <button
                                                                 onClick={() => setShowAddModalSubtopicDeleteConfirmation({ show: true, subtopicIndex: index })}
-                                                                className="text-sm text-red-600 hover:text-red-800 cursor-pointer"
+                                                                className="text-sm sm:text-base text-red-600 hover:text-red-800"
                                                             >
                                                                 Remove
                                                             </button>
@@ -926,20 +1053,20 @@ const RoadmapGenerator: React.FC = () => {
                                 </div>
                             </div>
                         </div>
-                        <div className="flex justify-end space-x-3 p-4 border-t border-gray-200">
+                        <div className="flex flex-col sm:flex-row justify-end gap-3 p-4 sm:p-6 border-t border-gray-200">
                             <button
                                 onClick={() => {
                                     setShowAddTopicModal(false);
-                                    setNewTopic({ name: '', description: '', importance: '' });
+                                    setNewTopic(newTopicInitialState);
                                     setNewTopicSubtopics([]);
                                 }}
-                                className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-md hover:bg-gray-200 cursor-pointer"
+                                className="px-3 sm:px-4 py-2 text-sm sm:text-base font-medium text-gray-700 bg-gray-100 rounded-md hover:bg-gray-200 hover:scale-105 transition-all duration-200"
                             >
                                 Cancel
                             </button>
                             <button
                                 onClick={handleAddTopic}
-                                className="px-4 py-2 text-sm font-medium text-white bg-indigo-600 rounded-md hover:bg-indigo-700 cursor-pointer"
+                                className="px-3 sm:px-4 py-2 text-sm sm:text-base font-medium text-white bg-indigo-600 rounded-md hover:bg-indigo-700 hover:scale-105 transition-all duration-200"
                             >
                                 Add Topic
                             </button>
@@ -950,29 +1077,45 @@ const RoadmapGenerator: React.FC = () => {
 
             {/* Add Subtopic Modal */}
             {showAddSubtopicModal && (
-                <div className="fixed inset-0 bg-gray-500 bg-opacity-75 flex items-center justify-center">
-                    <div className="bg-white rounded-lg p-6 max-w-md w-full">
-                        <h3 className="text-lg font-medium mb-4">Add New Subtopic</h3>
+                <div className="fixed inset-0 bg-gray-900/30 backdrop-blur-md flex items-center justify-center p-4 z-50">
+                    <div className="bg-white rounded-lg p-4 sm:p-6 max-w-[90vw] sm:max-w-md">
+                        <h3 className="text-lg sm:text-xl font-medium text-indigo-800 mb-4">Add New Subtopic</h3>
                         <div className="space-y-4">
                             <div>
-                                <label className="block text-sm font-medium text-gray-700">Subtopic Name</label>
+                                <label className="block text-sm sm:text-base font-medium text-gray-700 mb-2">Subtopic Name</label>
                                 <input
                                     type="text"
-                                    value={newSubtopic.name}
-                                    onChange={(e) => setNewSubtopic({ name: e.target.value })}
-                                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                                    value={newSubtopicForm.name}
+                                    onChange={(e) => setNewSubtopicForm({ ...newSubtopicForm, name: e.target.value })}
+                                    className="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 p-2 text-sm sm:text-base"
                                 />
                             </div>
-                            <div className="flex justify-end space-x-3">
+                            <div>
+                                <label className="block text-sm sm:text-base font-medium text-gray-700 mb-2">Duration (hours)</label>
+                                <input
+                                    type="number"
+                                    min="0"
+                                    max="255"
+                                    value={newSubtopicForm.duration}
+                                    onChange={(e) => {
+                                        const value = parseInt(e.target.value) || 0;
+                                        if (value >= 0 && value <= 255) {
+                                            setNewSubtopicForm({ ...newSubtopicForm, duration: value });
+                                        }
+                                    }}
+                                    className="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 p-2 text-sm sm:text-base"
+                                />
+                            </div>
+                            <div className="flex flex-col sm:flex-row justify-end gap-3">
                                 <button
                                     onClick={() => setShowAddSubtopicModal(false)}
-                                    className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-md hover:bg-gray-200"
+                                    className="px-3 sm:px-4 py-2 text-sm sm:text-base font-medium text-gray-700 bg-gray-100 rounded-md hover:bg-gray-200 hover:scale-105 transition-all duration-200"
                                 >
                                     Cancel
                                 </button>
                                 <button
                                     onClick={handleAddSubtopic}
-                                    className="px-4 py-2 text-sm font-medium text-white bg-indigo-600 rounded-md hover:bg-indigo-700"
+                                    className="px-3 sm:px-4 py-2 text-sm sm:text-base font-medium text-white bg-indigo-600 rounded-md hover:bg-indigo-700 hover:scale-105 transition-all duration-200"
                                 >
                                     Add Subtopic
                                 </button>
@@ -984,85 +1127,87 @@ const RoadmapGenerator: React.FC = () => {
 
             {/* Edit Topic Modal */}
             {editingTopic && (
-                <div className="fixed inset-0 bg-gray-500 bg-opacity-75 flex items-center justify-center p-4 z-[1000]">
-                    <div className="bg-white rounded-lg w-full max-w-[1000px] max-h-[90vh] flex flex-col">
-                        <div className="p-6 border-b border-gray-200">
-                            <h3 className="text-xl font-medium text-indigo-800">Edit Topic</h3>
+                <div className="fixed inset-0 bg-gray-900/30 backdrop-blur-md flex items-center justify-center p-4 z-[1000]">
+                    <div className="bg-white rounded-lg w-full max-w-[90vw] sm:max-w-[1000px] max-h-[90vh] flex flex-col">
+                        <div className="p-4 sm:p-6 border-b border-gray-200">
+                            <h3 className="text-lg sm:text-xl font-medium text-indigo-800">Edit Topic</h3>
                         </div>
-                        <div className="flex-1 overflow-y-auto p-6">
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                                <div className="space-y-6 border-r border-gray-200 pr-8">
-                                    <div>
-                                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                        <div className="flex-1 overflow-y-auto p-4 sm:p-6">
+                            <div className="flex flex-col sm:grid sm:grid-cols-2 gap-4 sm:gap-8">
+                                <div className="space-y-4 sm:space-y-6 sm:border-r sm:border-gray-200 sm:pr-8">
+                                    <div className="min-w-0">
+                                        <label className="block text-sm sm:text-base font-medium text-gray-700 mb-2">
                                             Topic Name <span className="text-red-500">*</span>
                                         </label>
                                         <input
                                             type="text"
                                             value={editingTopic.name}
                                             onChange={(e) => setEditingTopic({ ...editingTopic, name: handleNameInput(e.target.value) })}
-                                            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 p-2"
+                                            className="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 p-2 text-sm sm:text-base overflow-hidden text-ellipsis whitespace-nowrap"
                                         />
                                     </div>
                                     <div>
-                                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                                        <label className="block text-sm sm:text-base font-medium text-gray-700 mb-2">
                                             Description <span className="text-red-500">*</span>
                                         </label>
                                         <textarea
                                             value={editingTopic.description}
                                             onChange={(e) => setEditingTopic({ ...editingTopic, description: e.target.value })}
-                                            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 p-2"
+                                            className="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 p-2 text-sm sm:text-base"
                                             rows={5}
                                         />
                                     </div>
                                     <div>
-                                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                                        <label className="block text-sm sm:text-base font-medium text-gray-700 mb-2">
                                             Importance <span className="text-red-500">*</span>
                                         </label>
                                         <textarea
                                             value={editingTopic.importance}
                                             onChange={(e) => setEditingTopic({ ...editingTopic, importance: e.target.value })}
-                                            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 p-2"
+                                            className="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 p-2 text-sm sm:text-base"
                                             rows={5}
                                         />
                                     </div>
                                 </div>
-                                <div className="space-y-6">
+                                <div className="space-y-4 sm:space-y-6">
                                     <div>
-                                        <div className="flex justify-between items-center mb-4">
-                                            <label className="block text-sm font-medium text-gray-700">Subtopics</label>
+                                        <div className="flex justify-between items-center mb-2 sm:mb-4">
+                                            <label className="block text-sm sm:text-base font-medium text-gray-700">Subtopics</label>
                                             <button
                                                 onClick={() => setShowSubtopicForm(true)}
-                                                className="text-sm text-indigo-600 hover:text-indigo-800 flex items-center space-x-1 cursor-pointer"
+                                                className="flex items-center space-x-1 text-sm sm:text-base text-indigo-600 hover:text-indigo-800"
                                             >
-                                                <Plus className="h-4 w-4" />
+                                                <Plus className="h-4 w-4 sm:h-5 sm:w-5" />
                                                 <span>Add Subtopic</span>
                                             </button>
                                         </div>
 
                                         {showSubtopicForm && (
                                             <div className="mb-4 p-4 bg-gray-50 rounded-lg border border-gray-200">
-                                                <div className="flex items-center space-x-2">
+                                                <div className="flex flex-col sm:flex-row items-center gap-2 sm:space-x-2">
                                                     <input
                                                         type="text"
                                                         placeholder="Subtopic name"
                                                         value={newSubtopicForm.name}
                                                         onChange={(e) => setNewSubtopicForm({ ...newSubtopicForm, name: handleNameInput(e.target.value) })}
-                                                        className="flex-1 rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 p-2 text-sm"
+                                                        className="flex-1 rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 p-2 text-sm sm:text-base"
                                                     />
-                                                    <input
-                                                        type="number"
-                                                        min="0"
-                                                        max="255"
-                                                        value={newSubtopicForm.duration}
-                                                        onChange={(e) => {
-                                                            const value = parseInt(e.target.value) || 0;
-                                                            if (value >= 0 && value <= 255) {
-                                                                setNewSubtopicForm({ ...newSubtopicForm, duration: value });
-                                                            }
-                                                        }}
-                                                        className="w-20 rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 p-2 text-sm"
-                                                    />
-                                                    <span className="text-sm text-gray-500">hours</span>
+                                                    <div className="flex items-center gap-2">
+                                                        <input
+                                                            type="number"
+                                                            min="0"
+                                                            max="255"
+                                                            value={newSubtopicForm.duration}
+                                                            onChange={(e) => {
+                                                                const value = parseInt(e.target.value) || 0;
+                                                                if (value >= 0 && value <= 255) {
+                                                                    setNewSubtopicForm({ ...newSubtopicForm, duration: value });
+                                                                }
+                                                            }}
+                                                            className="w-20 rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 p-2 text-sm sm:text-base"
+                                                        />
+                                                        <span className="text-sm sm:text-base text-gray-500">hours</span>
+                                                    </div>
                                                     <div className="flex space-x-2">
                                                         <button
                                                             onClick={() => {
@@ -1081,7 +1226,7 @@ const RoadmapGenerator: React.FC = () => {
                                                                     setShowSubtopicForm(false);
                                                                 }
                                                             }}
-                                                            className="text-sm text-indigo-600 hover:text-indigo-800 cursor-pointer"
+                                                            className="text-sm sm:text-base text-indigo-600 hover:text-indigo-800"
                                                         >
                                                             Add
                                                         </button>
@@ -1090,7 +1235,7 @@ const RoadmapGenerator: React.FC = () => {
                                                                 setShowSubtopicForm(false);
                                                                 setNewSubtopicForm({ name: '', duration: 0 });
                                                             }}
-                                                            className="text-sm text-gray-600 hover:text-gray-800 cursor-pointer"
+                                                            className="text-sm sm:text-base text-gray-600 hover:text-gray-800"
                                                         >
                                                             Cancel
                                                         </button>
@@ -1106,8 +1251,8 @@ const RoadmapGenerator: React.FC = () => {
                                                 const duration = durationMatch ? parseInt(durationMatch[1]) : 0;
                                                 
                                                 return (
-                                                    <div key={index} className="flex items-center justify-between p-3 bg-gray-50 rounded border border-gray-200">
-                                                        <div className="flex-1 mr-4">
+                                                    <div key={index} className="flex flex-col sm:flex-row items-center justify-between p-3 bg-gray-50 rounded border border-gray-200 gap-2">
+                                                        <div className="flex-1">
                                                             <input
                                                                 type="text"
                                                                 value={name}
@@ -1119,7 +1264,7 @@ const RoadmapGenerator: React.FC = () => {
                                                                         subtopics: updatedSubtopics
                                                                     });
                                                                 }}
-                                                                className="w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 p-2 text-sm"
+                                                                className="w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 p-2 text-sm sm:text-base"
                                                             />
                                                         </div>
                                                         <div className="flex items-center space-x-2">
@@ -1134,22 +1279,22 @@ const RoadmapGenerator: React.FC = () => {
                                                                         const updatedSubtopics = [...editingTopic.subtopics];
                                                                         updatedSubtopics[index] = `${name} (${value} hours)`;
                                                                         const newTotalDuration = updatedSubtopics.reduce((sum, s) => {
-                                                                        const match = s.match(/\((\d+)\s*hours\)/);
-                                                                        return sum + (match ? parseInt(match[1]) : 0);
-                                                                    }, 0);
-                                                                    setEditingTopic({
-                                                                        ...editingTopic,
+                                                                            const match = s.match(/\((\d+)\s*hours\)/);
+                                                                            return sum + (match ? parseInt(match[1]) : 0);
+                                                                        }, 0);
+                                                                        setEditingTopic({
+                                                                            ...editingTopic,
                                                                             subtopics: updatedSubtopics,
-                                                                        topic_duration_hours: newTotalDuration
-                                                                    });
+                                                                            topic_duration_hours: newTotalDuration
+                                                                        });
                                                                     }
                                                                 }}
-                                                                className="w-20 rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 p-2 text-sm"
+                                                                className="w-20 rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 p-2 text-sm sm:text-base"
                                                             />
-                                                            <span className="text-sm text-gray-500">hours</span>
+                                                            <span className="text-sm sm:text-base text-gray-500">hours</span>
                                                             <button
                                                                 onClick={() => setShowEditModalSubtopicDeleteConfirmation({ show: true, subtopicIndex: index })}
-                                                                className="text-sm text-red-600 hover:text-red-800 cursor-pointer"
+                                                                className="text-sm sm:text-base text-red-600 hover:text-red-800"
                                                             >
                                                                 Remove
                                                             </button>
@@ -1162,16 +1307,16 @@ const RoadmapGenerator: React.FC = () => {
                                 </div>
                             </div>
                         </div>
-                        <div className="flex justify-end space-x-3 p-4 border-t border-gray-200">
+                        <div className="flex flex-col sm:flex-row justify-end gap-3 p-4 sm:p-6 border-t border-gray-200">
                             <button
                                 onClick={() => setEditingTopic(null)}
-                                className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-md hover:bg-gray-200 cursor-pointer"
+                                className="px-3 sm:px-4 py-2 text-sm sm:text-base font-medium text-gray-700 bg-gray-100 rounded-md hover:bg-gray-200 hover:scale-105 transition-all duration-200"
                             >
                                 Cancel
                             </button>
                             <button
                                 onClick={() => handleUpdateTopic(editingTopic)}
-                                className="px-4 py-2 text-sm font-medium text-white bg-indigo-600 rounded-md hover:bg-indigo-700 cursor-pointer"
+                                className="px-3 sm:px-4 py-2 text-sm sm:text-base font-medium text-white bg-indigo-600 rounded-md hover:bg-indigo-700 hover:scale-105 transition-all duration-200"
                             >
                                 Save Changes
                             </button>
@@ -1182,14 +1327,14 @@ const RoadmapGenerator: React.FC = () => {
 
             {/* Edit Modal Subtopic Delete Confirmation */}
             {showEditModalSubtopicDeleteConfirmation && (
-                <div className="fixed inset-0 bg-gray-500 bg-opacity-75 flex items-center justify-center z-50">
-                    <div className="bg-white rounded-lg p-6 max-w-md w-full">
-                        <h3 className="text-lg font-medium text-gray-900 mb-4">Delete Subtopic</h3>
-                        <p className="text-gray-600 mb-6">Are you sure you want to delete this subtopic? This action cannot be undone.</p>
-                        <div className="flex justify-end space-x-3">
+                <div className="fixed inset-0 bg-gray-900/30 backdrop-blur-md flex items-center justify-center z-50 p-4">
+                    <div className="bg-white rounded-lg p-4 sm:p-6 max-w-[90vw] sm:max-w-md">
+                        <h3 className="text-lg sm:text-xl font-medium text-gray-900 mb-4">Delete Subtopic</h3>
+                        <p className="text-sm sm:text-base text-gray-600 mb-6">Are you sure you want to delete this subtopic? This action cannot be undone.</p>
+                        <div className="flex flex-col sm:flex-row justify-end gap-3">
                             <button
                                 onClick={() => setShowEditModalSubtopicDeleteConfirmation(null)}
-                                className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-md hover:bg-gray-200 cursor-pointer"
+                                className="px-3 sm:px-4 py-2 text-sm sm:text-base font-medium text-gray-700 bg-gray-100 rounded-md hover:bg-gray-200 hover:scale-105 transition-all duration-200"
                             >
                                 Cancel
                             </button>
@@ -1210,7 +1355,7 @@ const RoadmapGenerator: React.FC = () => {
                                         setShowEditModalSubtopicDeleteConfirmation(null);
                                     }
                                 }}
-                                className="px-4 py-2 text-sm font-medium text-white bg-red-600 rounded-md hover:bg-red-700 cursor-pointer"
+                                className="px-3 sm:px-4 py-2 text-sm sm:text-base font-medium text-white bg-red-600 rounded-md hover:bg-red-700 hover:scale-105 transition-all duration-200"
                             >
                                 Delete
                             </button>
@@ -1221,20 +1366,20 @@ const RoadmapGenerator: React.FC = () => {
 
             {/* Delete Topic Confirmation Modal */}
             {showDeleteTopicConfirmation.show && (
-                <div className="fixed inset-0 bg-gray-500 bg-opacity-75 flex items-center justify-center">
-                    <div className="bg-white rounded-lg p-6 max-w-md w-full">
-                        <h3 className="text-lg font-medium text-gray-900 mb-4">Delete Topic</h3>
-                        <p className="text-gray-600 mb-6">Are you sure you want to delete this topic? This action cannot be undone.</p>
-                        <div className="flex justify-end space-x-3">
+                <div className="fixed inset-0 bg-gray-900/30 backdrop-blur-md flex items-center justify-center z-50 p-4">
+                    <div className="bg-white rounded-lg p-4 sm:p-6 max-w-[90vw] sm:max-w-md">
+                        <h3 className="text-lg sm:text-xl font-medium text-gray-900 mb-4">Delete Topic</h3>
+                        <p className="text-sm sm:text-base text-gray-600 mb-6">Are you sure you want to delete this topic? This action cannot be undone.</p>
+                        <div className="flex flex-col sm:flex-row justify-end gap-3">
                             <button
                                 onClick={() => setShowDeleteTopicConfirmation({ show: false, topicId: null })}
-                                className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-md hover:bg-gray-200 cursor-pointer"
+                                className="px-3 sm:px-4 py-2 text-sm sm:text-base font-medium text-gray-700 bg-gray-100 rounded-md hover:bg-gray-200 hover:scale-105 transition-all duration-200"
                             >
                                 Cancel
                             </button>
                             <button
                                 onClick={handleConfirmDeleteTopic}
-                                className="px-4 py-2 text-sm font-medium text-white bg-red-600 rounded-md hover:bg-red-700 cursor-pointer"
+                                className="px-3 sm:px-4 py-2 text-sm sm:text-base font-medium text-white bg-red-600 rounded-md hover:bg-red-700 hover:scale-105 transition-all duration-200"
                             >
                                 Delete
                             </button>
@@ -1245,20 +1390,20 @@ const RoadmapGenerator: React.FC = () => {
 
             {/* Delete Subtopic Confirmation Modal */}
             {showDeleteSubtopicConfirmation && (
-                <div className="fixed inset-0 bg-gray-500 bg-opacity-75 flex items-center justify-center">
-                    <div className="bg-white rounded-lg p-6 max-w-md w-full">
-                        <h3 className="text-lg font-medium text-gray-900 mb-4">Delete Subtopic</h3>
-                        <p className="text-gray-600 mb-6">Are you sure you want to delete this subtopic? This action cannot be undone.</p>
-                        <div className="flex justify-end space-x-3">
+                <div className="fixed inset-0 bg-gray-900/30 backdrop-blur-md flex items-center justify-center z-50 p-4">
+                    <div className="bg-white rounded-lg p-4 sm:p-6 max-w-[90vw] sm:max-w-md">
+                        <h3 className="text-lg sm:text-xl font-medium text-gray-900 mb-4">Delete Subtopic</h3>
+                        <p className="text-sm sm:text-base text-gray-600 mb-6">Are you sure you want to delete this subtopic? This action cannot be undone.</p>
+                        <div className="flex flex-col sm:flex-row justify-end gap-3">
                             <button
                                 onClick={() => setShowDeleteSubtopicConfirmation(null)}
-                                className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-md hover:bg-gray-200 cursor-pointer"
+                                className="px-3 sm:px-4 py-2 text-sm sm:text-base font-medium text-gray-700 bg-gray-100 rounded-md hover:bg-gray-200 hover:scale-105 transition-all duration-200"
                             >
                                 Cancel
                             </button>
                             <button
                                 onClick={handleConfirmDeleteSubtopic}
-                                className="px-4 py-2 text-sm font-medium text-white bg-red-600 rounded-md hover:bg-red-700 cursor-pointer"
+                                className="px-3 sm:px-4 py-2 text-sm sm:text-base font-medium text-white bg-red-600 rounded-md hover:bg-red-700 hover:scale-105 transition-all duration-200"
                             >
                                 Delete
                             </button>
@@ -1269,14 +1414,14 @@ const RoadmapGenerator: React.FC = () => {
 
             {/* Add Modal Subtopic Delete Confirmation */}
             {showAddModalSubtopicDeleteConfirmation && (
-                <div className="fixed inset-0 bg-gray-500 bg-opacity-75 flex items-center justify-center z-50">
-                    <div className="bg-white rounded-lg p-6 max-w-md w-full">
-                        <h3 className="text-lg font-medium text-gray-900 mb-4">Delete Subtopic</h3>
-                        <p className="text-gray-600 mb-6">Are you sure you want to delete this subtopic? This action cannot be undone.</p>
-                        <div className="flex justify-end space-x-3">
+                <div className="fixed inset-0 bg-gray-900/30 backdrop-blur-md flex items-center justify-center z-50 p-4">
+                    <div className="bg-white rounded-lg p-4 sm:p-6 max-w-[90vw] sm:max-w-md">
+                        <h3 className="text-lg sm:text-xl font-medium text-gray-900 mb-4">Delete Subtopic</h3>
+                        <p className="text-sm sm:text-base text-gray-600 mb-6">Are you sure you want to delete this subtopic? This action cannot be undone.</p>
+                        <div className="flex flex-col sm:flex-row justify-end gap-3">
                             <button
                                 onClick={() => setShowAddModalSubtopicDeleteConfirmation(null)}
-                                className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-md hover:bg-gray-200 cursor-pointer"
+                                className="px-3 sm:px-4 py-2 text-sm sm:text-base font-medium text-gray-700 bg-gray-100 rounded-md hover:bg-gray-200 hover:scale-105 transition-all duration-200"
                             >
                                 Cancel
                             </button>
@@ -1289,7 +1434,7 @@ const RoadmapGenerator: React.FC = () => {
                                         setShowAddModalSubtopicDeleteConfirmation(null);
                                     }
                                 }}
-                                className="px-4 py-2 text-sm font-medium text-white bg-red-600 rounded-md hover:bg-red-700 cursor-pointer"
+                                className="px-3 sm:px-4 py-2 text-sm sm:text-base font-medium text-white bg-red-600 rounded-md hover:bg-red-700 hover:scale-105 transition-all duration-200"
                             >
                                 Delete
                             </button>
@@ -1301,4 +1446,4 @@ const RoadmapGenerator: React.FC = () => {
     );
 };
 
-export default RoadmapGenerator; 
+export default RoadmapGenerator;
