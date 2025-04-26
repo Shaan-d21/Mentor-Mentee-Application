@@ -120,6 +120,27 @@ export const profileStyles = StyleSheet.create({
     borderWidth: 1,
     borderColor: '#3498db',
   },
+  icon: {
+    fontWeight: 'bold',
+    width: 10,
+    height: 20,
+    lineHeight: 16,
+    paddingLeft: 25,
+    textAlign: 'right',
+    
+  },
+  
+  emptySkillsContainer: {
+    justifyContent: "center",
+    alignItems: "center",
+    marginTop: 50,
+  },
+  emptySkillsText: {
+    fontSize: 16,
+    color: "#7f8c8d",
+    marginBottom: 20,
+    textAlign: "center",
+  },
   skillText: {
     color: '#333',
   },
@@ -205,7 +226,7 @@ export const mentorSpecificStyles = StyleSheet.create({
   skillLabel: {
     fontSize: 16,
     fontWeight: '600',
-    marginRight: 12,
+    marginRight: 10,
     color: '#333',
   },
   radioButton: {

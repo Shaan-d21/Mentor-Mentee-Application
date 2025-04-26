@@ -5,6 +5,7 @@ import {
 } from '../../../types/MenteeProfileTypes';
 import {
   apiaddMentorProfileSkill,
+  apiDeleteMentorProfileSkill,
   apigetMentorProfile,
   apiUpdateMentorProfile,
 } from '../../../services/profile/apiMentorProfile';
@@ -97,7 +98,21 @@ const sliceProfile = createSlice({
 
       .addCase(updateMentorprofileskill.rejected, (state, action) => {
         state.status = currentStatus.failed;
-      });
+      })
+        .addCase(deletementorProfileSkill.fulfilled, (state, action) => {
+        try {
+          console.log(`Skill deleted successfully: ${JSON.stringify(action.payload)}`);
+          state.response = MentorProfileImpl.fromJSON(JSON.stringify(action.payload)) as MentorProfiletype;
+          state.status = currentStatus.success;
+        } catch (error) {
+          console.error("Error updating state after skill deletion: ", error);
+          state.status = currentStatus.failed;
+        }
+      })
+      .addCase(deletementorProfileSkill.rejected, (state, action) => {
+        console.error("Error deleting skill: ", action.error.message);
+        state.status = currentStatus.failed;
+      });        
   },
 });
 
@@ -175,5 +190,19 @@ export const updateMentorprofileskill = createAsyncThunk(
     throw new Error('Failed to update skill');
   },
 );
+export const deletementorProfileSkill = createAsyncThunk(
+  "profile/deleteSkill",
+  async (skill_id: number) => {
+    console.log(`Skill ID passed to deleteProfileSkill: ${skill_id}`); // Debugging log
+
+    const response = await apiDeleteMentorProfileSkill(skill_id);
+    if (response === 1) {
+      const updatedProfile = await  apigetMentorProfile();
+      return updatedProfile;
+    }
+    throw new Error("Failed to delete skill");
+  }
+);
+
 
 export default sliceProfile.reducer;

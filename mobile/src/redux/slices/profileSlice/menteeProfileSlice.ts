@@ -1,5 +1,5 @@
 import { createAsyncThunk, createSlice, PayloadAction } from "@reduxjs/toolkit";
-import { apiaddMenteeProfileSkill, apigetMenteeProfile, apiUpdateMenteeProfile } from "../../../services/profile/apimenteeprofile";
+import { apiaddMenteeProfileSkill, apigetMenteeProfile, apiUpdateMenteeProfile,apiDeleteMenteeProfileSkill } from "../../../services/profile/apimenteeprofile";
 import { MenteeProfile, MenteeProfileImpl, Skill } from "../../../types/MenteeProfileTypes";
 
 enum currentStatus { idle = 'idle', loading = 'loading', success = 'success', failed = 'failed' }
@@ -67,6 +67,23 @@ const sliceProfile = createSlice({
       })
       .addCase(updateProfileData.rejected, (state, action) => {
         state.status = currentStatus.failed;
+      })
+      .addCase(deleteProfileSkill.fulfilled, (state, action) => {
+        try {
+          console.log(`Skill deleted successfully: ${JSON.stringify(action.payload)}`);
+          state.response = MenteeProfileImpl.fromJSON(JSON.stringify(action.payload)) as MenteeProfile;
+          state.status = currentStatus.success;
+        } catch (error) {
+          console.error("Error updating state after skill deletion: ", error);
+          state.status = currentStatus.failed;
+        }
+      
+      
+         
+      })
+      .addCase(deleteProfileSkill.rejected, (state, action) => {
+        console.error("Error deleting skill: ", action.error.message);
+        state.status = currentStatus.failed;
       });
 
 
@@ -77,11 +94,11 @@ export const getmenteeprofile = createAsyncThunk("profile/get", async () => {
   try {
     const response = await apigetMenteeProfile();
     console.log(`getmenteeprofile asyncThunk: ${JSON.stringify(response)}`);
-    // console.log(`Response from mentee/profile screen the server is `, response['Skill set']);
-    const res: MenteeProfile = MenteeProfileImpl.fromJSON(JSON.stringify(response)) as MenteeProfile;
-    console.log(`getmenteeprofile asyncThunk set the res: ${JSON.stringify(res)}`)
-    // console.log(`Response from mentee/profile  the server is `, res);
-    return res.toJSON();
+    //  console.log(`Response from mentee/profile screen the server is `, response['Skill set']);
+    // const res: MenteeProfile = MenteeProfileImpl.fromJSON(JSON.stringify(response)) as MenteeProfile;
+    // console.log(`getmenteeprofile asyncThunk set the res: ${JSON.stringify(res)}`)
+    // // console.log(`Response from mentee/profile  the server is `, res);
+    return response;
   }
   catch (error: any) {
     console.error("mentee/profile error: ", error);
@@ -118,6 +135,19 @@ export const updateprofileskill = createAsyncThunk(
       return updatedProfile;
     }
     throw new Error("Failed to update skill");
+  }
+);
+export const deleteProfileSkill = createAsyncThunk(
+  "profile/deleteSkill",
+  async (skill_id: number) => {
+    console.log(`Skill ID passed to deleteProfileSkill: ${skill_id}`); // Debugging log
+
+    const response = await apiDeleteMenteeProfileSkill(skill_id);
+    if (response === 1) {
+      const updatedProfile = await apigetMenteeProfile();
+      return updatedProfile;
+    }
+    throw new Error("Failed to delete skill");
   }
 );
 

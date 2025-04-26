@@ -1,6 +1,7 @@
 export interface Skill {
     name: string;
     proficiency: number;
+    skill_id: number;
 }
 
 export interface MenteeProfile {
@@ -42,7 +43,8 @@ export class MenteeProfileImpl implements MenteeProfile {
             jsonParsed.mail,
             jsonParsed.contact,
             jsonParsed.designation,
-            jsonParsed["Skill set"].map((skill: { name: string; proficiency?: number }) => ({
+            jsonParsed["Skill set"].map((skill: { name: string; proficiency?: number;skill_id:number}) => ({
+                skill_id: skill.skill_id,
                 name: skill.name,
                 proficiency: skill.proficiency || 1
             }))
@@ -50,6 +52,7 @@ export class MenteeProfileImpl implements MenteeProfile {
     }
 
     toJSON(): object {
+
         return {
             name: this.name,
             mail: this.mail,
@@ -57,6 +60,7 @@ export class MenteeProfileImpl implements MenteeProfile {
             designation: this.designation,
             "Skill set": this.skillSet.map(skill => ({ 
                 name: skill.name, 
+                skill_id: skill.skill_id,
                 proficiency: skill.proficiency 
             }))
         };
