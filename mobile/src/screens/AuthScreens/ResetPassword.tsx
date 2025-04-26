@@ -14,6 +14,7 @@ import { faEye, faEyeSlash } from '@fortawesome/free-solid-svg-icons';
 import { ScreenProps } from '../../navigation/types';
 import { authStyles } from './authStyle';
 import { apiConfirmPassword } from '../../services/apiForgotPassword';
+import { MMKV } from 'react-native-mmkv';
 
 const ResetPassword: React.FC<ScreenProps<'ResetPassword'>> = ({ route, navigation }) => {
   const { email } = route.params;
@@ -66,10 +67,11 @@ const ResetPassword: React.FC<ScreenProps<'ResetPassword'>> = ({ route, navigati
     setIsLoading(true);
     try {
       // API call to reset password would go here
-      const response = await apiConfirmPassword(newPassword);
+      const storage = new MMKV();
+      const response = await apiConfirmPassword(storage.getString("forgetEmail")|| '',newPassword);
         if (response && response.status_code === 200) {
       Alert.alert('Success', 'Password reset successfully', [
-        { text: 'OK', onPress: () => navigation.navigate('SignInPage') }
+        { text: 'OK', onPress: () => navigation.replace('SignInPage') }
       ]);}
     } catch (error) {
       Alert.alert('Error', 'Failed to reset password');

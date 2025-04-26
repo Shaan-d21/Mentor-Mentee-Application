@@ -80,7 +80,10 @@ const OTPVerification: React.FC<ScreenProps<'OTPVerification'>> = ({ route, navi
       // Verify OTP API call would go here
       const response = await apiVerifyOtp(email,otpString);
       if (response && response.status_code === 200) {
-    navigation.navigate('ResetPassword', { email });}
+    navigation.replace('ResetPassword', { email });
+  } else {
+        Alert.alert('Error', 'Invalid OTP');
+      }
     } catch (error) {
       Alert.alert('Error', 'Invalid OTP');
     } finally {

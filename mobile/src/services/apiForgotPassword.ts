@@ -1,4 +1,5 @@
 import axios from "axios"
+import { MMKV } from "react-native-mmkv";
 
 
 export const apiConfirmPassword= async(email:string ,password: string)=>{
@@ -48,6 +49,11 @@ export const apiVerifyEmail= async(email: string)=>{
         const response= await api.get(`verification/otp?mail=${email}`);
 
         if(response.status== 200){
+            const storage = new MMKV();
+            storage.set("forgetEmail", email);
+            console.log("Email stored in MMKV", storage.getString("forgetEmail"));
+
+            console.log(response.data);
             return response.data;
         }
         else{

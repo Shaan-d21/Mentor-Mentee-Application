@@ -36,7 +36,7 @@ const response = await apiVerifyEmail(email);
         [
           {
             text: 'OK',
-            onPress: () => navigation.navigate('OTPVerification', { email }),
+            onPress: () => navigation.replace('OTPVerification', { email }),
           },
         ]
       );
