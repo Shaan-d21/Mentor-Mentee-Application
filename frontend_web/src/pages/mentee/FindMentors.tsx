@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import { Check } from 'lucide-react';
+import { Check, Eye } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { useLocation } from 'react-router-dom';
 
@@ -454,80 +454,95 @@ const FindMentors: React.FC = () => {
       </div>
 
       {showCompatibilityResults && !pendingRequestDomains.has(compatibilityDomain) && !approvedRequestDomains.has(compatibilityDomain) && (
-        <div className="mb-8">
+        <div className="bg-white rounded-lg shadow-md p-4 md:p-6 mb-6">
           <h3 className="text-lg font-semibold mb-4">Compatible Mentors for {compatibilityDomain}</h3>
 
           {/* Desktop Table View */}
-          <div className="hidden md:block bg-white rounded-lg shadow overflow-hidden">
-            <div className="overflow-x-auto">
-              <table className="w-full divide-y divide-gray-200">
-                <thead className="bg-gray-50">
+          <div className="hidden md:block">
+            <table className="min-w-full divide-y divide-gray-200">
+              <thead className="bg-gray-50">
+                <tr>
+                  <th scope="col" className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Name
+                  </th>
+                  <th scope="col" className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Email
+                  </th>
+                  <th scope="col" className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Designation
+                  </th>
+                  <th scope="col" className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Experience
+                  </th>
+                  <th scope="col" className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Domain
+                  </th>
+                  <th scope="col" className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Score
+                  </th>
+                </tr>
+              </thead>
+              <tbody className="bg-white divide-y divide-gray-200">
+                {compatibleMentors.length > 0 ? (
+                  compatibleMentors
+                    .filter(mentor => !requestedMentorIds.has(mentor.id || ''))
+                    .map((mentor) => (
+                      <tr 
+                        key={mentor.id} 
+                        className={`hover:bg-gray-50 cursor-pointer ${mentor.domain === compatibilityDomain ? 'bg-blue-50' : ''}`}
+                        onClick={() => openDetailsModal(mentor)}
+                      >
+                        <td className="px-4 py-3 whitespace-nowrap text-center text-sm font-medium text-gray-900 max-w-[150px] truncate">
+                          <span title={mentor.name}>{mentor.name}</span>
+                        </td>
+                        <td className="px-4 py-3 whitespace-nowrap text-center text-sm text-gray-600 max-w-[150px] truncate">
+                          <span title={mentor.email}>{mentor.email}</span>
+                        </td>
+                        <td className="px-4 py-3 whitespace-nowrap text-center text-sm text-gray-600 max-w-[150px] truncate">
+                          <span title={mentor.designation}>{mentor.designation}</span>
+                        </td>
+                        <td className="px-4 py-3 whitespace-nowrap text-center text-sm text-gray-600 max-w-[100px]">
+                          {mentor.experience} years
+                        </td>
+                        <td className="px-4 py-3 whitespace-nowrap text-center text-sm max-w-[150px] truncate">
+                          <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
+                            mentor.domain === compatibilityDomain 
+                              ? 'bg-blue-100 text-blue-800' 
+                              : 'bg-gray-100 text-gray-800'
+                          }`} title={mentor.domain}>
+                            {mentor.domain}
+                          </span>
+                        </td>
+                        <td 
+                          className="px-4 py-3 whitespace-nowrap text-center text-sm max-w-[100px]"
+                          onClick={(e) => e.stopPropagation()}
+                        >
+                          <button
+                            onClick={() => handleViewCompatibilityReport(mentor)}
+                            className={`flex items-center justify-center px-3 py-1.5 text-xs font-semibold rounded-full cursor-pointer hover:shadow-md hover:scale-105 transform transition-all duration-200 ${
+                              mentor.score >= 90
+                                ? 'bg-green-100 text-green-800 border border-green-200'
+                                : mentor.score >= 70
+                                ? 'bg-yellow-100 text-yellow-800 border border-yellow-200'
+                                : 'bg-red-100 text-red-800 border border-red-200'
+                            }`}
+                          >
+                            <Eye size={14} className="mr-1" />
+                            {mentor.score}%
+                          </button>
+                        </td>
+                      </tr>
+                    ))
+                ) : (
                   <tr>
-                    <th scope="col" className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-1/6">Name</th>
-                    <th scope="col" className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-1/6">Email</th>
-                    <th scope="col" className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-1/6">Designation</th>
-                    <th scope="col" className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-[10%]">Experience</th>
-                    <th scope="col" className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-[15%]">Domain</th>
-                    <th scope="col" className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-[15%]">Score</th>
+                    <td colSpan={6} className="px-4 py-4 text-center text-sm text-gray-500">
+                      No compatible mentors found for {compatibilityDomain}.
+                      <p className="text-xs text-gray-400 mt-1">Please try a different domain or check back later.</p>
+                    </td>
                   </tr>
-                </thead>
-                <tbody className="bg-white divide-y divide-gray-200">
-                  {compatibleMentors.length > 0 ? (
-                    compatibleMentors
-                      .filter(mentor => !requestedMentorIds.has(mentor.id || ''))
-                      .map((mentor) => (
-                        <tr key={mentor.id} className={mentor.domain === compatibilityDomain ? 'bg-blue-50' : ''}>
-                          <td className="px-3 py-3 whitespace-normal text-sm text-gray-900 max-w-[150px] truncate">{mentor.name}</td>
-                          <td className="px-3 py-3 whitespace-normal text-sm text-gray-600 max-w-[150px] truncate">{mentor.email}</td>
-                          <td className="px-3 py-3 whitespace-normal text-sm text-gray-600 max-w-[150px] truncate">{mentor.designation}</td>
-                          <td className="px-2 py-3 whitespace-nowrap text-sm text-gray-600">{mentor.experience} years</td>
-                          <td className="px-2 py-3 whitespace-nowrap">
-                            <div className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
-                              mentor.domain === compatibilityDomain 
-                                ? 'bg-blue-50 text-blue-700 border border-blue-200' 
-                                : 'bg-gray-50 text-gray-600 border border-gray-200'
-                            }`}>
-                              {mentor.domain}
-                            </div>
-                          </td>
-                          <td className="px-3 py-3 whitespace-normal">
-                            <button
-                              onClick={() => handleViewCompatibilityReport(mentor)}
-                              className={`inline-flex items-center px-2 py-1 rounded-full font-semibold text-sm transition-all duration-200 transform hover:scale-105 ${
-                                mentor.score >= 90 ? 'bg-green-100 text-green-800 hover:bg-green-200' :
-                                mentor.score >= 70 ? 'bg-yellow-100 text-yellow-800 hover:bg-yellow-200' :
-                                'bg-red-100 text-red-800 hover:bg-red-200'
-                              }`}
-                            >
-                              <span className="mr-1">{mentor.score}%</span>
-                              <svg 
-                                className="w-3 h-3" 
-                                fill="none" 
-                                stroke="currentColor" 
-                                viewBox="0 0 24 24"
-                              >
-                                <path 
-                                  strokeLinecap="round" 
-                                  strokeLinejoin="round" 
-                                  strokeWidth={2} 
-                                  d="M9 5l7 7-7 7" 
-                                />
-                              </svg>
-                            </button>
-                          </td>
-                        </tr>
-                      ))
-                  ) : (
-                    <tr>
-                      <td colSpan={6} className="px-4 py-4 text-center text-sm text-gray-500">
-                        No compatible mentors found for {compatibilityDomain}.
-                        <p className="text-xs text-gray-400 mt-1">Please try a different domain or check back later.</p>
-                      </td>
-                    </tr>
-                  )}
-                </tbody>
-              </table>
-            </div>
+                )}
+              </tbody>
+            </table>
           </div>
 
           {/* Mobile Card View */}
@@ -552,12 +567,15 @@ const FindMentors: React.FC = () => {
                           e.stopPropagation();
                           handleViewCompatibilityReport(mentor);
                         }}
-                        className={`inline-flex items-center px-2 py-1 rounded-full font-semibold text-sm ${
-                          mentor.score >= 90 ? 'bg-green-100 text-green-800' :
-                          mentor.score >= 70 ? 'bg-yellow-100 text-yellow-800' :
-                          'bg-red-100 text-red-800'
+                        className={`flex items-center justify-center px-3 py-1.5 text-sm font-semibold rounded-full cursor-pointer hover:shadow-md hover:scale-105 transform transition-all duration-200 ${
+                          mentor.score >= 90
+                            ? 'bg-green-100 text-green-800 border border-green-200'
+                            : mentor.score >= 70
+                            ? 'bg-yellow-100 text-yellow-800 border border-yellow-200'
+                            : 'bg-red-100 text-red-800 border border-red-200'
                         }`}
                       >
+                        <Eye size={14} className="mr-1" />
                         {mentor.score}%
                       </button>
                     </div>
