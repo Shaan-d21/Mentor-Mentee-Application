@@ -1,7 +1,7 @@
 import axios from "axios"
 
 
-export const apiConfirmPassword= async(password: string)=>{
+export const apiConfirmPassword= async(email:string ,password: string)=>{
     const api= axios.create({
         baseURL: process.env.API_URL,
         headers:{
@@ -10,30 +10,28 @@ export const apiConfirmPassword= async(password: string)=>{
     });
 
     try{
-        await new Promise((resolve) => setTimeout(resolve, 6000));
         const data={
-            "password":password,
+            "mail":email,
+            "pwd":password,
         }
         console.log(`Parameter for apiConfirmedPassword is: ${JSON.stringify(data)}`);
-        // const response= await api.post("url", data);
+        const response= await api.patch("OTP/change_password", data);
 
-        // if(response.status== 200){
-        //     return response.data;
-        // }
-        // else{
-        //     console.error("Password not changed");
-        //     return null;
-        // }
-
-        return {
-            "status_code": 200,
-            "message":"Password changed"
+        if(response.status== 200){
+            return response.data;
+        }
+        else{
+            console.error("Password not changed");
+            return response.data;
         }
 
         
     }catch(error){
         console.error("Internal Server Error ", error);
-        return null;
+        return {
+            status_code:500,
+            message:"Internal Serever Error"
+        };
     }
 }
 
@@ -46,35 +44,29 @@ export const apiVerifyEmail= async(email: string)=>{
     });
 
     try{
-        await new Promise((resolve) => setTimeout(resolve, 6000));
-        const data={
-            "email": email
+        console.log(`Parameters of apiVerifyUser is: ${email}`);
+        const response= await api.get(`verification/otp?mail=${email}`);
+
+        if(response.status== 200){
+            return response.data;
         }
-        console.log(`Parameters of apiVerifyUser is: ${JSON.stringify(data)}`);
-        // const response= await api.post("url", data);
-
-        // if(response.status== 200){
-        //     return response.data;
-        // }
-        // else{
-        //     console.error("User not found");
-        //     return null;
-        // }
-
-        return {
-            "status_code": 200,
-            "message":"User found"
+        else{
+            console.error("User not found");
+            return response.data;
         }
 
         
     }catch(error){
         console.error("Internal Server Error ", error);
-        return null;
+        return {
+            status_code:500,
+            message:"Internal Server Error"
+        };
     }
 }
 
 
-export const apiVerifyOtp= async(email: string, otp: number)=>{
+export const apiVerifyOtp= async(email: string, otp: string)=>{
     const api= axios.create({
         baseURL: process.env.API_URL,
         headers:{
@@ -83,30 +75,27 @@ export const apiVerifyOtp= async(email: string, otp: number)=>{
     });
 
     try{
-        await new Promise((resolve) => setTimeout(resolve, 6000));
         const data={
             "otp":otp,
-            "email": email
+            "mail": email
         }
         console.log(`Parameters of apiVerifyOtp are: ${JSON.stringify(data)}`);
-        // const response= await api.post("url", data);
+        const response= await api.post("verification/verify-otp", data);
 
-        // if(response.status== 200){
-        //     return response.data;
-        // }
-        // else{
-        //     console.error("Otp not verified");
-        //     return null;
-        // }
-
-        return {
-            "status_code": 200,
-            "message":"Otp Verified"
+        if(response.status== 200){
+            return response.data;
+        }
+        else{
+            console.error("Otp not verified");
+            return response.data;
         }
 
         
     }catch(error){
         console.error("Internal Server Error ", error);
-        return null;
+        return {
+            status_code:500,
+            message:"Internal Serever Error"
+        };
     }
 }
