@@ -5,6 +5,7 @@ import {
   Users, 
   UserCheck, 
   ChevronLeft,
+  UserSearch,
   Menu,
   Map,
   FileText,
@@ -29,7 +30,7 @@ const mentorNavItems: NavItem[] = [
 
 const menteeNavItems: NavItem[] = [
   { name: 'Dashboard', path: '/mentee/dashboard', icon: <LayoutDashboard size={20} /> },
-  { name: 'Find Mentors', path: '/mentee/dashboard/find-mentors', icon: <Users size={20} /> },
+  { name: 'Find Mentors', path: '/mentee/dashboard/find-mentors', icon: <UserSearch size={20} /> },
   { name: 'My Requests', path: '/mentee/dashboard/requests', icon: <UserCheck size={20} /> },
   { name: 'My Mentors', path: '/mentee/dashboard/my-mentors', icon: <Users size={20} /> },
   { name: 'My Roadmaps', path: '/mentee/dashboard/roadmaps', icon: <Map size={20} /> },
