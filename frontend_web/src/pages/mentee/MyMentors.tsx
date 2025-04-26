@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { FaUserTie } from 'react-icons/fa';
 import axios from 'axios';
 import { useLocation } from 'react-router-dom';
-import { Loader2 } from 'lucide-react';
+import { Loader2, X } from 'lucide-react';
 import toast from 'react-hot-toast';
 
 interface Mentor {
@@ -32,6 +32,8 @@ const MyMentors: React.FC = () => {
   const [mentors, setMentors] = useState<Mentor[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [showDetailsModal, setShowDetailsModal] = useState(false);
+  const [selectedMentor, setSelectedMentor] = useState<Mentor | null>(null);
   const location = useLocation();
   const isOnDashboardHome = location.pathname === '/mentee/dashboard' || location.pathname === '/mentee/dashboard/';
 
@@ -98,63 +100,141 @@ const MyMentors: React.FC = () => {
     fetchMentors();
   }, []);
 
+  const openDetailsModal = (mentor: Mentor) => {
+    setSelectedMentor(mentor);
+    setShowDetailsModal(true);
+  };
+
+  const closeDetailsModal = () => {
+    setShowDetailsModal(false);
+    setSelectedMentor(null);
+  };
+
   if (!location.pathname.includes('/my-mentors') && !isOnDashboardHome) {
     return null;
   }
 
   if (loading) {
     return (
-      <div className="flex justify-center items-center p-12">
-        <Loader2 className="h-8 w-8 animate-spin text-blue-600" />
-        <span className="ml-2 text-gray-600">Loading mentors...</span>
+      <div className="flex justify-center items-center p-6">
+        <Loader2 className="h-6 w-6 animate-spin text-blue-600" />
+        <span className="ml-2 text-gray-600 text-sm">Loading mentors...</span>
       </div>
     );
   }
 
   if (error) {
     return (
-      <div className="flex justify-center items-center p-12">
-        <div className="text-red-500 text-xl">{error}</div>
+      <div className="flex justify-center items-center p-6">
+        <div className="text-red-500 text-base">{error}</div>
       </div>
     );
   }
 
   return (
-    <div className="bg-white rounded-lg shadow-md p-6 mb-8">
-      <h2 className="text-xl font-semibold mb-4">My Mentors</h2>
+    <div className="bg-white rounded-lg shadow-md p-4 md:p-6 mb-6">
+      <h2 className="text-lg md:text-xl font-semibold mb-4">My Mentors</h2>
       {mentors.length === 0 ? (
-        <div className="text-center py-8 text-gray-500">
-          <FaUserTie className="mx-auto h-12 w-12 mb-4" />
-          <p>You don't have any mentors yet.</p>
+        <div className="text-center py-6 text-gray-500">
+          <FaUserTie className="mx-auto h-10 w-10 mb-3" />
+          <p className="text-sm md:text-base">You don't have any mentors yet.</p>
         </div>
       ) : (
-        <div className="overflow-x-auto">
-          <table className="min-w-full divide-y divide-gray-200">
-            <thead className="bg-gray-50">
-              <tr>
-                <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Name</th>
-                <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Email</th>
-                <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Designation</th>
-                <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Experience</th>
-                <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Domain</th>
-              </tr>
-            </thead>
-            <tbody className="bg-white divide-y divide-gray-200">
-              {mentors.map((mentor) => (
-                <tr key={mentor.mentor_id}>
-                  <td className="px-6 py-4 whitespace-nowrap text-center">{mentor.mentor_name}</td>
-                  <td className="px-6 py-4 whitespace-nowrap text-center">{mentor.email}</td>
-                  <td className="px-6 py-4 whitespace-nowrap text-center">{mentor.designation}</td>
-                  <td className="px-6 py-4 whitespace-nowrap text-center">{mentor.experience}</td>
-                  <td className="px-6 py-4 whitespace-nowrap text-center">{mentor.domain}</td>
+        <>
+          {/* Desktop Table View */}
+          <div className="hidden md:block">
+            <table className="min-w-full divide-y divide-gray-200">
+              <thead className="bg-gray-50">
+                <tr>
+                  <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Name</th>
+                  <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Email</th>
+                  <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Designation</th>
+                  <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Experience</th>
+                  <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Domain</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+              </thead>
+              <tbody className="bg-white divide-y divide-gray-200">
+                {mentors.map((mentor) => (
+                  <tr key={mentor.mentor_id}>
+                    <td className="px-4 py-3 whitespace-nowrap text-center text-sm">{mentor.mentor_name}</td>
+                    <td className="px-4 py-3 whitespace-nowrap text-center text-sm">{mentor.email}</td>
+                    <td className="px-4 py-3 whitespace-nowrap text-center text-sm">{mentor.designation}</td>
+                    <td className="px-4 py-3 whitespace-nowrap text-center text-sm">{mentor.experience}</td>
+                    <td className="px-4 py-3 whitespace-nowrap text-center text-sm">{mentor.domain}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+
+          {/* Mobile Card View */}
+          <div className="md:hidden divide-y divide-gray-200">
+            {mentors.map((mentor) => (
+              <div 
+                key={mentor.mentor_id} 
+                className="py-3 px-2 hover:bg-gray-50 cursor-pointer"
+                onClick={() => openDetailsModal(mentor)}
+              >
+                <div className="flex justify-between items-center">
+                  <div>
+                    <p className="text-sm font-medium text-gray-900">{mentor.mentor_name}</p>
+                    <p className="text-xs text-gray-500">{mentor.domain}</p>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          {/* Details Modal */}
+          {showDetailsModal && selectedMentor && (
+            <div className="fixed inset-0 bg-gray-900/30 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+              <div className="bg-white rounded-lg shadow-xl p-6 w-full max-w-md">
+                <div className="flex justify-between items-start mb-4">
+                  <h3 className="text-base font-semibold text-gray-900">Mentor Details</h3>
+                  <button
+                    onClick={closeDetailsModal}
+                    className="text-gray-400 hover:text-gray-500"
+                  >
+                    <X className="h-5 w-5" />
+                  </button>
+                </div>
+                <div className="space-y-3 text-sm">
+                  <div>
+                    <span className="font-medium text-gray-700">Name:</span>
+                    <p className="text-gray-900">{selectedMentor.mentor_name}</p>
+                  </div>
+                  <div>
+                    <span className="font-medium text-gray-700">Email:</span>
+                    <p className="text-gray-900">{selectedMentor.email}</p>
+                  </div>
+                  <div>
+                    <span className="font-medium text-gray-700">Designation:</span>
+                    <p className="text-gray-900">{selectedMentor.designation}</p>
+                  </div>
+                  <div>
+                    <span className="font-medium text-gray-700">Experience:</span>
+                    <p className="text-gray-900">{selectedMentor.experience}</p>
+                  </div>
+                  <div>
+                    <span className="font-medium text-gray-700">Domain:</span>
+                    <p className="text-gray-900">{selectedMentor.domain}</p>
+                  </div>
+                </div>
+                <div className="flex justify-end mt-6">
+                  <button
+                    onClick={closeDetailsModal}
+                    className="px-3 py-1.5 text-gray-700 bg-gray-100 rounded-md hover:bg-gray-200 transition-colors text-sm"
+                  >
+                    Close
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
+        </>
       )}
     </div>
   );
 };
 
-export default MyMentors; 
+export default MyMentors;

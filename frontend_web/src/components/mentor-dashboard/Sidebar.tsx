@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { 
   LayoutDashboard, 
@@ -6,6 +6,7 @@ import {
   UserCheck, 
   ChevronLeft,
   ChevronRight,
+  UserSearch,
   Menu,
   Map,
   FileText,
@@ -30,7 +31,7 @@ const mentorNavItems: NavItem[] = [
 
 const menteeNavItems: NavItem[] = [
   { name: 'Dashboard', path: '/mentee/dashboard', icon: <LayoutDashboard size={20} /> },
-  { name: 'Find Mentors', path: '/mentee/dashboard/find-mentors', icon: <Users size={20} /> },
+  { name: 'Find Mentors', path: '/mentee/dashboard/find-mentors', icon: <UserSearch size={20} /> },
   { name: 'My Requests', path: '/mentee/dashboard/requests', icon: <UserCheck size={20} /> },
   { name: 'My Mentors', path: '/mentee/dashboard/my-mentors', icon: <Users size={20} /> },
   { name: 'My Roadmaps', path: '/mentee/dashboard/roadmaps', icon: <Map size={20} /> },
@@ -39,42 +40,64 @@ const menteeNavItems: NavItem[] = [
 
 const Sidebar: React.FC<SidebarProps> = ({ userRole }) => {
   const location = useLocation();
-  // const { data: notifications = { reports: 0, messages: 0, requests: 0 } } = useQuery<NotificationCount>({
-  //   queryKey: ['notifications'],
-  //   queryFn: fetchNotifications,
-  //   staleTime: 1000 * 60 * 5, // 5 minutes
-  // });
-
   const [isCollapsed, setIsCollapsed] = useState(false);
-  // Get role directly from props instead of localStorage
   const isMentor = userRole === 'mentor';
   const navItems = isMentor ? mentorNavItems : menteeNavItems;
 
-  const toggleSidebar = () => setIsCollapsed(!isCollapsed);
+  // Function to check if the screen is mobile
+  const isMobile = () => window.innerWidth <= 768;
+
+  // Set initial collapsed state based on screen size and update on resize
+  useEffect(() => {
+    const handleResize = () => {
+      setIsCollapsed(isMobile());
+    };
+
+    // Set initial state
+    handleResize();
+
+    // Add event listener for window resize
+    window.addEventListener('resize', handleResize);
+
+    // Cleanup event listener on component unmount
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
+  const toggleSidebar = () => {
+    // Only allow toggling if not in mobile view
+    if (!isMobile()) {
+      setIsCollapsed(!isCollapsed);
+    }
+  };
 
   return (
     <div className={`bg-slate-800 text-white shadow-lg transition-all duration-300 relative ${isCollapsed ? 'w-16' : 'w-64'}`}>
       {/* Logo or brand area */}
       <div className="p-4 border-b border-slate-700 flex items-center justify-between h-16">
         {isCollapsed ? (
-          <Menu size={24} className="text-white cursor-pointer" onClick={toggleSidebar} />
+          // Only show hamburger icon if not in mobile view
+          !isMobile() && (
+            <Menu size={24} className="text-white cursor-pointer" onClick={toggleSidebar} />
+          )
         ) : (
           <>
-          <h1 className="text-lg font-bold text-white">{isMentor ? "Mentor Dashboard" : "Mentee Dashboard"}</h1>
-            <button
-              onClick={toggleSidebar}
-              className="bg-slate-700 text-white w-8 h-8 rounded-full flex items-center justify-center shadow-md border border-slate-600 hover:bg-slate-600 focus:outline-none"
-              aria-label={isCollapsed ? "Expand sidebar" : "Collapse sidebar"}
-            >
-              {isCollapsed ? <ChevronRight size={16} /> : <ChevronLeft size={16} />}
-            </button>
+            <h1 className="text-lg font-bold text-white">{isMentor ? "Mentor Dashboard" : "Mentee Dashboard"}</h1>
+            {/* Only show toggle button if not in mobile view */}
+            {!isMobile() && (
+              <button
+                onClick={toggleSidebar}
+                className="bg-slate-700 text-white w-8 h-8 rounded-full flex items-center justify-center shadow-md border border-slate-600 hover:bg-slate-600 focus:outline-none"
+                aria-label={isCollapsed ? "Expand sidebar" : "Collapse sidebar"}
+              >
+                {isCollapsed ? <ChevronRight size={16} /> : <ChevronLeft size={16} />}
+              </button>
+            )}
           </>
         )}
       </div>
 
       <nav className="mt-4">
         {navItems.map((item) => {
-          // Check if current path starts with item.path (for nested routes)
           const isActive = location.pathname === item.path || 
                           (item.path !== `/${userRole}/dashboard` && location.pathname.startsWith(item.path));
           
@@ -105,4 +128,4 @@ const Sidebar: React.FC<SidebarProps> = ({ userRole }) => {
   );
 };
 
-export default Sidebar; 
+export default Sidebar;
