@@ -223,7 +223,7 @@ def send_mail_with_otp(otp: str, mail: str):
 def verify_email_and_send_otp_to_mail(mail: str, db: db_dependency):
     user = getting_user_object(mail, db)
     if user is None:
-        return {"status_code": 400, "Message": "User not found"}
+        return {"status_code": 404, "Message": "User not found"}
     
     otp = generate_otp()
 
