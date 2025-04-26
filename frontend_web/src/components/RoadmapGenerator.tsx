@@ -599,7 +599,7 @@ const RoadmapGenerator: React.FC = () => {
     }, []);
 
     return (
-        <div className="container mx-auto px-4 py-8">
+        <div className="container mx-auto">
             <h1 className="text-3xl font-bold mb-8 text-indigo-800">Generate Learning Roadmap</h1>
             <div className="bg-white rounded-lg shadow-xl border border-gray-200">
                 <div className="p-6">

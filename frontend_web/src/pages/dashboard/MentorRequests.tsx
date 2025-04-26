@@ -34,7 +34,7 @@ const ApprovalModal: React.FC<ApprovalModalProps> = ({ isOpen, onClose, onSubmit
 
   const handleSubmit = () => {
     if (isRejection && !comment.trim()) {
-      alert('Please provide a reason for rejection');
+      toast.error('Please provide a reason for rejection');
       return;
     }
     onSubmit(comment);
@@ -42,46 +42,48 @@ const ApprovalModal: React.FC<ApprovalModalProps> = ({ isOpen, onClose, onSubmit
   };
 
   return (
-    <div className="fixed inset-0 z-50 overflow-y-auto">
-      {/* Backdrop with blur effect - no click handler */}
-      <div 
-        className="fixed inset-0 bg-black/50 backdrop-blur-sm transition-opacity"
-      />
-      
-      <div className="flex min-h-full items-center justify-center p-4 text-center">
-        <div className="relative transform overflow-hidden rounded-lg bg-white px-4 pb-4 pt-5 text-left shadow-xl transition-all sm:my-8 sm:w-full sm:max-w-lg sm:p-6">
-          <h3 className="text-lg font-semibold mb-4">
-            {isRejection ? (
-              <>
-                Reject Request <span className="text-red-500">*</span>
-              </>
-            ) : (
-              'Approve Request'
-            )}
-          </h3>
-          <textarea
-            className="w-full p-2 border rounded mb-4"
-            placeholder={isRejection ? 'Please provide a reason for rejection' : 'Add a comment (optional)'}
-            value={comment}
-            onChange={(e) => setComment(e.target.value)}
-            rows={3}
-          />
-          <div className="flex justify-end space-x-4">
-            <button
-              className="px-4 py-2 bg-gray-200 rounded hover:bg-gray-300"
-              onClick={onClose}
-            >
-              Cancel
-            </button>
-            <button
-              className={`px-4 py-2 rounded ${
-                isRejection ? 'bg-red-500 hover:bg-red-600' : 'bg-green-500 hover:bg-green-600'
-              } text-white`}
-              onClick={handleSubmit}
-            >
-              {isRejection ? 'Reject' : 'Approve'}
-            </button>
-          </div>
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-opacity-30 backdrop-blur-md">
+      <div className="relative bg-white rounded-lg shadow-lg p-6 w-11/12 max-w-md">
+        <button
+          onClick={onClose}
+          className="absolute top-2 right-2 text-gray-500 hover:text-gray-700"
+          aria-label="Close modal"
+        >
+          <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+          </svg>
+        </button>
+        <h3 className="text-lg font-bold text-gray-800 mb-4">
+          {isRejection ? (
+            <>
+              Reject Request <span className="text-red-500">*</span>
+            </>
+          ) : (
+            'Approve Request'
+          )}
+        </h3>
+        <textarea
+          className="w-full p-2 border rounded-md mb-4 focus:outline-none focus:ring-2 focus:ring-blue-500"
+          placeholder={isRejection ? 'Please provide a reason for rejection' : 'Add a comment (optional)'}
+          value={comment}
+          onChange={(e) => setComment(e.target.value)}
+          rows={3}
+        />
+        <div className="flex justify-end space-x-2">
+          <button
+            className="py-2 px-4 rounded-md text-gray-600 bg-gray-200 hover:bg-gray-300"
+            onClick={onClose}
+          >
+            Cancel
+          </button>
+          <button
+            className={`py-2 px-4 rounded-md text-white ${
+              isRejection ? 'bg-red-500 hover:bg-red-600' : 'bg-blue-600 hover:bg-blue-700'
+            }`}
+            onClick={handleSubmit}
+          >
+            {isRejection ? 'Reject' : 'Approve'}
+          </button>
         </div>
       </div>
     </div>
@@ -93,6 +95,7 @@ const MentorRequests: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [modalOpen, setModalOpen] = useState(false);
+  const [detailsModalOpen, setDetailsModalOpen] = useState(false);
   const [selectedRequest, setSelectedRequest] = useState<Request | null>(null);
   const [isRejection, setIsRejection] = useState(false);
 
@@ -118,13 +121,9 @@ const MentorRequests: React.FC = () => {
           }
         );
 
-        console.log('API Response:', response.data);
-        
         if (response.data && response.data.object) {
-          console.log('Fetched requests successfully:', response.data.object.length);
           setRequests(response.data.object);
         } else {
-          console.log('No requests found');
           setRequests([]);
         }
       } catch (error) {
@@ -164,12 +163,12 @@ const MentorRequests: React.FC = () => {
         }
       );
 
-      console.log('Request has been approved successfully:', request.id);
       setRequests(requests.filter(r => r.id !== request.id));
       toast.success('Request has been approved successfully');
     } catch (error) {
       console.error('Error approving request:', error);
       setError('Failed to approve request');
+      toast.error('Failed to approve request');
     }
   };
 
@@ -198,24 +197,39 @@ const MentorRequests: React.FC = () => {
         }
       );
 
-      console.log('Request has been rejected successfully:', request.id);
       setRequests(requests.filter(r => r.id !== request.id));
       toast.success('Request has been rejected successfully');
     } catch (error) {
       console.error('Error rejecting request:', error);
       setError('Failed to reject request');
+      toast.error('Failed to reject request');
     }
   };
 
-  const openModal = (request: Request, isReject: boolean) => {
+  const openApprovalModal = (request: Request, isReject: boolean) => {
     setSelectedRequest(request);
     setIsRejection(isReject);
     setModalOpen(true);
+    setDetailsModalOpen(false);
   };
 
-  const closeModal = () => {
+  const closeDetailsModal = () => {
+    setDetailsModalOpen(false);
+    setSelectedRequest(null);
+  };
+
+  const closeApprovalModal = () => {
     setModalOpen(false);
     setSelectedRequest(null);
+  };
+
+  const handleRowClick = (request: Request) => {
+    if (window.innerWidth < 640) {
+      // Mobile: Show details modal
+      setSelectedRequest(request);
+      setDetailsModalOpen(true);
+    }
+    // Desktop: No action on row click, handled by action buttons
   };
 
   if (loading) {
@@ -236,92 +250,150 @@ const MentorRequests: React.FC = () => {
   }
 
   return (
-    <div className="container mx-auto">
-      <h2 className="text-2xl font-bold mb-8">Mentee Requests</h2>
-      
+    <div className="mx-auto p-4 sm:p-8 bg-white rounded-lg shadow-md max-w-7xl">
+      <div className="mb-6">
+        <h1 className="text-2xl font-bold text-gray-800">Mentee Requests</h1>
+      </div>
+
       {requests.length > 0 ? (
-        <div className="overflow-x-auto bg-white rounded-lg shadow">
-          <table className="min-w-full divide-y divide-gray-200">
-            <thead className="bg-gray-50">
-              <tr>
-                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Mentee Name
-                </th>
-                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Email
-                </th>
-                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Designation
-                </th>
-                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Domain
-                </th>
-                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Actions
-                </th>
-              </tr>
-            </thead>
-            <tbody className="bg-white divide-y divide-gray-200">
-              {requests.map((request) => (
-                <tr key={request.id} className="hover:bg-gray-50">
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="text-sm font-medium text-gray-900">{request.name}</div>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="text-sm text-gray-900">{request.mail}</div>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="text-sm text-gray-900">{request.designation}</div>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="text-sm text-gray-900">{request.domain_name}</div>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="flex space-x-2">
-                      <button
-                        onClick={() => openModal(request, false)}
-                        className="p-2 text-green-500 hover:text-green-600"
-                        title="Approve"
-                      >
-                        <CheckCircle className="w-5 h-5" />
-                      </button>
-                      <button
-                        onClick={() => openModal(request, true)}
-                        className="p-2 text-red-500 hover:text-red-600"
-                        title="Reject"
-                      >
-                        <XCircle className="w-5 h-5" />
-                      </button>
-                    </div>
-                  </td>
+        <>
+          {/* Mobile View: List format */}
+          <div className="sm:hidden space-y-2">
+            {requests.map((request) => (
+              <div
+                key={request.id}
+                className="p-3 bg-gray-50 rounded-lg hover:bg-gray-100 cursor-pointer"
+                onClick={() => handleRowClick(request)}
+              >
+                <div className="text-sm font-medium text-blue-600 hover:underline">
+                  {request.name}
+                </div>
+              </div>
+            ))}
+          </div>
+
+          {/* Desktop View: Table format */}
+          <div className="hidden sm:block overflow-x-auto">
+            <table className="min-w-full divide-y divide-gray-200">
+              <thead className="bg-gray-50">
+                <tr>
+                  <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Mentee Name
+                  </th>
+                  <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Email
+                  </th>
+                  <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Designation
+                  </th>
+                  <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Domain
+                  </th>
+                  <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Actions
+                  </th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+              </thead>
+              <tbody className="bg-white divide-y divide-gray-200">
+                {requests.map((request) => (
+                  <tr key={request.id} className="hover:bg-gray-50">
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <div className="text-sm font-medium text-gray-900">{request.name}</div>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <div className="text-sm text-gray-500">{request.mail}</div>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <div className="text-sm text-gray-500">{request.designation}</div>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <div className="text-sm text-gray-500">{request.domain_name}</div>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <div className="flex space-x-2">
+                        <button
+                          onClick={() => openApprovalModal(request, false)}
+                          className="p-2 text-blue-600 hover:text-blue-700"
+                          title="Approve"
+                        >
+                          <CheckCircle className="w-5 h-5" />
+                        </button>
+                        <button
+                          onClick={() => openApprovalModal(request, true)}
+                          className="p-2 text-red-500 hover:text-red-600"
+                          title="Reject"
+                        >
+                          <XCircle className="w-5 h-5" />
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+
+          {/* Mobile Details Modal */}
+          {selectedRequest && detailsModalOpen && (
+            <div className="fixed inset-0 z-50 flex items-center justify-center bg-opacity-30 backdrop-blur-md">
+              <div className="bg-white rounded-lg shadow-lg p-6 w-11/12 max-w-md relative">
+                <button
+                  onClick={closeDetailsModal}
+                  className="absolute top-2 right-2 text-gray-500 hover:text-gray-700"
+                  aria-label="Close modal"
+                >
+                  <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
+                <h2 className="text-lg font-bold text-gray-800 mb-4">{selectedRequest.name}</h2>
+                <div className="space-y-2">
+                  <p><span className="font-medium text-gray-700">Email:</span> {selectedRequest.mail}</p>
+                  <p><span className="font-medium text-gray-700">Designation:</span> {selectedRequest.designation}</p>
+                  <p><span className="font-medium text-gray-700">Domain:</span> {selectedRequest.domain_name}</p>
+                </div>
+                <div className="flex justify-end space-x-2 mt-4">
+                  <button
+                    onClick={() => openApprovalModal(selectedRequest, false)}
+                    className="py-2 px-4 rounded-md text-white bg-blue-600 hover:bg-blue-700"
+                  >
+                    Approve
+                  </button>
+                  <button
+                    onClick={() => openApprovalModal(selectedRequest, true)}
+                    className="py-2 px-4 rounded-md text-white bg-red-500 hover:bg-red-600"
+                  >
+                    Reject
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Approval/Rejection Modal */}
+          <ApprovalModal
+            isOpen={modalOpen}
+            onClose={closeApprovalModal}
+            onSubmit={(comment) => {
+              if (selectedRequest) {
+                if (isRejection) {
+                  handleReject(selectedRequest, comment);
+                } else {
+                  handleApprove(selectedRequest, comment);
+                }
+              }
+              closeApprovalModal();
+            }}
+            isRejection={isRejection}
+          />
+        </>
       ) : (
-        <div className="bg-white rounded-lg shadow p-8 text-center">
-          <p className="text-gray-500 text-lg mb-4">No requests found.</p>
+        <div className="text-center py-8">
+          <p className="text-gray-600">No requests found</p>
         </div>
       )}
-
-      <ApprovalModal
-        isOpen={modalOpen}
-        onClose={closeModal}
-        onSubmit={(comment) => {
-          if (selectedRequest) {
-            if (isRejection) {
-              handleReject(selectedRequest, comment);
-            } else {
-              handleApprove(selectedRequest, comment);
-            }
-          }
-          closeModal();
-        }}
-        isRejection={isRejection}
-      />
     </div>
   );
 };
 
-export default MentorRequests; 
+export default MentorRequests;
