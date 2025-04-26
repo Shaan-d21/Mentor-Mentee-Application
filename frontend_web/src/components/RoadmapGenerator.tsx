@@ -71,7 +71,6 @@ const RoadmapGenerator: React.FC = () => {
     };
 
     const [newTopic, setNewTopic] = useState(newTopicInitialState);
-    const [newSubtopic, setNewSubtopic] = useState({ name: '' });
 
     const handleNameInput = (name: string): string => {
         return name.trim();
