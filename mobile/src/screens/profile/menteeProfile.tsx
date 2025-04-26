@@ -175,13 +175,51 @@ const MenteeProfileScreen: FC<ScreenProps<"MenteeProfileScreen">> = ({
   const handleSubmit = () => {
     let isValid = true;
 
-    // Validate name
-    if (!fullName || !fullName.trim()) {
-      setNameError("Name cannot be empty.");
+    const cleanedName = fullName.trim().replace(/\s+/g, ' ');
+
+if (!cleanedName) {
+  setNameError('Name cannot be empty.');
+  isValid = false;
+} 
+else if (!/^[A-Za-z]+(?:\s[A-Za-z]+)*$/.test(cleanedName)) {
+  setNameError('Name must contain only letters with single spaces between words.');
+  isValid = false;
+} 
+else {
+  setNameError('');
+}
+
+    
+if (!mobile.trim()) {
+  setMobileError('Mobile number cannot be empty.');
+  isValid = false;
+} 
+else if (!/^[1-9][0-9]{9}$/.test(mobile.trim())) {
+  setMobileError('Please enter a valid number.');
+  isValid = false;
+} 
+else if (/^(\d)\1{9}$/.test(mobile.trim())) {
+  setMobileError('Please enter a valid number.');
+  isValid = false;
+}
+else {
+  setMobileError('');
+}
+
+    
+
+    if (!designation || !designation.trim()) {
+      setDesignationError('Designation cannot be empty.');
       isValid = false;
-    } else {
-      setNameError("");
+    } 
+    else if (!/^[A-Za-z][A-Za-z0-9\s\W]*$/.test(designation.trim())) {
+      setDesignationError('Designation must start with a letter.');
+      isValid = false;
+    } 
+    else {
+      setDesignationError('');
     }
+    
 
     // Validate email
     if (!email || !email.trim()) {

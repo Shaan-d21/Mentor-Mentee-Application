@@ -216,11 +216,8 @@ string]: boolean }>({});
     setProfile(prev => ({...prev, [key]: value}));
   }
 
-  function validateMobile(mobile: string): boolean {
-    const mobileRegex = /^[0-9]{10}$/;
-    return mobileRegex.test(mobile);
-  }
-   const handleDeleteSkill = async (skill_id: number) => {
+  
+     const handleDeleteSkill = async (skill_id: number) => {
        try {
 
          await dispatch(deletementorProfileSkill(skill_id)).unwrap();
@@ -236,32 +233,57 @@ string]: boolean }>({});
   const handleSubmit = () => {
     let isValid = true;
 
+
     // Check name
-    if (!profile.name.trim()) {
-      setNameError('Name cannot be empty.');
-      isValid = false;
-    } else {
-      setNameError('');
-    }
+    const cleanedName = profile.name.trim().replace(/\s+/g, ' ');
+
+if (!cleanedName) {
+  setNameError('Name cannot be empty.');
+  isValid = false;
+} 
+else if (!/^[A-Za-z]+(?:\s[A-Za-z]+)*$/.test(cleanedName)) {
+  setNameError('Name must contain only letters with single spaces between words.');
+  isValid = false;
+} 
+else {
+  setNameError('');
+}
+
 
     // Check contact
-    if (!profile.contact.trim()) {
+    const cleanedContact = profile.contact.replace(/\s+/g, '').trim();
+
+    if (!cleanedContact) {
       setMobileError('Mobile number cannot be empty.');
       isValid = false;
-    } else if (!validateMobile(profile.contact)) {
-      setMobileError('Please enter a valid  mobile number.');
+    } 
+    else if (!/^[1-9][0-9]{9}$/.test(cleanedContact)) {
+      setMobileError('Please enter a valid Number.');
       isValid = false;
-    } else {
+    } 
+    else if (/^(\d)\1{8}$/.test(cleanedContact)) {
+      // Now check: All digits not same
+      setMobileError('Mobile number cannot have all digits same.');
+      isValid = false;
+    }
+        else {
       setMobileError('');
     }
+        
+    
 
-    // Check designation
     if (!profile.designation || !profile.designation.trim()) {
       setDesignationError('Designation cannot be empty.');
       isValid = false;
-    } else {
+    } 
+    else if (!/^[A-Za-z][A-Za-z0-9\s\W]*$/.test(profile.designation.trim())) {
+      setDesignationError('Designation must start with a letter.');
+      isValid = false;
+    } 
+    else {
       setDesignationError('');
     }
+    
 
     // Check domain
     if (!updateDomain || !updateDomain.trim()) {
