@@ -381,13 +381,23 @@ const MenteeRoadmap: React.FC = () => {
                 >
                   <div className="flex flex-col space-y-4">
                     <div className="flex items-center gap-3">
+                      {window.innerWidth > 768 && topic.topic_status !== 'marked' && topic.topic_status !== 'complete' && topic.topic_status !== 'completed' && (
+                        <button
+                          onClick={(e) => { e.stopPropagation(); handleMarkComplete(topic); }}
+                          className="w-8 h-8 rounded-full border-2 border-gray-300 hover:border-green-500 flex items-center justify-center transition-colors duration-200 cursor-pointer"
+                          title="Mark as complete"
+                        >
+                          <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-green-500 hidden group-hover:block" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                          </svg>
+                        </button>
+                      )}
                       <h2 className="text-sm sm:text-base md:text-xl font-semibold text-gray-800 group-hover:text-blue-700 transition-colors duration-300 truncate">{topic.name}</h2>
                     </div>
                     <div className="flex flex-wrap gap-2 md:gap-3">
                       <span className={`px-2 py-0.5 rounded-full text-xs sm:text-sm font-medium ${getStatusColor(topic.topic_status)} group-hover:shadow-sm transition-all duration-300`}>
                         {getStatusText(topic.topic_status)}
                       </span>
-                      {/* Show full details only on desktop */}
                       {window.innerWidth > 768 && topic.topic_duration_days && (
                         <span className="px-2 py-0.5 rounded-full text-xs sm:text-sm font-medium bg-blue-100 text-blue-800">
                           {topic.topic_duration_days} hours
@@ -396,17 +406,6 @@ const MenteeRoadmap: React.FC = () => {
                     </div>
                     {window.innerWidth > 768 && (
                       <>
-                        {topic.topic_status !== 'marked' && topic.topic_status !== 'complete' && topic.topic_status !== 'completed' && (
-                          <button
-                            onClick={(e) => { e.stopPropagation(); handleMarkComplete(topic); }}
-                            className="w-8 h-8 rounded-full border-2 border-gray-300 hover:border-green-500 flex items-center justify-center transition-colors duration-200 cursor-pointer"
-                            title="Mark as complete"
-                          >
-                            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-green-500 hidden group-hover:block" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                            </svg>
-                          </button>
-                        )}
                         <p className="text-sm sm:text-base text-gray-600 group-hover:text-gray-700 transition-colors duration-300">{topic.description}</p>
                         
                         {topic.subtopics && topic.subtopics.length > 0 && (
@@ -463,7 +462,6 @@ const MenteeRoadmap: React.FC = () => {
                   <p className="text-sm sm:text-base text-gray-600 truncate">
                     Mentor: <span className="font-medium">{mentor.mentor_name}</span>
                   </p>
-                  {/* Show full details only on desktop */}
                   {window.innerWidth > 768 && (
                     <>
                       <p className="text-sm sm:text-base text-gray-600 truncate">
@@ -541,6 +539,17 @@ const MenteeRoadmap: React.FC = () => {
               </div>
               <div className="space-y-4">
                 <div className="flex items-center gap-3">
+                  {selectedTopicForModal.topic_status !== 'marked' && selectedTopicForModal.topic_status !== 'complete' && selectedTopicForModal.topic_status !== 'completed' && (
+                    <button
+                      onClick={() => handleMarkComplete(selectedTopicForModal)}
+                      className="w-8 h-8 rounded-full border-2 border-gray-300 hover:border-green-500 flex items-center justify-center transition-colors duration-200 cursor-pointer"
+                      title="Mark as complete"
+                    >
+                      <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-green-500 hidden group-hover:block" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                      </svg>
+                    </button>
+                  )}
                   <h2 className="text-sm sm:text-base font-semibold text-gray-800 truncate">{selectedTopicForModal.name}</h2>
                 </div>
                 <div className="flex flex-wrap gap-2">
@@ -553,17 +562,6 @@ const MenteeRoadmap: React.FC = () => {
                     </span>
                   )}
                 </div>
-                {selectedTopicForModal.topic_status !== 'marked' && selectedTopicForModal.topic_status !== 'complete' && selectedTopicForModal.topic_status !== 'completed' && (
-                  <button
-                    onClick={() => handleMarkComplete(selectedTopicForModal)}
-                    className="w-full py-2.5 px-4 rounded-md bg-green-600 text-white hover:bg-green-700 flex items-center justify-center transition-colors duration-200 cursor-pointer"
-                  >
-                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                    </svg>
-                    Mark as Complete
-                  </button>
-                )}
                 <p className="text-sm sm:text-base text-gray-600">{selectedTopicForModal.description}</p>
                 
                 {selectedTopicForModal.subtopics && selectedTopicForModal.subtopics.length > 0 && (
