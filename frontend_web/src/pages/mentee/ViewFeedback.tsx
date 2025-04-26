@@ -265,7 +265,7 @@ const ViewFeedback: React.FC = () => {
   }
 
   return (
-    <div className="container mx-auto p-6">
+    <div className="container mx-auto">
       <h2 className="text-2xl font-bold mb-8">View Feedback</h2>
       
       <div className="bg-white rounded-lg shadow-md p-6">
