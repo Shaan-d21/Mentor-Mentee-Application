@@ -185,7 +185,7 @@ const Navbar = () => {
                       alt="Profile"
                       className="w-8 h-8 rounded-full border border-gray-200"
                     />
-                    <span className="text-sm font-medium text-white cursor-pointer">{userInfo?.name || "User"}</span>
+                    <span className="text-sm font-medium text-black cursor-pointer">{userInfo?.name || "User"}</span>
                     <svg
                       className={`w-4 h-4 text-white transition-transform ${dropdownOpen ? 'rotate-180' : ''}`}
                       fill="none"
@@ -209,7 +209,7 @@ const Navbar = () => {
                         onClick={handleLogout}
                         className="flex items-center w-full px-4 py-2 text-sm text-red-600 hover:bg-gray-50 cursor-pointer"
                       >
-                        <FaSignOutAlt className="mr-3 h-4 w-4 text-red-400" />
+                        <FaSignOutAlt className="mr-3 h-4 w-4 text-red-600" />
                         Logout
                       </button>
                     </div>
@@ -285,7 +285,7 @@ const Navbar = () => {
                   alt="Profile"
                   className="w-8 h-8 rounded-full border border-gray-200 mr-3"
                 />
-                <span className="text-sm font-medium text-white">
+                <span className="text-sm font-medium text-black">
                   {userInfo?.name || "User"}
                 </span>
               </div>
@@ -295,7 +295,7 @@ const Navbar = () => {
                   handleViewProfile();
                   setIsMenuOpen(false);
                 }}
-                className="w-full px-3 py-2 rounded-md text-base font-medium text-white hover:text-white hover:bg-blue-700 flex items-center"
+                className="cursor-pointer w-full px-3 py-2 rounded-md text-base font-medium text-black hover:text-white hover:bg-blue-700 flex items-center"
               >
                 <FaUser className="mr-3 h-4 w-4" />
                 View Profile
@@ -306,7 +306,7 @@ const Navbar = () => {
                   handleLogout();
                   setIsMenuOpen(false);
                 }}
-                className="w-full px-3 py-2 rounded-md text-base font-medium text-red-300 hover:text-red-200 hover:bg-blue-700 flex items-center"
+                className="cursor-pointer w-full px-3 py-2 rounded-md text-base font-medium text-red-600 hover:text-red-200 hover:bg-blue-700 flex items-center"
               >
                 <FaSignOutAlt className="mr-3 h-4 w-4" />
                 Logout
