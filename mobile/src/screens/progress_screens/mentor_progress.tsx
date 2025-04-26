@@ -106,7 +106,7 @@ const MentorProgress: React.FC<ScreenProps<'MentorProgress'>> = ({ navigation })
 
   useEffect(() => {
     if (!roadmap_id) {
-      Alert.alert('Error', 'Failed to load Profile.', [
+      Alert.alert('Error', 'No Roadmap Assigned yet.', [
         { text: 'Cancel', onPress: () => navigation.pop(), style: 'cancel' },
       ]);
     } else {

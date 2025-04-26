@@ -31,6 +31,14 @@ export type RootStackParamList = {
   RoadmapScreen: {
     roadmap_id: number;
   };
+  ForgotPassword: undefined;
+  OTPVerification: {
+    email: string;
+  };
+
+  ResetPassword: {
+    email: string;
+  };
 
 };
 

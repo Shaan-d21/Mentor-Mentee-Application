@@ -163,7 +163,15 @@ const SignInPage: React.FC<ScreenProps<'SignInPage'>> = ({ navigation }) => {
           </TouchableOpacity>
         </View>
 
-        // ✅ Custom Checkbox
+        <TouchableOpacity 
+  style={authStyles.forgotPasswordContainer}
+  onPress={() => navigation.navigate('ForgotPassword')}>
+  
+{/* // Navigate to Forgot Password screen */}
+  <Text style={authStyles.forgotPasswordText}>Forgot Password?</Text>
+</TouchableOpacity>
+{/* 
+        // Custom Checkbox */}
 <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 10 }}>
   <TouchableOpacity
     onPress={() => setRememberMe(!rememberMe)}

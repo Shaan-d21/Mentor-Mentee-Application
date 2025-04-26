@@ -24,6 +24,9 @@ import { useEffect, useState } from 'react';
 import { useDispatch } from 'react-redux';
 import { loginUser } from '../redux/slices/auth/sliceLogin';
 import { AppDispatch } from '../redux/store';
+import ForgotPassword from '../screens/AuthScreens/ForgotPassword';
+import OTPVerification from '../screens/AuthScreens/OTPVerification';
+import ResetPassword from '../screens/AuthScreens/ResetPassword';
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
 export const RootNavigator: FC = () => {
@@ -88,6 +91,11 @@ export const RootNavigator: FC = () => {
         name="MenteeProfileScreen"
         component={MenteeProfileScreen}
       />
+      <Stack.Screen name ="ForgotPassword" component={ForgotPassword} />
+      <Stack.Screen
+        name="OTPVerification"
+        component={OTPVerification}/>
+        <Stack.Screen name ="ResetPassword" component={ResetPassword} />
     </Stack.Navigator>
   );
 };
