@@ -236,7 +236,7 @@ const MentorRequests: React.FC = () => {
   }
 
   return (
-    <div className="container mx-auto p-6">
+    <div className="container mx-auto">
       <h2 className="text-2xl font-bold mb-8">Mentee Requests</h2>
       
       {requests.length > 0 ? (
