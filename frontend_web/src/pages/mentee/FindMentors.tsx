@@ -374,7 +374,7 @@ const FindMentors: React.FC = () => {
   }, [compatibilityDomain, pendingRequestDomains, approvedRequestDomains]);
 
   return (
-    <div className={`container mx-auto ${!isOnDashboardHome ? 'p-6' : 'p-0 mt-8'}`}>
+    <div className={`container mx-auto ${!isOnDashboardHome ? '' : 'p-0 mt-8'}`}>
       <h2 className={`${isOnDashboardHome ? 'text-2xl' : 'text-3xl'} font-bold mb-6`}>
         Find Mentors
       </h2>
