@@ -1126,7 +1126,7 @@ const RoadmapGenerator: React.FC = () => {
 
             {/* Edit Topic Modal */}
             {editingTopic && (
-                <div className="fixed inset-0 bg-gray-900/30 backdrop-blur-md flex items-center justify-center p-4 z-[1000]">
+                <div className="fixed inset-0 bg-gray-900/30 backdrop-blur-md flex items-center justify-center p-4 z-10">
                     <div className="bg-white rounded-lg w-full max-w-[90vw] sm:max-w-[1000px] max-h-[90vh] flex flex-col">
                         <div className="p-4 sm:p-6 border-b border-gray-200">
                             <h3 className="text-lg sm:text-xl font-medium text-indigo-800">Edit Topic</h3>
@@ -1326,7 +1326,7 @@ const RoadmapGenerator: React.FC = () => {
 
             {/* Edit Modal Subtopic Delete Confirmation */}
             {showEditModalSubtopicDeleteConfirmation && (
-                <div className="fixed inset-0 bg-gray-900/30 backdrop-blur-md flex items-center justify-center z-50 p-4">
+                <div className="fixed inset-0 bg-gray-900/30 backdrop-blur-md flex items-center justify-center z-150 p-4">
                     <div className="bg-white rounded-lg p-4 sm:p-6 max-w-[90vw] sm:max-w-md">
                         <h3 className="text-lg sm:text-xl font-medium text-gray-900 mb-4">Delete Subtopic</h3>
                         <p className="text-sm sm:text-base text-gray-600 mb-6">Are you sure you want to delete this subtopic? This action cannot be undone.</p>
