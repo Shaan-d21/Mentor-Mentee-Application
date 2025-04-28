@@ -2,6 +2,7 @@
 // This file defines the MentorProfile interface and its implementation.
 
 export interface Skill {
+    skill_id: number;
     name: string;
     proficiency: number;
 }

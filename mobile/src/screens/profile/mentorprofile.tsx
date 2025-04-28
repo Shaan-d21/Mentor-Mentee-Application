@@ -14,6 +14,7 @@ import DropdownComponent from '../../components/Dropdown';
 import {useDispatch, useSelector} from 'react-redux';
 import {AppDispatch, RootState} from '../../redux/store';
 import {
+  deletementorProfileSkill,
   getmentorprofile,
   updateMentorProfileData,
   updateMentorprofileskill,
@@ -38,6 +39,7 @@ import {
   faPlusCircle,
   faTimes,
   faCheckCircle,
+  faXmark,
 } from '@fortawesome/free-solid-svg-icons';
 import {mentorSpecificStyles, profileStyles} from './profileStyle';
 import AppBar from '../../components/appbar_component';
@@ -150,7 +152,7 @@ string]: boolean }>({});
     [key: string]: number;
   }>({});
   const [skill, setSkill] = useState<{
-    [key: string]: number;
+    [key: string]: { skill_id: number; level: number };
   }>({});
 
   useEffect(() => {
@@ -176,14 +178,13 @@ string]: boolean }>({});
         domain: mentorData.domain,
       });
       setUpdateDomain(mentorData.domain);
-      // Convert existing skillSet into a simple { [skillName]: level } map
-      const skillMap: {[key: string]: number} = {};
+      const skillMap: { [key: string]: { skill_id: number; level: number } } = {};
       mentorData.skillSet?.forEach(item => {
         const skillName = item.name.trim();
         const level = parseInt(item.proficiency?.toString() || '0', 10) || 0;
-        // Keep the highest level if duplicates
-        if (!skillMap[skillName] || level > skillMap[skillName]) {
-          skillMap[skillName] = level;
+        const skill_id = item.skill_id; // Assuming `skill_id` exists in `item`
+        if (!skillMap[skillName] || level > skillMap[skillName].level) {
+          skillMap[skillName] = { skill_id, level };
         }
       });
       setSkill(skillMap);
@@ -215,11 +216,16 @@ string]: boolean }>({});
     setProfile(prev => ({...prev, [key]: value}));
   }
 
-  function validateMobile(mobile: string): boolean {
-    const mobileRegex = /^[0-9]{10}$/;
-    return mobileRegex.test(mobile);
-  }
+  
+     const handleDeleteSkill = async (skill_id: number) => {
+       try {
 
+         await dispatch(deletementorProfileSkill(skill_id)).unwrap();
+         dispatch(getmentorprofile());
+       } catch (error) {
+         Alert.alert("Error", "Failed to delete skill. Please try again.");
+       }
+     };
   const handleEditToggle = () => {
     setIsEditing(!isEditing);
   };
@@ -227,32 +233,57 @@ string]: boolean }>({});
   const handleSubmit = () => {
     let isValid = true;
 
+
     // Check name
-    if (!profile.name.trim()) {
-      setNameError('Name cannot be empty.');
-      isValid = false;
-    } else {
-      setNameError('');
-    }
+    const cleanedName = profile.name.trim().replace(/\s+/g, ' ');
+
+if (!cleanedName) {
+  setNameError('Name cannot be empty.');
+  isValid = false;
+} 
+else if (!/^[A-Za-z]+(?:\s[A-Za-z]+)*$/.test(cleanedName)) {
+  setNameError('Name must contain only letters with single spaces between words.');
+  isValid = false;
+} 
+else {
+  setNameError('');
+}
+
 
     // Check contact
-    if (!profile.contact.trim()) {
+    const cleanedContact = profile.contact.replace(/\s+/g, '').trim();
+
+    if (!cleanedContact) {
       setMobileError('Mobile number cannot be empty.');
       isValid = false;
-    } else if (!validateMobile(profile.contact)) {
-      setMobileError('Please enter a valid 10-digit mobile number.');
+    } 
+    else if (!/^[1-9][0-9]{9}$/.test(cleanedContact)) {
+      setMobileError('Please enter a valid Number.');
       isValid = false;
-    } else {
+    } 
+    else if (/^(\d)\1{8}$/.test(cleanedContact)) {
+      // Now check: All digits not same
+      setMobileError('Mobile number cannot have all digits same.');
+      isValid = false;
+    }
+        else {
       setMobileError('');
     }
+        
+    
 
-    // Check designation
     if (!profile.designation || !profile.designation.trim()) {
       setDesignationError('Designation cannot be empty.');
       isValid = false;
-    } else {
+    } 
+    else if (!/^[A-Za-z][A-Za-z0-9\s\W]*$/.test(profile.designation.trim())) {
+      setDesignationError('Designation must start with a letter.');
+      isValid = false;
+    } 
+    else {
       setDesignationError('');
     }
+    
 
     // Check domain
     if (!updateDomain || !updateDomain.trim()) {
@@ -310,13 +341,15 @@ string]: boolean }>({});
   ) : (
     <KeyboardAvoidingView>
       <ScrollView contentContainerStyle={profileStyles.container}>
-        {profile_status ? (
-          <AppBar
+        {Object.keys(skill).length !== 0    && profile_status ? (
+        <AppBar
             title={isEditing ? 'Edit Mentor Profile' : 'Mentor Profile'}
             onProfilePress={() => navigation.navigate('MentorProfileScreen')}
             openDrawer={() => {}}
           />
         ) : null}
+
+
 
         <View style={profileStyles.profileContainer}>
           <View style={profileStyles.profileImageContainer}>
@@ -448,6 +481,7 @@ string]: boolean }>({});
                     ]}
                     value={profile.contact}
                     keyboardType="phone-pad"
+                    maxLength={10}
                     onChangeText={txt => handleChange('contact', txt)}
                     placeholder="Mobile Number"
                   />
@@ -514,28 +548,48 @@ string]: boolean }>({});
         </View>
 
         {/* Show read-only list of skills (already selected) */}
-        {!!Object.keys(skill).length && (
-          <View style={profileStyles.domainsContainer}>
-            <View style={profileStyles.sectionHeaderRow}>
-              <FontAwesomeIcon icon={faCode} size={18} color="#3498db" />
-              <Text style={profileStyles.domainsTitle}>Skills</Text>
-            </View>
-            <View style={profileStyles.domainsList}>
-              {Object.keys(skill).map(skillName => (
-                <View key={skillName} style={profileStyles.skillItem}>
-                  <Text style={profileStyles.skillText}>{skillName}</Text>
-                  <View style={mentorSpecificStyles.skillLevel}>
-                    <Text style={mentorSpecificStyles.levelText}>
-                      Level {skill[skillName]}
-                    </Text>
-                  </View>
-                </View>
-              ))}
-            </View>
+              
+        
+        {Object.keys(skill).length === 0  ? (
+          <View style={profileStyles.emptySkillsContainer}>
+          <Text style={profileStyles.emptySkillsText}>
+          Please add at least one skill.
+          </Text>
           </View>
-        )}
+        ) : (
+  <View style={profileStyles.domainsContainer}>
+    <View style={profileStyles.sectionHeaderRow}>
+      <FontAwesomeIcon icon={faCode} size={18} color="#3498db" />
+      <Text style={profileStyles.domainsTitle}>Skills</Text>
+    </View>
 
-        {/* A single button to open a modal for adding/editing skills */}
+    <View style={profileStyles.domainsList}>
+      {Object.keys(skill).map(skillName => {
+        const currentSkill = skill[skillName];
+        return (
+          <View key={skillName} style={profileStyles.skillItem}>
+            <Text style={profileStyles.skillText}>{skillName}</Text>
+
+            <View style={mentorSpecificStyles.skillLevel}>
+              <Text style={mentorSpecificStyles.levelText}>
+                Level {currentSkill?.level ?? 'N/A'}
+              </Text>
+            </View>
+
+            <TouchableOpacity onPress={() => handleDeleteSkill(currentSkill?.skill_id)}>
+              <FontAwesomeIcon
+                icon={faXmark}
+                size={16}
+                color="#3498db"
+                style={profileStyles.icon}
+              />
+            </TouchableOpacity>
+          </View>
+        );
+      })}
+    </View>
+  </View>
+)}
     {isEditing?(<></>):(
         <TouchableOpacity
           style={[
@@ -543,7 +597,11 @@ string]: boolean }>({});
             {flexDirection: 'row', alignItems: 'center'},
           ]}
           onPress={() => {
-            setSkillProficiencies(skill);
+            setSkillProficiencies(
+              Object.fromEntries(
+                Object.entries(skill).map(([key, value]) => [key, value.level])
+              )
+            );
             setShowSkillModal(true)}}>
           <FontAwesomeIcon
             icon={faPlusCircle}

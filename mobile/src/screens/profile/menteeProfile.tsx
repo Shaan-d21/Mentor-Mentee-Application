@@ -18,7 +18,7 @@ import {
   getmenteeprofile,
   updateProfileData,
   updateprofileskill,
-} from "../../redux/slices/profileSlice/menteeProfileSlice";
+ deleteProfileSkill } from "../../redux/slices/profileSlice/menteeProfileSlice";
 import { ScreenProps } from "../../navigation/types";
 import { setName, changeProfileStatus } from "../../redux/slices/auth/sliceLogin";
 import { MMKV } from "react-native-mmkv";
@@ -35,6 +35,7 @@ import {
   faPlusCircle,
   faTimes,
   faCheckCircle,
+  faXmark
 } from "@fortawesome/free-solid-svg-icons";
 import AppBar from "../../components/appbar_component";
 import { profileStyles, mentorSpecificStyles } from "./profileStyle";
@@ -164,6 +165,7 @@ const MenteeProfileScreen: FC<ScreenProps<"MenteeProfileScreen">> = ({
     return mobileRegex.test(mobile);
   };
 
+
   // Toggles edit mode on/off
   const handleEditToggle = () => {
     setIsEditing(!isEditing);
@@ -173,13 +175,51 @@ const MenteeProfileScreen: FC<ScreenProps<"MenteeProfileScreen">> = ({
   const handleSubmit = () => {
     let isValid = true;
 
-    // Validate name
-    if (!fullName || !fullName.trim()) {
-      setNameError("Name cannot be empty.");
+    const cleanedName = fullName.trim().replace(/\s+/g, ' ');
+
+if (!cleanedName) {
+  setNameError('Name cannot be empty.');
+  isValid = false;
+} 
+else if (!/^[A-Za-z]+(?:\s[A-Za-z]+)*$/.test(cleanedName)) {
+  setNameError('Name must contain only letters with single spaces between words.');
+  isValid = false;
+} 
+else {
+  setNameError('');
+}
+
+    
+if (!mobile.trim()) {
+  setMobileError('Mobile number cannot be empty.');
+  isValid = false;
+} 
+else if (!/^[1-9][0-9]{9}$/.test(mobile.trim())) {
+  setMobileError('Please enter a valid number.');
+  isValid = false;
+} 
+else if (/^(\d)\1{9}$/.test(mobile.trim())) {
+  setMobileError('Please enter a valid number.');
+  isValid = false;
+}
+else {
+  setMobileError('');
+}
+
+    
+
+    if (!designation || !designation.trim()) {
+      setDesignationError('Designation cannot be empty.');
       isValid = false;
-    } else {
-      setNameError("");
+    } 
+    else if (!/^[A-Za-z][A-Za-z0-9\s\W]*$/.test(designation.trim())) {
+      setDesignationError('Designation must start with a letter.');
+      isValid = false;
+    } 
+    else {
+      setDesignationError('');
     }
+    
 
     // Validate email
     if (!email || !email.trim()) {
@@ -240,9 +280,11 @@ const MenteeProfileScreen: FC<ScreenProps<"MenteeProfileScreen">> = ({
     setModalLoading(true);
     
     // Convert the selectedSkills object to array format
-    const skillArray: Skill[] = Object.entries(selectedSkills).map(([name, proficiency]) => ({
+    const skillArray: Skill[] = Object.entries(selectedSkills).map(([name, proficiency], index) => ({
+      id: index, // Assign a unique id (replace with actual logic if needed)
+      skill_id: index, // Assign a unique skill_id (replace with actual logic if needed)
       name,
-      proficiency
+      proficiency,
     }));
     
     dispatch(updateprofileskill(skillArray)).then(() => {
@@ -258,11 +300,21 @@ const MenteeProfileScreen: FC<ScreenProps<"MenteeProfileScreen">> = ({
       [skillName]: level
     }));
     
+    
     // Collapse the expanded skill
     setExpandedSkills(prev => ({
       ...prev,
       [skillName]: false
     }));
+  };
+
+  const handleDeleteSkill = async (skillId: number) => {
+    try {
+      await dispatch(deleteProfileSkill(skillId)).unwrap();
+      dispatch(getmenteeprofile());
+    } catch (error) {
+      Alert.alert("Error", "Failed to delete skill. Please try again.");
+    }
   };
 
   return currentStatus === "loading" ? (
@@ -272,14 +324,13 @@ const MenteeProfileScreen: FC<ScreenProps<"MenteeProfileScreen">> = ({
   ) : (
     <KeyboardAvoidingView>
     <ScrollView contentContainerStyle={profileStyles.container}>
-      {profile_status ? (
-        <AppBar
-          onProfilePress={() => navigation.navigate("MenteeProfileScreen")}
-          title={isEditing ? "Edit Mentee Profile" : "Mentee Profile"}
-          openDrawer={() => {}}
-        />
-      ) : null}
-
+    {userType?.skillSet?.length !== 0 && profile_status && (
+          <AppBar
+            onProfilePress={() => navigation.navigate("MenteeProfileScreen")}
+            title="Mentee Profile"
+            openDrawer={() => {}}
+          />
+        )}
       <View style={profileStyles.profileContainer}>
         <View style={profileStyles.profileImageContainer}>
           <FontAwesomeIcon icon={faUserCircle} size={150} color="#3498db" style={profileStyles.profileImage} />
@@ -333,6 +384,7 @@ const MenteeProfileScreen: FC<ScreenProps<"MenteeProfileScreen">> = ({
                   style={[profileStyles.inputField, mobileError ? profileStyles.inputError : undefined]}
                   value={mobile}
                   onChangeText={setMobile}
+                  maxLength={10}
                   placeholder="Mobile Number"
                   keyboardType="phone-pad"
                 />
@@ -354,22 +406,43 @@ const MenteeProfileScreen: FC<ScreenProps<"MenteeProfileScreen">> = ({
         </View>
       </View>
       
-      {/* Display skills with proficiency */}
-      {!!userType?.skillSet?.length && (
+      {userType?.skillSet?.length === 0 ? (
+      <View style={profileStyles.emptySkillsContainer}>
+      <Text style={profileStyles.emptySkillsText}>
+      Please add at least one skill.
+      </Text>
+    
+  </View>
+) : (
+
+      //{userType?.skillSet?.length && (
         <View style={profileStyles.domainsContainer}>
           <View style={profileStyles.sectionHeaderRow}>
             <FontAwesomeIcon icon={faCode} size={18} color="#3498db" />
             <Text style={profileStyles.domainsTitle}>Skills</Text>
+
           </View>
           <View style={profileStyles.domainsList}>
-            {userType.skillSet.map((skill: Skill, index: number) => (
-              <View key={index} style={profileStyles.skillItem}>
+            {userType?.skillSet?.map((skill: Skill, index: number) => (
+              //<View key={index} style={profileStyles.skillItem}>
+              <View key={skill.skill_id} style={profileStyles.skillItem}> 
+
                 <Text style={profileStyles.skillText}>{skill.name}</Text>
                 <View style={mentorSpecificStyles.skillLevel}>
                   <Text style={mentorSpecificStyles.levelText}>
                     Level {skill.proficiency}
                   </Text>
-                </View>
+                 </View>
+                 <TouchableOpacity onPress={() => handleDeleteSkill(skill.skill_id)}> 
+
+                 <FontAwesomeIcon
+            icon={faXmark}
+            size={16}
+            color="#3498db"
+            style={profileStyles.icon}
+          />
+
+          </TouchableOpacity>
               </View>
             ))}
           </View>
