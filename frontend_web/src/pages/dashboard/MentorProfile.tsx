@@ -243,6 +243,10 @@ const MentorProfile: React.FC = () => {
 
       const authToken = accessToken.startsWith('Bearer') ? accessToken.split('Bearer ')[1] : accessToken;
 
+      tempProfile.name = tempProfile.name.trim().replace(/\s+/g, ' ');
+      tempProfile.designation = tempProfile.designation.trim().replace(/\s+/g, ' ');
+
+
       // Update profile
       const profileResponse = await axios.put(
         `${import.meta.env.VITE_API_URL}/users/mentor/profile_creation`,

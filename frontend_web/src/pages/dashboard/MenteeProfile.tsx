@@ -57,6 +57,7 @@ const PREDEFINED_SKILLS = [
 interface SelectedSkill {
   name: string;
   proficiency: number;
+  skill_id?: number; // Added skill_id to track skill identifier
 }
 
 const MenteeProfileContent: React.FC = () => {
@@ -150,6 +151,48 @@ const MenteeProfileContent: React.FC = () => {
            tempProfile["Skill set"].length > 0;
   };
 
+  const handleDeleteSkill = async (skillId: number, skillName: string) => {
+    try {
+      const token = localStorage.getItem('accessToken');
+      if (!token) {
+        toast.error('Authentication token missing. Please login again.');
+        navigate('/auth/login');
+        return;
+      }
+
+      const authToken = token.startsWith('Bearer ') ? token : `Bearer ${token}`;
+
+      await axios.delete(
+        `${import.meta.env.VITE_API_URL}/mentee/skill_delete`,
+        {
+          headers: {
+            'Content-Type': 'application/json',
+            'Token': authToken
+          },
+          data: {
+            skill_id: skillId
+          }
+        }
+      );
+
+      // Update tempProfile to remove the deleted skill
+      setTempProfile(prev => ({
+        ...prev,
+        "Skill set": prev["Skill set"].filter(skill => skill.skill_id !== skillId)
+      }));
+
+      toast.success(`Skill "${skillName}" deleted successfully`);
+    } catch (error: any) {
+      console.error('Error deleting skill:', error);
+      if (error.response?.status === 401) {
+        toast.error('Session expired. Please log in again.');
+        navigate('/auth/login');
+      } else {
+        toast.error('Failed to delete skill. Please try again.');
+      }
+    }
+  };
+
   const fetchProfile = useCallback(async () => {
     try {
       setLoading(true);
@@ -183,6 +226,7 @@ const MenteeProfileContent: React.FC = () => {
           const skills = profileResponse.data["Skill set"]?.map((skill: any) => ({
             name: skill.name,
             proficiency: skill.proficiency || 2,
+            skill_id: skill.skill_id, // Added skill_id
             isNew: false
           })) || [];
           
@@ -271,6 +315,9 @@ const MenteeProfileContent: React.FC = () => {
 
       const authToken = token.startsWith('Bearer ') ? token : `Bearer ${token}`;
       
+      tempProfile.name = tempProfile.name.trim().replace(/\s+/g, ' ');
+      tempProfile.designation = tempProfile.designation.trim().replace(/\s+/g, ' ');
+
       const profileData = {
         name: tempProfile.name,
         contact: tempProfile.contact,
@@ -584,7 +631,16 @@ const MenteeProfileContent: React.FC = () => {
                                 </option>
                               ))}
                             </select>
-                            {!profile["Skill set"].some(s => s.name === skill.name) && (
+                            {skill.skill_id ? (
+                              <button
+                                onClick={() => skill.skill_id && handleDeleteSkill(skill.skill_id, skill.name)}
+                                className="text-gray-400 hover:text-red-500 hover:scale-110 transition-all duration-200"
+                              >
+                                <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 sm:h-5 sm:w-5" viewBox="0 0 20 20" fill="currentColor">
+                                  <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" />
+                                </svg>
+                              </button>
+                            ) : (
                               <button
                                 onClick={() => handleRemoveSkill(skill.name)}
                                 className="text-gray-400 hover:text-red-500 hover:scale-110 transition-all duration-200"

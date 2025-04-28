@@ -7,13 +7,13 @@ export const validateName = (name: string): { isValid: boolean; error: string } 
     return { isValid: false, error: 'Name must be between 2-50 characters' };
   }
   
-  if (name.startsWith(' ') || name.endsWith(' ')) {
-    return { isValid: false, error: 'Name cannot start or end with space' };
-  }
+  // if (name.startsWith(' ') || name.endsWith(' ')) {
+  //   return { isValid: false, error: 'Name cannot start or end with space' };
+  // }
   
-  if (/\s{2,}/.test(name)) {
-    return { isValid: false, error: 'Name cannot have more than one space between characters' };
-  }
+  // if (/\s{2,}/.test(name)) {
+  //   return { isValid: false, error: 'Name cannot have more than one space between characters' };
+  // }
   
   if (!/^[a-zA-Z\s]*$/.test(name)) {
     return { isValid: false, error: 'Name must only contain letters and spaces' };
@@ -47,13 +47,13 @@ export const validateDesignation = (designation: string): { isValid: boolean; er
     return { isValid: false, error: 'Designation cannot be empty' };
   }
   
-  if (designation.startsWith(' ') || designation.endsWith(' ')) {
-    return { isValid: false, error: 'Designation cannot start or end with space' };
-  }
+  // if (designation.startsWith(' ') || designation.endsWith(' ')) {
+  //   return { isValid: false, error: 'Designation cannot start or end with space' };
+  // }
   
-  if (/\s{2,}/.test(designation)) {
-    return { isValid: false, error: 'Designation cannot have more than one space between characters' };
-  }
+  // if (/\s{2,}/.test(designation)) {
+  //   return { isValid: false, error: 'Designation cannot have more than one space between characters' };
+  // }
   
   if (/^\d+$/.test(designation)) {
     return { isValid: false, error: 'Designation cannot be only numbers' };

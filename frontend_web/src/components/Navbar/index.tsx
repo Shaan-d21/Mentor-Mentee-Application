@@ -26,6 +26,24 @@ const Navbar = () => {
       const role = localStorage.getItem("role");
       const name = localStorage.getItem("name");
       
+      // If we're on login or register page, clear auth data and force isAuthenticated to false
+      if (location.pathname === '/auth/login' || location.pathname === '/auth/register') {
+        localStorage.removeItem("accessToken");
+        localStorage.removeItem("token");
+        localStorage.removeItem("role");
+        localStorage.removeItem("name");
+        localStorage.removeItem("email");
+        localStorage.removeItem("profile_status");
+        localStorage.removeItem("userInfo");
+        localStorage.removeItem("menteeSkills");
+        localStorage.removeItem("pendingMentorshipDomains");
+        localStorage.removeItem("userContact");
+        localStorage.removeItem("user_name");
+        setIsAuthenticated(false);
+        setUserInfo(null);
+        return;
+      }
+      
       setIsAuthenticated(!!token);
       
       if (token) {
@@ -33,14 +51,19 @@ const Navbar = () => {
           role: role || "mentee",
           name: name || "User"
         });
+      } else {
+        setUserInfo(null);
       }
     };
 
     checkAuth();
     window.addEventListener("storage", checkAuth);
+    // Add event listener for popstate to handle browser back/forward
+    window.addEventListener("popstate", checkAuth);
 
     return () => {
       window.removeEventListener("storage", checkAuth);
+      window.removeEventListener("popstate", checkAuth);
     };
   }, [location.pathname]);
 
@@ -72,6 +95,10 @@ const Navbar = () => {
     localStorage.removeItem("email");
     localStorage.removeItem("profile_status");
     localStorage.removeItem("userInfo");
+    localStorage.removeItem("menteeSkills");
+    localStorage.removeItem("pendingMentorshipDomains");
+    localStorage.removeItem("userContact");
+    localStorage.removeItem("user_name");
     
     setIsAuthenticated(false);
     setIsMenuOpen(false);
