@@ -18,7 +18,8 @@ import {
   getmenteeprofile,
   updateProfileData,
   updateprofileskill,
- deleteProfileSkill } from "../../redux/slices/profileSlice/menteeProfileSlice";
+  deleteProfileSkill
+} from "../../redux/slices/profileSlice/menteeProfileSlice";
 import { ScreenProps } from "../../navigation/types";
 import { setName, changeProfileStatus } from "../../redux/slices/auth/sliceLogin";
 import { MMKV } from "react-native-mmkv";
@@ -124,7 +125,7 @@ const MenteeProfileScreen: FC<ScreenProps<"MenteeProfileScreen">> = ({
         setEmail(userType.mail);
         setMobile(userType.contact);
         setDesignation(userType.designation);
-        
+
         // Convert skills to skillMap format
         const skillMap: { [key: string]: number } = {};
         userType.skillSet.forEach(skill => {
@@ -174,52 +175,50 @@ const MenteeProfileScreen: FC<ScreenProps<"MenteeProfileScreen">> = ({
   // Validates and saves data
   const handleSubmit = () => {
     let isValid = true;
-
     const cleanedName = fullName.trim().replace(/\s+/g, ' ');
 
-if (!cleanedName) {
-  setNameError('Name cannot be empty.');
-  isValid = false;
-} 
-else if (!/^[A-Za-z]+(?:\s[A-Za-z]+)*$/.test(cleanedName)) {
-  setNameError('Name must contain only letters with single spaces between words.');
-  isValid = false;
-} 
-else {
-  setNameError('');
-}
+    if (!cleanedName) {
+      setNameError('Name cannot be empty.');
+      isValid = false;
+    }
+    else if (!/^[A-Za-z]+(?:\s[A-Za-z]+)*$/.test(cleanedName)) {
+      setNameError('Name must contain only letters with single spaces between words.');
+      isValid = false;
+    }
+    else {
+      setNameError('');
+    }
 
-    
-if (!mobile.trim()) {
-  setMobileError('Mobile number cannot be empty.');
-  isValid = false;
-} 
-else if (!/^[1-9][0-9]{9}$/.test(mobile.trim())) {
-  setMobileError('Please enter a valid number.');
-  isValid = false;
-} 
-else if (/^(\d)\1{9}$/.test(mobile.trim())) {
-  setMobileError('Please enter a valid number.');
-  isValid = false;
-}
-else {
-  setMobileError('');
-}
+    if (!mobile.trim()) {
+      setMobileError('Mobile number cannot be empty.');
+      isValid = false;
+    }
+    else if (!/^[1-9][0-9]{9}$/.test(mobile.trim())) {
+      setMobileError('Please enter a valid number.');
+      isValid = false;
+    }
+    else if (/^(\d)\1{9}$/.test(mobile.trim())) {
+      setMobileError('Please enter a valid number.');
+      isValid = false;
+    }
+    else {
+      setMobileError('');
+    }
 
-    
+
 
     if (!designation || !designation.trim()) {
       setDesignationError('Designation cannot be empty.');
       isValid = false;
-    } 
+    }
     else if (!/^[A-Za-z][A-Za-z0-9\s\W]*$/.test(designation.trim())) {
       setDesignationError('Designation must start with a letter.');
       isValid = false;
-    } 
+    }
     else {
       setDesignationError('');
     }
-    
+
 
     // Validate email
     if (!email || !email.trim()) {
@@ -262,6 +261,8 @@ else {
       );
       dispatch(setName(fullName));
     }
+    setIsEditing(false);
+
   };
 
   // Open the skill selection modal
@@ -278,15 +279,15 @@ else {
   // Save selected skills
   const saveSkills = () => {
     setModalLoading(true);
-    
+
     // Convert the selectedSkills object to array format
     const skillArray: Skill[] = Object.entries(selectedSkills).map(([name, proficiency], index) => ({
-      id: index, // Assign a unique id (replace with actual logic if needed)
-      skill_id: index, // Assign a unique skill_id (replace with actual logic if needed)
+      id: index,
+      skill_id: index,
       name,
       proficiency,
     }));
-    
+
     dispatch(updateprofileskill(skillArray)).then(() => {
       setModalLoading(false);
       setModalVisible(false);
@@ -299,8 +300,8 @@ else {
       ...prev,
       [skillName]: level
     }));
-    
-    
+
+
     // Collapse the expanded skill
     setExpandedSkills(prev => ({
       ...prev,
@@ -323,257 +324,257 @@ else {
     </View>
   ) : (
     <KeyboardAvoidingView>
-    <ScrollView contentContainerStyle={profileStyles.container}>
-    {userType?.skillSet?.length !== 0 && profile_status && (
+      <ScrollView contentContainerStyle={profileStyles.container}>
+        {userType?.skillSet?.length !== 0 && profile_status && (
           <AppBar
             onProfilePress={() => navigation.navigate("MenteeProfileScreen")}
             title="Mentee Profile"
-            openDrawer={() => {}}
+            openDrawer={() => { }}
           />
         )}
-      <View style={profileStyles.profileContainer}>
-        <View style={profileStyles.profileImageContainer}>
-          <FontAwesomeIcon icon={faUserCircle} size={150} color="#3498db" style={profileStyles.profileImage} />
-        </View>
-
-        <View style={profileStyles.infoContainer}>
-          {!isEditing ? (
-            <View style={profileStyles.profileInfoSection}>
-              <View style={profileStyles.infoRow}>
-                <FontAwesomeIcon icon={faUser} size={18} color="#3498db" style={profileStyles.infoIcon} />
-                <Text style={profileStyles.infoText}>{fullName}</Text>
-              </View>
-
-              <View style={profileStyles.infoRow}>
-                <FontAwesomeIcon icon={faEnvelope} size={18} color="#3498db" style={profileStyles.infoIcon} />
-                <Text style={profileStyles.infoText}>{email}</Text>
-              </View>
-
-              <View style={profileStyles.infoRow}>
-                <FontAwesomeIcon icon={faPhone} size={18} color="#3498db" style={profileStyles.infoIcon} />
-                <Text style={profileStyles.infoText}>{mobile}</Text>
-              </View>
-
-              <View style={profileStyles.infoRow}>
-                <FontAwesomeIcon icon={faBriefcase} size={18} color="#3498db" style={profileStyles.infoIcon} />
-                <Text style={profileStyles.infoText}>{designation}</Text>
-              </View>
-            </View>
-          ) : (
-            <>
-              <View style={profileStyles.inputContainer}>
-                <FontAwesomeIcon icon={faUser} size={18} color="#3498db" style={profileStyles.inputIcon} />
-                <TextInput
-                  style={[profileStyles.inputField, nameError ? profileStyles.inputError : undefined]}
-                  value={fullName}
-                  onChangeText={setFullName}
-                  placeholder="Full Name"
-                />
-              </View>
-              {nameError ? <Text style={profileStyles.errorText}>{nameError}</Text> : null}
-
-              <View style={profileStyles.inputContainer}>
-                <FontAwesomeIcon icon={faEnvelope} size={18} color="#3498db" style={profileStyles.inputIcon} />
-                <Text style={[profileStyles.inputField, profileStyles.disabledInput]}>{email}</Text>
-              </View>
-              {emailError ? <Text style={profileStyles.errorText}>{emailError}</Text> : null}
-
-              <View style={profileStyles.inputContainer}>
-                <FontAwesomeIcon icon={faPhone} size={18} color="#3498db" style={profileStyles.inputIcon} />
-                <TextInput
-                  style={[profileStyles.inputField, mobileError ? profileStyles.inputError : undefined]}
-                  value={mobile}
-                  onChangeText={setMobile}
-                  maxLength={10}
-                  placeholder="Mobile Number"
-                  keyboardType="phone-pad"
-                />
-              </View>
-              {mobileError ? <Text style={profileStyles.errorText}>{mobileError}</Text> : null}
-
-              <View style={profileStyles.inputContainer}>
-                <FontAwesomeIcon icon={faBriefcase} size={18} color="#3498db" style={profileStyles.inputIcon} />
-                <TextInput
-                  style={[profileStyles.inputField, designationError ? profileStyles.inputError : undefined]}
-                  value={designation}
-                  onChangeText={setDesignation}
-                  placeholder="Designation"
-                />
-              </View>
-              {designationError ? <Text style={profileStyles.errorText}>{designationError}</Text> : null}
-            </>
-          )}
-        </View>
-      </View>
-      
-      {userType?.skillSet?.length === 0 ? (
-      <View style={profileStyles.emptySkillsContainer}>
-      <Text style={profileStyles.emptySkillsText}>
-      Please add at least one skill.
-      </Text>
-    
-  </View>
-) : (
-
-      //{userType?.skillSet?.length && (
-        <View style={profileStyles.domainsContainer}>
-          <View style={profileStyles.sectionHeaderRow}>
-            <FontAwesomeIcon icon={faCode} size={18} color="#3498db" />
-            <Text style={profileStyles.domainsTitle}>Skills</Text>
-
+        <View style={profileStyles.profileContainer}>
+          <View style={profileStyles.profileImageContainer}>
+            <FontAwesomeIcon icon={faUserCircle} size={150} color="#3498db" style={profileStyles.profileImage} />
           </View>
-          <View style={profileStyles.domainsList}>
-            {userType?.skillSet?.map((skill: Skill, index: number) => (
-              //<View key={index} style={profileStyles.skillItem}>
-              <View key={skill.skill_id} style={profileStyles.skillItem}> 
 
-                <Text style={profileStyles.skillText}>{skill.name}</Text>
-                <View style={mentorSpecificStyles.skillLevel}>
-                  <Text style={mentorSpecificStyles.levelText}>
-                    Level {skill.proficiency}
-                  </Text>
-                 </View>
-                 <TouchableOpacity onPress={() => handleDeleteSkill(skill.skill_id)}> 
+          <View style={profileStyles.infoContainer}>
+            {!isEditing ? (
+              <View style={profileStyles.profileInfoSection}>
+                <View style={profileStyles.infoRow}>
+                  <FontAwesomeIcon icon={faUser} size={18} color="#3498db" style={profileStyles.infoIcon} />
+                  <Text style={profileStyles.infoText}>{fullName}</Text>
+                </View>
 
-                 <FontAwesomeIcon
-            icon={faXmark}
-            size={16}
-            color="#3498db"
-            style={profileStyles.icon}
-          />
+                <View style={profileStyles.infoRow}>
+                  <FontAwesomeIcon icon={faEnvelope} size={18} color="#3498db" style={profileStyles.infoIcon} />
+                  <Text style={profileStyles.infoText}>{email}</Text>
+                </View>
 
-          </TouchableOpacity>
+                <View style={profileStyles.infoRow}>
+                  <FontAwesomeIcon icon={faPhone} size={18} color="#3498db" style={profileStyles.infoIcon} />
+                  <Text style={profileStyles.infoText}>{mobile}</Text>
+                </View>
+
+                <View style={profileStyles.infoRow}>
+                  <FontAwesomeIcon icon={faBriefcase} size={18} color="#3498db" style={profileStyles.infoIcon} />
+                  <Text style={profileStyles.infoText}>{designation}</Text>
+                </View>
               </View>
-            ))}
+            ) : (
+              <>
+                <View style={profileStyles.inputContainer}>
+                  <FontAwesomeIcon icon={faUser} size={18} color="#3498db" style={profileStyles.inputIcon} />
+                  <TextInput
+                    style={[profileStyles.inputField, nameError ? profileStyles.inputError : undefined]}
+                    value={fullName}
+                    onChangeText={setFullName}
+                    placeholder="Full Name"
+                  />
+                </View>
+                {nameError ? <Text style={profileStyles.errorText}>{nameError}</Text> : null}
+
+                <View style={profileStyles.inputContainer}>
+                  <FontAwesomeIcon icon={faEnvelope} size={18} color="#3498db" style={profileStyles.inputIcon} />
+                  <Text style={[profileStyles.inputField, profileStyles.disabledInput]}>{email}</Text>
+                </View>
+                {emailError ? <Text style={profileStyles.errorText}>{emailError}</Text> : null}
+
+                <View style={profileStyles.inputContainer}>
+                  <FontAwesomeIcon icon={faPhone} size={18} color="#3498db" style={profileStyles.inputIcon} />
+                  <TextInput
+                    style={[profileStyles.inputField, mobileError ? profileStyles.inputError : undefined]}
+                    value={mobile}
+                    onChangeText={setMobile}
+                    maxLength={10}
+                    placeholder="Mobile Number"
+                    keyboardType="phone-pad"
+                  />
+                </View>
+                {mobileError ? <Text style={profileStyles.errorText}>{mobileError}</Text> : null}
+
+                <View style={profileStyles.inputContainer}>
+                  <FontAwesomeIcon icon={faBriefcase} size={18} color="#3498db" style={profileStyles.inputIcon} />
+                  <TextInput
+                    style={[profileStyles.inputField, designationError ? profileStyles.inputError : undefined]}
+                    value={designation}
+                    onChangeText={setDesignation}
+                    placeholder="Designation"
+                  />
+                </View>
+                {designationError ? <Text style={profileStyles.errorText}>{designationError}</Text> : null}
+              </>
+            )}
           </View>
         </View>
-      )}
-      
-      {/* Button to add/edit skills */}
-      {!isEditing && (
-        <TouchableOpacity 
-          style={[profileStyles.button, {flexDirection: 'row', alignItems: 'center'}]} 
-          onPress={openSkillModal}>
-          <FontAwesomeIcon icon={faPlusCircle} size={16} color="#fff" style={{marginRight: 8}} />
-          <Text style={profileStyles.buttonText}>Add / Edit Skills</Text>
-        </TouchableOpacity>
-      )}
 
-      {/* Button to update profile or save changes */}
-      {!isEditing ? (
-        <TouchableOpacity style={profileStyles.button} onPress={handleEditToggle}>
-          <FontAwesomeIcon icon={faEdit} size={16} color="#fff" style={profileStyles.buttonIcon} />
-          <Text style={profileStyles.buttonText}>Update Profile</Text>
-        </TouchableOpacity>
-      ) : (
-        <TouchableOpacity style={profileStyles.button} onPress={handleSubmit}>
-          <FontAwesomeIcon icon={faSave} size={16} color="#fff" style={profileStyles.buttonIcon} />
-          <Text style={profileStyles.buttonText}>Save Profile</Text>
-        </TouchableOpacity>
-      )}
-
-      {/* Modal for skill selection with proficiency levels - match mentor UI */}
-      <Modal
-        animationType="fade"
-        transparent={true}
-        visible={modalVisible}
-        onRequestClose={cancelSkillModal}>
-        <View style={mentorSpecificStyles.modalBackground}>
-          <View style={mentorSpecificStyles.modalContainer}>
-            <Text style={mentorSpecificStyles.modalTitle}>
-              Add / Edit Skills
+        {userType?.skillSet?.length === 0 ? (
+          <View style={profileStyles.emptySkillsContainer}>
+            <Text style={profileStyles.emptySkillsText}>
+              Please add at least one skill.
             </Text>
 
-            <ScrollView style={{ maxHeight: 400, width: '100%' }}>
-              {allSkillsList.map((skillName: string) => {
-                const currentLevel = selectedSkills[skillName] || 0;
-                const isExpanded = expandedSkills[skillName] || false;
-                
-                return (
-                  <View key={skillName} style={mentorSpecificStyles.expandableSkillItem}>
-                    <TouchableOpacity
-                      style={mentorSpecificStyles.expandableSkillHeader}
-                      onPress={() => {
-                        if (!isExpanded) {
-                          setExpandedSkills(prev => ({ ...prev, [skillName]: true }));
-                        }
-                      }}
-                      disabled={isExpanded}
-                    >
-                      <Text style={mentorSpecificStyles.skillLabel}>{skillName}</Text>
-                      {currentLevel > 0 && (
-                        <View style={mentorSpecificStyles.selectedLevelBadge}>
-                          <Text style={mentorSpecificStyles.selectedLevelText}>
-                            Level {currentLevel}
-                          </Text>
+          </View>
+        ) : (
+
+          //{userType?.skillSet?.length && (
+          <View style={profileStyles.domainsContainer}>
+            <View style={profileStyles.sectionHeaderRow}>
+              <FontAwesomeIcon icon={faCode} size={18} color="#3498db" />
+              <Text style={profileStyles.domainsTitle}>Skills</Text>
+
+            </View>
+            <View style={profileStyles.domainsList}>
+              {userType?.skillSet?.map((skill: Skill, index: number) => (
+                //<View key={index} style={profileStyles.skillItem}>
+                <View key={skill.skill_id} style={profileStyles.skillItem}>
+
+                  <Text style={profileStyles.skillText}>{skill.name}</Text>
+                  <View style={mentorSpecificStyles.skillLevel}>
+                    <Text style={mentorSpecificStyles.levelText}>
+                      Level {skill.proficiency}
+                    </Text>
+                  </View>
+                  <TouchableOpacity onPress={() => handleDeleteSkill(skill.skill_id)}>
+
+                    <FontAwesomeIcon
+                      icon={faXmark}
+                      size={16}
+                      color="#3498db"
+                      style={profileStyles.icon}
+                    />
+
+                  </TouchableOpacity>
+                </View>
+              ))}
+            </View>
+          </View>
+        )}
+
+        {/* Button to add/edit skills */}
+        {!isEditing && (
+          <TouchableOpacity
+            style={[profileStyles.button, { flexDirection: 'row', alignItems: 'center' }]}
+            onPress={openSkillModal}>
+            <FontAwesomeIcon icon={faPlusCircle} size={16} color="#fff" style={{ marginRight: 8 }} />
+            <Text style={profileStyles.buttonText}>Add / Edit Skills</Text>
+          </TouchableOpacity>
+        )}
+
+        {/* Button to update profile or save changes */}
+        {!isEditing ? (
+          <TouchableOpacity style={profileStyles.button} onPress={handleEditToggle}>
+            <FontAwesomeIcon icon={faEdit} size={16} color="#fff" style={profileStyles.buttonIcon} />
+            <Text style={profileStyles.buttonText}>Update Profile</Text>
+          </TouchableOpacity>
+        ) : (
+          <TouchableOpacity style={profileStyles.button} onPress={handleSubmit}>
+            <FontAwesomeIcon icon={faSave} size={16} color="#fff" style={profileStyles.buttonIcon} />
+            <Text style={profileStyles.buttonText}>Save Profile</Text>
+          </TouchableOpacity>
+        )}
+
+        {/* Modal for skill selection with proficiency levels - match mentor UI */}
+        <Modal
+          animationType="fade"
+          transparent={true}
+          visible={modalVisible}
+          onRequestClose={cancelSkillModal}>
+          <View style={mentorSpecificStyles.modalBackground}>
+            <View style={mentorSpecificStyles.modalContainer}>
+              <Text style={mentorSpecificStyles.modalTitle}>
+                Add / Edit Skills
+              </Text>
+
+              <ScrollView style={{ maxHeight: 400, width: '100%' }}>
+                {allSkillsList.map((skillName: string) => {
+                  const currentLevel = selectedSkills[skillName] || 0;
+                  const isExpanded = expandedSkills[skillName] || false;
+
+                  return (
+                    <View key={skillName} style={mentorSpecificStyles.expandableSkillItem}>
+                      <TouchableOpacity
+                        style={mentorSpecificStyles.expandableSkillHeader}
+                        onPress={() => {
+                          if (!isExpanded) {
+                            setExpandedSkills(prev => ({ ...prev, [skillName]: true }));
+                          }
+                        }}
+                        disabled={isExpanded}
+                      >
+                        <Text style={mentorSpecificStyles.skillLabel}>{skillName}</Text>
+                        {currentLevel > 0 && (
+                          <View style={mentorSpecificStyles.selectedLevelBadge}>
+                            <Text style={mentorSpecificStyles.selectedLevelText}>
+                              Level {currentLevel}
+                            </Text>
+                          </View>
+                        )}
+                      </TouchableOpacity>
+
+                      {isExpanded && (
+                        <View style={mentorSpecificStyles.levelButtonRow}>
+                          {[1, 2, 3].map((level: number) => (
+                            <TouchableOpacity
+                              key={level}
+                              style={[
+                                mentorSpecificStyles.levelButton,
+                                currentLevel === level && mentorSpecificStyles.levelButtonSelected,
+                              ]}
+                              onPress={() => {
+                                handleSkillLevel(skillName, level);
+                              }}
+                            >
+                              <Text style={[
+                                mentorSpecificStyles.levelButtonText,
+                                currentLevel === level && mentorSpecificStyles.levelButtonTextSelected,
+                              ]}>
+                                Level {level}
+                              </Text>
+                            </TouchableOpacity>
+                          ))}
                         </View>
                       )}
-                    </TouchableOpacity>
-                    
-                    {isExpanded && (
-                      <View style={mentorSpecificStyles.levelButtonRow}>
-                        {[1, 2, 3].map((level: number) => (
-                          <TouchableOpacity
-                            key={level}
-                            style={[
-                              mentorSpecificStyles.levelButton,
-                              currentLevel === level && mentorSpecificStyles.levelButtonSelected,
-                            ]}
-                            onPress={() => {
-                              handleSkillLevel(skillName, level);
-                            }}
-                          >
-                            <Text style={[
-                              mentorSpecificStyles.levelButtonText,
-                              currentLevel === level && mentorSpecificStyles.levelButtonTextSelected,
-                            ]}>
-                              Level {level}
-                            </Text>
-                          </TouchableOpacity>
-                        ))}
-                      </View>
-                    )}
-                  </View>
-                );
-              })}
-            </ScrollView>
-            <View style={{flexDirection: 'row', marginTop: 20}}>
-              {!modalLoading ? (
-                <TouchableOpacity
-                  style={[profileStyles.button, {marginRight: 10, backgroundColor: '#7f8c8d'}]}
-                  onPress={cancelSkillModal}>
-                  <FontAwesomeIcon
-                    icon={faTimes}
-                    size={16}
-                    color="#fff"
-                    style={profileStyles.buttonIcon}
-                  />
-                  <Text style={profileStyles.buttonText}>Cancel</Text>
-                </TouchableOpacity>
-              ) : null}
-
-              <TouchableOpacity
-                style={[profileStyles.button, {marginLeft: 10}]}
-                onPress={saveSkills}>
-                {modalLoading ? (
-                  <ActivityIndicator color="#fff" />
-                ) : (
-                  <>
+                    </View>
+                  );
+                })}
+              </ScrollView>
+              <View style={{ flexDirection: 'row', marginTop: 20 }}>
+                {!modalLoading ? (
+                  <TouchableOpacity
+                    style={[profileStyles.button, { marginRight: 10, backgroundColor: '#7f8c8d' }]}
+                    onPress={cancelSkillModal}>
                     <FontAwesomeIcon
-                      icon={faCheckCircle}
+                      icon={faTimes}
                       size={16}
                       color="#fff"
                       style={profileStyles.buttonIcon}
                     />
-                    <Text style={profileStyles.buttonText}>Save</Text>
-                  </>
-                )}
-              </TouchableOpacity>
+                    <Text style={profileStyles.buttonText}>Cancel</Text>
+                  </TouchableOpacity>
+                ) : null}
+
+                <TouchableOpacity
+                  style={[profileStyles.button, { marginLeft: 10 }]}
+                  onPress={saveSkills}>
+                  {modalLoading ? (
+                    <ActivityIndicator color="#fff" />
+                  ) : (
+                    <>
+                      <FontAwesomeIcon
+                        icon={faCheckCircle}
+                        size={16}
+                        color="#fff"
+                        style={profileStyles.buttonIcon}
+                      />
+                      <Text style={profileStyles.buttonText}>Save</Text>
+                    </>
+                  )}
+                </TouchableOpacity>
+              </View>
             </View>
           </View>
-        </View>
-      </Modal>
-    </ScrollView>
+        </Modal>
+      </ScrollView>
     </KeyboardAvoidingView>
   );
 };
