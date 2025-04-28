@@ -18,7 +18,6 @@ interface MenteeSkill {
   isNew?: boolean;
 }
 
-// Remove unused Skill type
 interface Profile {
   full_name: string;
   email: string;
@@ -43,7 +42,7 @@ const ProfileCompletion = () => {
   const navigate = useNavigate();
   const [submitting, setSubmitting] = useState(false);
   const [loading, setLoading] = useState(true);
-  const dropdownRef = useRef<HTMLDivElement>(null);
+  const modalRef = useRef<HTMLDivElement>(null);
   const [error, setError] = useState("");
 
   // State for user profile fields with ALL possible fields
@@ -51,10 +50,9 @@ const ProfileCompletion = () => {
     full_name: "",
     email: "",
     contact_number: "",
-    designation: "", // Default designation
-    experience: 0, // Default experience
-    skills: [] as (MentorSkill | MenteeSkill)[],
-    // Optional mentor fields
+    designation: "",
+    experience: 0,
+    skills: [],
     domain: "",
   });
 
@@ -69,8 +67,8 @@ const ProfileCompletion = () => {
     domain: ''
   });
 
-  // State for dropdown visibility
-  const [isSkillsDropdownOpen, setIsSkillsDropdownOpen] = useState(false);
+  // State for modal visibility
+  const [isSkillsModalOpen, setIsSkillsModalOpen] = useState(false);
 
   // Available skills
   const availableSkills = [
@@ -105,17 +103,17 @@ const ProfileCompletion = () => {
     "CSS"
   ];
 
-  // Add ProficiencyLevel type
+  // Proficiency levels
   const ProficiencyLevels = [
     { value: 1, label: "Beginner" },
     { value: 2, label: "Intermediate" },
     { value: 3, label: "Advanced" }
   ];
 
-  // Add a role state at the top of the component with other state variables
+  // Role state
   const [role, setRole] = useState<string>('mentee');
 
-  // Add predefined domains list
+  // Predefined domains
   const predefinedDomains = [
     "Artificial Intelligence & Machine Learning",
     "Database & Backend",
@@ -130,54 +128,29 @@ const ProfileCompletion = () => {
 
   // Validation functions
   const validateName = (name: string): { isValid: boolean; error?: string } => {
-    if (!name) {
-      return { isValid: false, error: 'Name is required' };
-    }
-    if (/[0-9]/.test(name)) {
-      return { isValid: false, error: 'Name should not contain numbers' };
-    }
-    if (/\s{2,}/.test(name)) {
-      return { isValid: false, error: 'Name should not contain multiple spaces' };
-    }
-    if (name.startsWith(' ') || name.endsWith(' ')) {
-      return { isValid: false, error: 'Name should not start or end with spaces' };
-    }
+    if (!name) return { isValid: false, error: 'Name is required' };
+    if (/[0-9]/.test(name)) return { isValid: false, error: 'Name should not contain numbers' };
+    if (/\s{2,}/.test(name)) return { isValid: false, error: 'Name should not contain multiple spaces' };
     return { isValid: true };
   };
 
   const validateContact = (contact: string): { isValid: boolean; error?: string } => {
-    if (!contact) {
-      return { isValid: false, error: 'Contact number is required' };
-    }
-    if (!/^\d+$/.test(contact)) {
-      return { isValid: false, error: 'Contact number should only contain digits' };
-    }
-    if (contact.length < 10) {
-      return { isValid: false, error: 'Contact number must be at least 10 digits' };
-    }
-    if (contact.length > 10) {
-      return { isValid: false, error: 'Contact number must not exceed 10 digits' };
-    }
+    if (!contact) return { isValid: false, error: 'Contact number is required' };
+    if (!/^\d+$/.test(contact)) return { isValid: false, error: 'Contact number should only contain digits' };
+    if (contact.length < 10) return { isValid: false, error: 'Contact number must be at least 10 digits' };
+    if (contact.length > 10) return { isValid: false, error: 'Contact number must not exceed 10 digits' };
     return { isValid: true };
   };
 
   const validateDesignation = (designation: string): { isValid: boolean; error?: string } => {
-    if (!designation) {
-      return { isValid: false, error: 'Designation is required' };
-    }
-    if (/^\d+$/.test(designation)) {
-      return { isValid: false, error: 'Designation should not consist only of numbers' };
-    }
+    if (!designation) return { isValid: false, error: 'Designation is required' };
+    if (/^\d+$/.test(designation)) return { isValid: false, error: 'Designation should not consist only of numbers' };
     return { isValid: true };
   };
 
   const validateExperience = (experience: number): { isValid: boolean; error?: string } => {
-    if (experience < 0) {
-      return { isValid: false, error: 'Experience cannot be negative' };
-    }
-    if (experience > 50) {
-      return { isValid: false, error: 'Experience cannot exceed 50 years' };
-    }
+    if (experience < 0) return { isValid: false, error: 'Experience cannot be negative' };
+    if (experience > 50) return { isValid: false, error: 'Experience cannot exceed 50 years' };
     return { isValid: true };
   };
 
@@ -185,55 +158,46 @@ const ProfileCompletion = () => {
   useEffect(() => {
     const checkProfileStatus = async () => {
       setLoading(true);
-      
       try {
-        // Get data from localStorage
         const accessToken = localStorage.getItem('accessToken');
         const email = localStorage.getItem('email');
         const name = localStorage.getItem('name');
         const userRole = localStorage.getItem('role');
-        
+
         console.log("Initial data from localStorage:", {
           token: accessToken ? `${accessToken.substring(0, 10)}...` : 'missing',
           email: email || 'missing',
           name: name || 'missing',
           role: userRole || 'missing'
         });
-        
-        // Store the role in component state
+
         setRole(userRole || 'mentee');
-        
-        // Check token
+
         if (!accessToken) {
           console.error("No access token found, redirecting to login");
           toast.error("Please log in to continue");
           navigate('/auth/login');
           return;
         }
-        
-        // Set default values from localStorage
+
         setProfile(prev => ({
           ...prev,
           email: email || '',
           full_name: name || ''
         }));
-        
-        // Attempt to get user data from backend 
+
         try {
           const response = await api.get('/users/all_users');
           console.log("All users response:", response.data);
-          
-          // Check if user exists in database
+
           if (email) {
-            // Try to find the user by email in different possible formats
             const user = response.data.find((u: any) => 
               (u.email && u.email.toLowerCase() === email.toLowerCase()) || 
               (u.mail && u.mail.toLowerCase() === email.toLowerCase())
             );
-            
+
             if (user) {
               console.log("User found in database:", user);
-              // Update profile with data from backend
               setProfile(prev => ({
                 ...prev,
                 email: user.email || user.mail || email,
@@ -257,11 +221,11 @@ const ProfileCompletion = () => {
     checkProfileStatus();
   }, [navigate]);
 
-  // Close dropdown when clicking outside
+  // Close modal when clicking outside
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
-        setIsSkillsDropdownOpen(false);
+      if (modalRef.current && !modalRef.current.contains(event.target as Node)) {
+        setIsSkillsModalOpen(false);
       }
     };
 
@@ -272,16 +236,13 @@ const ProfileCompletion = () => {
   // Handle input changes with validation
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
-    
-    // Update profile state first
+
     if (name === 'contact_number') {
       const numericValue = value.replace(/\D/g, '').slice(0, 10);
       setProfile(prev => ({
         ...prev,
         [name]: numericValue
       }));
-
-      // Validate contact number immediately
       const contactValidation = validateContact(numericValue);
       setErrors(prev => ({
         ...prev,
@@ -292,8 +253,6 @@ const ProfileCompletion = () => {
         ...prev,
         [name]: value
       }));
-
-      // Validate name immediately
       const nameValidation = validateName(value);
       setErrors(prev => ({
         ...prev,
@@ -304,8 +263,6 @@ const ProfileCompletion = () => {
         ...prev,
         [name]: value
       }));
-
-      // Validate designation immediately
       const designationValidation = validateDesignation(value);
       setErrors(prev => ({
         ...prev,
@@ -317,8 +274,6 @@ const ProfileCompletion = () => {
         ...prev,
         [name]: numericValue
       }));
-
-      // Validate experience immediately
       const experienceValidation = validateExperience(numericValue);
       setErrors(prev => ({
         ...prev,
@@ -338,34 +293,28 @@ const ProfileCompletion = () => {
       const existingSkillIndex = prev.skills.findIndex(s => 
         typeof s === 'string' ? s === skill : s.name === skill
       );
-      
+
       if (existingSkillIndex >= 0) {
-        // Remove skill
         const newSkills = [...prev.skills];
         newSkills.splice(existingSkillIndex, 1);
         return { ...prev, skills: newSkills };
       } else {
-        // Add skill with default proficiency for both mentors and mentees
         const newSkill = { name: skill, proficiency: 2 } as MentorSkill | MenteeSkill;
-        
         const newSkills = [...prev.skills, newSkill];
-        
-        // Clear error if we now have skills
         if (newSkills.length > 0) {
           setErrors(prev => ({ ...prev, skills: '' }));
         }
-        
         return { ...prev, skills: newSkills };
       }
     });
   };
 
-  // Type guard to check if a skill is a MentorSkill or MenteeSkill
+  // Type guard for skills
   const isSkillWithProficiency = (skill: MentorSkill | MenteeSkill): skill is MentorSkill | MenteeSkill => {
     return 'proficiency' in skill;
   };
 
-  // Add a function to update skill proficiency (for both mentors and mentees)
+  // Update skill proficiency
   const updateSkillProficiency = (skillName: string, proficiency: number) => {
     setProfile(prev => {
       const newSkills = prev.skills.map(skill => {
@@ -377,21 +326,17 @@ const ProfileCompletion = () => {
         }
         return skill;
       });
-      
-      return {
-        ...prev,
-        skills: newSkills
-      };
+      return { ...prev, skills: newSkills };
     });
   };
 
-  // Form validation before submission
+  // Form validation
   const validateForm = () => {
     const nameValidation = validateName(profile.full_name);
     const contactValidation = validateContact(profile.contact_number);
     const designationValidation = validateDesignation(profile.designation);
     const experienceValidation = validateExperience(profile.experience);
-    
+
     const newErrors: ValidationErrors = {
       full_name: nameValidation.error || '',
       email: '',
@@ -404,7 +349,6 @@ const ProfileCompletion = () => {
 
     setErrors(newErrors);
 
-    // Check if there are any errors
     return nameValidation.isValid && 
            contactValidation.isValid && 
            designationValidation.isValid && 
@@ -416,40 +360,33 @@ const ProfileCompletion = () => {
   // Handle form submission
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    
-    // Validate form data
+
     if (!validateForm()) {
       toast.error('Please fix all errors before submitting.');
       return;
     }
-    
+
     setSubmitting(true);
     setError('');
 
     try {
-      // Get token from localStorage
       const token = localStorage.getItem('accessToken');
-      
+
       if (!token) {
         setError('Authentication token not found. Please log in again.');
         toast.error('Authentication token not found. Please log in again.');
         navigate('/auth/login');
         return;
       }
-      
-      // Ensure token has Bearer prefix
+
       const authToken = token.startsWith('Bearer ') ? token : `Bearer ${token}`;
       console.log(`Using token: ${authToken.substring(0, 15)}... (length: ${authToken.length})`);
       console.log('Token header format:', authToken);
-      
-      // Use deployed API URL
+
       const apiUrl = import.meta.env.VITE_API_URL;
-      
-      // Create role-specific profile
       const userRole = localStorage.getItem('role');
-      
+
       if (userRole === 'mentor') {
-        // Create basic profile first
         const profileData = {
           name: profile.full_name,
           designation: profile.designation,
@@ -457,10 +394,10 @@ const ProfileCompletion = () => {
           contact: profile.contact_number,
           domain_name: profile.domain
         };
-        
+
         console.log('Creating mentor profile:', profileData);
         console.log('Using API URL:', apiUrl);
-        
+
         const profileResponse = await axios.put(
           `${apiUrl}/users/mentor/profile_creation`,
           profileData,
@@ -471,19 +408,18 @@ const ProfileCompletion = () => {
             },
           }
         );
-        
+
         console.log('Mentor profile creation response:', profileResponse.data);
-        
-        // Format and create skills
+
         const skillsPayload = profile.skills
           .filter(isSkillWithProficiency)
           .map(skill => ({
             skill_name: skill.name,
             proficiency: skill.proficiency,
           }));
-        
+
         console.log('Creating mentor skills:', skillsPayload);
-        
+
         if (skillsPayload.length > 0) {
           try {
             const skillsResponse = await axios.post(
@@ -499,28 +435,25 @@ const ProfileCompletion = () => {
             console.log('Skills creation response:', skillsResponse.data);
           } catch (skillError) {
             console.error('Error creating mentor skills:', skillError);
-            // Continue despite skill error - profile is created
           }
         }
-        
-        // Update localStorage and navigate
+
         localStorage.setItem('profile_status', 'complete');
         toast.success('Profile completed successfully!');
         navigate('/mentor/dashboard');
       } else if (userRole === 'mentee') {
-        // Create basic mentee profile first
         const menteeProfileData = {
           name: profile.full_name,
           contact: profile.contact_number,
-          designation: profile.designation, // Add designation to mentee profile
+          designation: profile.designation,
         };
-        
+
         console.log('Creating mentee profile:', menteeProfileData);
         console.log('Headers:', {
           'Content-Type': 'application/json',
           'Token': authToken,
         });
-        
+
         const profileResponse = await axios.put(
           `${apiUrl}/mentee/mentee/profile_creation`,
           menteeProfileData,
@@ -531,21 +464,20 @@ const ProfileCompletion = () => {
             },
           }
         );
-        
+
         console.log('Mentee profile creation response:', profileResponse.data);
-        
-        // Format and create mentee skills (only new skills)
+
         const menteeSkillsPayload = {
           skills: profile.skills
-            .filter(skill => typeof skill === 'object') // Filter out any string skills
+            .filter(skill => typeof skill === 'object')
             .map(skill => ({
               skill_name: skill.name,
-              proficiency: skill.proficiency || 2 // Use the skill's proficiency or default to 2
+              proficiency: skill.proficiency || 2
             }))
         };
-        
+
         console.log('Creating mentee skills:', menteeSkillsPayload);
-        
+
         if (menteeSkillsPayload.skills.length > 0) {
           try {
             const skillsResponse = await axios.post(
@@ -559,16 +491,12 @@ const ProfileCompletion = () => {
               }
             );
             console.log('Mentee skills creation response:', skillsResponse.data);
-            
-            // Store skills in localStorage for backup
             localStorage.setItem('menteeSkills', JSON.stringify(profile.skills.map(s => typeof s === 'string' ? s : s.name)));
           } catch (skillError) {
             console.error('Error creating mentee skills:', skillError);
-            // Continue despite skill error
           }
         }
-        
-        // Update localStorage and navigate
+
         localStorage.setItem('profile_status', 'complete');
         localStorage.setItem('name', profile.full_name);
         localStorage.setItem('userContact', profile.contact_number);
@@ -577,19 +505,17 @@ const ProfileCompletion = () => {
       }
     } catch (error) {
       console.error('Error creating profile:', error);
-      
+
       if (axios.isAxiosError(error)) {
         console.error('Error completing profile:', error);
         console.error('Error status:', error.response?.status);
         console.error('Error data:', error.response?.data);
-        
-        // Display more detailed error information
+
         if (error.response?.data?.detail) {
           console.error('Error detail:', error.response.data.detail);
           setError(`Server error: ${error.response.data.detail}`);
           toast.error(`Profile error: ${error.response.data.detail}`);
         } else {
-          // Handle token errors
           if (error.response?.status === 401) {
             localStorage.removeItem('accessToken');
             toast.error('Your session has expired. Please log in again.');
@@ -613,11 +539,11 @@ const ProfileCompletion = () => {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50">
-      <form onSubmit={handleSubmit} className="bg-white p-8 rounded-lg shadow-md w-96">
+    <div className="fixed inset-0 bg-gray-50 flex items-center justify-center overflow-hidden">
+      <form onSubmit={handleSubmit} className="bg-white p-8 rounded-lg shadow-md w-96 max-h-[90vh] overflow-y-auto">
         <h2 className="text-2xl font-bold mb-6 text-center text-gray-800">Complete Your Profile</h2>
 
-        {/* Full Name - editable */}
+        {/* Full Name */}
         <div className="mb-4">
           <label className="block text-gray-700 text-sm font-bold mb-2">
             Full Name
@@ -637,7 +563,7 @@ const ProfileCompletion = () => {
           {errors.full_name && <p className="text-red-500 text-xs mt-1">{errors.full_name}</p>}
         </div>
 
-        {/* Email - read-only since it's tied to authentication */}
+        {/* Email */}
         <div className="mb-4">
           <label className="block text-gray-700 text-sm font-bold mb-2">Email</label>
           <input 
@@ -671,7 +597,7 @@ const ProfileCompletion = () => {
           {errors.contact_number && <p className="text-red-500 text-xs mt-1">{errors.contact_number}</p>}
         </div>
 
-        {/* Designation field for mentors and mentees (since both need it now) */}
+        {/* Designation */}
         <div className="mb-4">
           <label className="block text-gray-700 text-sm font-bold mb-2">
             Designation
@@ -688,7 +614,7 @@ const ProfileCompletion = () => {
           />
         </div>
 
-        {/* Experience field for mentors only */}
+        {/* Experience (Mentors only) */}
         {role === 'mentor' && (
           <div className="mb-4">
             <label className="block text-gray-700 text-sm font-bold mb-2">
@@ -713,7 +639,7 @@ const ProfileCompletion = () => {
           </div>
         )}
 
-        {/* Add Domain dropdown for mentors */}
+        {/* Domain (Mentors only) */}
         {role === 'mentor' && (
           <div className="mb-4">
             <label className="block text-gray-700 text-sm font-bold mb-2">
@@ -740,8 +666,8 @@ const ProfileCompletion = () => {
           </div>
         )}
 
-        {/* Skills Multi-select Dropdown */}
-        <div className="mb-4 relative" ref={dropdownRef}>
+        {/* Skills Selection */}
+        <div className="mb-4">
           <label className="block text-gray-700 text-sm font-bold mb-2">
             Skills
             <span className="text-red-500">*</span>
@@ -750,7 +676,7 @@ const ProfileCompletion = () => {
             className={`w-full p-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-500 cursor-pointer ${
               errors.skills ? 'border-red-500' : ''
             }`}
-            onClick={() => setIsSkillsDropdownOpen(!isSkillsDropdownOpen)}
+            onClick={() => setIsSkillsModalOpen(true)}
           >
             <div className="flex flex-wrap gap-1">
               {profile.skills.length > 0 ? (
@@ -772,8 +698,14 @@ const ProfileCompletion = () => {
               )}
             </div>
           </div>
-          {isSkillsDropdownOpen && (
-            <div className="absolute z-10 w-full mt-1 bg-white border rounded-md shadow-lg max-h-60 overflow-y-auto">
+          {errors.skills && <p className="text-red-500 text-xs mt-1">{errors.skills}</p>}
+        </div>
+
+        {/* Skills Modal */}
+        {isSkillsModalOpen && (
+          <div className="fixed inset-0 bg-opacity-50 backdrop-blur-sm flex items-center justify-center z-50">
+            <div ref={modalRef} className="bg-white rounded-lg shadow-lg w-96 max-h-[70vh] overflow-y-auto p-6">
+              <h3 className="text-lg font-bold mb-4">Select Skills</h3>
               {availableSkills.map((skill) => (
                 <div key={skill} className="mb-2">
                   <div 
@@ -812,10 +744,15 @@ const ProfileCompletion = () => {
                   )}
                 </div>
               ))}
+              <button
+                className="w-full bg-blue-600 text-white py-2 px-4 rounded hover:bg-blue-700 mt-4 cursor-pointer"
+                onClick={() => setIsSkillsModalOpen(false)}
+              >
+                Close
+              </button>
             </div>
-          )}
-          {errors.skills && <p className="text-red-500 text-xs mt-1">{errors.skills}</p>}
-        </div>
+          </div>
+        )}
 
         <button 
           type="submit" 

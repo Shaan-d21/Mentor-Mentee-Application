@@ -654,14 +654,14 @@ const FindMentors: React.FC = () => {
                   </div>
 
                   <div className="bg-white rounded-lg shadow-sm mb-6 p-6">
-                    <h2 className="text-lg font-semibold text-gray-800 mb-4 border-b pb-2">Skills Match</h2>
+                    <h2 className="text-lg font-semibold text-gray-800 mb-4 border-b pb-2">Skillset Analysis</h2>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                       <div className="bg-green-50 rounded-lg p-4">
                         <h3 className="text-green-800 font-medium mb-3 flex items-center">
                           <svg className="w-5 h-5 mr-2" viewBox="0 0 20 20" fill="currentColor">
                             <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
                           </svg>
-                          Matching Skills
+                          Existing Skills
                         </h3>
                         <div className="flex flex-wrap gap-2">
                           {mentorData?.e_skills.map((skill, index) => (
