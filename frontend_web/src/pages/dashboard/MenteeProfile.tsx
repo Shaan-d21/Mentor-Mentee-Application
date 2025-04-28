@@ -271,6 +271,9 @@ const MenteeProfileContent: React.FC = () => {
 
       const authToken = token.startsWith('Bearer ') ? token : `Bearer ${token}`;
       
+      tempProfile.name = tempProfile.name.trim().replace(/\s+/g, ' ');
+      tempProfile.designation = tempProfile.designation.trim().replace(/\s+/g, ' ');
+
       const profileData = {
         name: tempProfile.name,
         contact: tempProfile.contact,

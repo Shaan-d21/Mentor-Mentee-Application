@@ -130,7 +130,7 @@ const ProfileCompletion = () => {
   const validateName = (name: string): { isValid: boolean; error?: string } => {
     if (!name) return { isValid: false, error: 'Name is required' };
     if (/[0-9]/.test(name)) return { isValid: false, error: 'Name should not contain numbers' };
-    if (/\s{2,}/.test(name)) return { isValid: false, error: 'Name should not contain multiple spaces' };
+    // if (/\s{2,}/.test(name)) return { isValid: false, error: 'Name should not contain multiple spaces' };
     return { isValid: true };
   };
 
@@ -385,6 +385,9 @@ const ProfileCompletion = () => {
 
       const apiUrl = import.meta.env.VITE_API_URL;
       const userRole = localStorage.getItem('role');
+
+      profile.full_name = profile.full_name.trim().replace(/\s+/g, ' ');
+      profile.designation = profile.designation.trim().replace(/\s+/g, ' ');
 
       if (userRole === 'mentor') {
         const profileData = {
