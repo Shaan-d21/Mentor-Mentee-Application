@@ -15,6 +15,7 @@ const Navbar = () => {
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [userInfo, setUserInfo] = useState<UserInfo | null>(null);
   const [isLoggingOut, setIsLoggingOut] = useState(false);
+  const [showLogoutModal, setShowLogoutModal] = useState(false);
   const navigate = useNavigate();
   const location = useLocation();
   const dropdownRef = useRef<HTMLDivElement>(null);
@@ -58,53 +59,30 @@ const Navbar = () => {
 
   const handleLogout = () => {
     if (isLoggingOut) return;
-    
+    setShowLogoutModal(true);
+  };
+
+  const handleLogoutConfirm = () => {
     setIsLoggingOut(true);
+    // Clear all items from localStorage
+    localStorage.removeItem("accessToken");
+    localStorage.removeItem("token");
+    localStorage.removeItem("role");
+    localStorage.removeItem("name");
+    localStorage.removeItem("email");
+    localStorage.removeItem("profile_status");
+    localStorage.removeItem("userInfo");
     
-    toast((t) => (
-      <div className="p-4">
-        <p className="text-sm font-medium text-gray-800">
-          Are you sure you want to logout?
-        </p>
-        <div className="mt-3 flex justify-end space-x-2">
-          <button
-            onClick={() => {
-              toast.dismiss(t.id);
-              setIsLoggingOut(false);
-            }}
-            className="px-3 py-1 text-sm text-gray-600 hover:text-gray-800"
-          >
-            Cancel
-          </button>
-          <button
-            onClick={() => {
-              // Clear all items from localStorage
-              localStorage.removeItem("accessToken");
-              localStorage.removeItem("token");
-              localStorage.removeItem("role");
-              localStorage.removeItem("name");
-              localStorage.removeItem("email");
-              localStorage.removeItem("profile_status");
-              localStorage.removeItem("userInfo"); // For backward compatibility
-              
-              setIsAuthenticated(false);
-              setIsMenuOpen(false);
-              setIsLoggingOut(false);
-              toast.dismiss(t.id);
-              toast.success("Logged out successfully!");
-              navigate("/");
-            }}
-            className="px-3 py-1 text-sm text-white bg-red-600 hover:bg-red-700 rounded"
-          >
-            Logout
-          </button>
-        </div>
-      </div>
-    ), {
-      duration: Infinity,
-      position: "top-center",
-      id: "logout-confirmation",
-    });
+    setIsAuthenticated(false);
+    setIsMenuOpen(false);
+    setIsLoggingOut(false);
+    setShowLogoutModal(false);
+    toast.success("Logged out successfully!");
+    navigate("/");
+  };
+
+  const handleLogoutCancel = () => {
+    setShowLogoutModal(false);
   };
 
   const handleViewProfile = () => {
@@ -172,7 +150,8 @@ const Navbar = () => {
   };
 
   return (
-    <nav className="bg-gradient-to-r from-blue-800 to-blue-600 shadow-md">
+    <>
+      <nav className="fixed top-0 left-0 right-0 bg-gradient-to-r from-blue-800 to-blue-600 shadow-md z-50">
       <div className="max-w-full mx-auto px-6 lg:px-10">
         <div className="flex justify-between h-16">
           {/* Logo */}
@@ -206,7 +185,7 @@ const Navbar = () => {
                       alt="Profile"
                       className="w-8 h-8 rounded-full border border-gray-200"
                     />
-                    <span className="text-sm font-medium text-white cursor-pointer">{userInfo?.name || "User"}</span>
+                    <span className="text-sm font-medium text-black cursor-pointer">{userInfo?.name || "User"}</span>
                     <svg
                       className={`w-4 h-4 text-white transition-transform ${dropdownOpen ? 'rotate-180' : ''}`}
                       fill="none"
@@ -230,7 +209,7 @@ const Navbar = () => {
                         onClick={handleLogout}
                         className="flex items-center w-full px-4 py-2 text-sm text-red-600 hover:bg-gray-50 cursor-pointer"
                       >
-                        <FaSignOutAlt className="mr-3 h-4 w-4 text-red-400" />
+                        <FaSignOutAlt className="mr-3 h-4 w-4 text-red-600" />
                         Logout
                       </button>
                     </div>
@@ -291,6 +270,9 @@ const Navbar = () => {
           </div>
         </div>
       </div>
+      </nav>
+      {/* Add spacer to prevent content from being hidden behind navbar */}
+      <div className="h-16"></div>
 
       {/* Mobile Menu */}
       <div className={`${isMenuOpen ? "block" : "hidden"} sm:hidden`}>
@@ -303,7 +285,7 @@ const Navbar = () => {
                   alt="Profile"
                   className="w-8 h-8 rounded-full border border-gray-200 mr-3"
                 />
-                <span className="text-sm font-medium text-white">
+                <span className="text-sm font-medium text-black">
                   {userInfo?.name || "User"}
                 </span>
               </div>
@@ -313,7 +295,7 @@ const Navbar = () => {
                   handleViewProfile();
                   setIsMenuOpen(false);
                 }}
-                className="w-full px-3 py-2 rounded-md text-base font-medium text-white hover:text-white hover:bg-blue-700 flex items-center"
+                className="cursor-pointer w-full px-3 py-2 rounded-md text-base font-medium text-black hover:text-white hover:bg-blue-700 flex items-center"
               >
                 <FaUser className="mr-3 h-4 w-4" />
                 View Profile
@@ -324,7 +306,7 @@ const Navbar = () => {
                   handleLogout();
                   setIsMenuOpen(false);
                 }}
-                className="w-full px-3 py-2 rounded-md text-base font-medium text-red-300 hover:text-red-200 hover:bg-blue-700 flex items-center"
+                className="cursor-pointer w-full px-3 py-2 rounded-md text-base font-medium text-red-600 hover:text-red-200 hover:bg-blue-700 flex items-center"
               >
                 <FaSignOutAlt className="mr-3 h-4 w-4" />
                 Logout
@@ -350,7 +332,51 @@ const Navbar = () => {
           )}
         </div>
       </div>
-    </nav>
+
+      {/* Logout Confirmation Modal */}
+      {showLogoutModal && (
+        <div className="fixed inset-0 z-50 overflow-y-auto">
+          {/* Backdrop with blur effect - no click handler */}
+          <div 
+            className="fixed inset-0 bg-black/50 backdrop-blur-sm transition-opacity"
+          />
+          
+          {/* Modal */}
+          <div className="flex min-h-full items-end justify-center p-4 text-center sm:items-center sm:p-0">
+            <div className="relative transform overflow-hidden rounded-lg bg-white px-4 pb-4 pt-5 text-left shadow-xl transition-all sm:my-8 sm:w-full sm:max-w-lg sm:p-6">
+              <div className="sm:flex sm:items-start">
+                <div className="mt-3 text-center sm:mt-0 sm:text-left">
+                  <h3 className="text-lg font-semibold leading-6 text-gray-900">
+                    Confirm Logout
+                  </h3>
+                  <div className="mt-2">
+                    <p className="text-sm text-gray-500">
+                      Are you sure you want to logout?
+                    </p>
+                  </div>
+                </div>
+              </div>
+              <div className="mt-5 sm:mt-4 sm:flex sm:flex-row-reverse">
+                <button
+                  type="button"
+                  className="inline-flex w-full justify-center rounded-md bg-red-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-red-500 sm:ml-3 sm:w-auto"
+                  onClick={handleLogoutConfirm}
+                >
+                  Logout
+                </button>
+                <button
+                  type="button"
+                  className="mt-3 inline-flex w-full justify-center rounded-md bg-white px-3 py-2 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50 sm:mt-0 sm:w-auto"
+                  onClick={handleLogoutCancel}
+                >
+                  Cancel
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+    </>
   );
 };
 

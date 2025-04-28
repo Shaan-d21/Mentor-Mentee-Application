@@ -106,7 +106,7 @@ const MentorProgress: React.FC<ScreenProps<'MentorProgress'>> = ({ navigation })
 
   useEffect(() => {
     if (!roadmap_id) {
-      Alert.alert('Error', 'Failed to load Profile.', [
+      Alert.alert('Error', 'No Roadmap Assigned yet.', [
         { text: 'Cancel', onPress: () => navigation.pop(), style: 'cancel' },
       ]);
     } else {
@@ -148,12 +148,13 @@ const MentorProgress: React.FC<ScreenProps<'MentorProgress'>> = ({ navigation })
               style={styles.modalInput}
               placeholder={
                 selectedAction === 'approve'
-                  ? 'Optional feedback'
+                  ? 'feedback on topic approval'
                   : 'Please provide reason for reassignment'
               }
               value={feedback}
               onChangeText={setFeedback}
               multiline
+              
             />
 
             <TouchableOpacity
@@ -286,6 +287,8 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     padding: 12,
     minHeight: 100,
+    maxHeight: 150, 
+    
     textAlignVertical: 'top',
     marginBottom: 16,
   },

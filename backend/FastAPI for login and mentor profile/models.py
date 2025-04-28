@@ -1,6 +1,7 @@
-from sqlalchemy import Column, Integer, String, ForeignKey, Text, Boolean, DateTime, CheckConstraint, Enum, func
+from sqlalchemy import Column, Integer, String, ForeignKey, Text, Boolean, DateTime, CheckConstraint, Enum, func,event
 from sqlalchemy.orm import relationship
 from database import Base
+from datetime import timedelta
 import enum
 
 # Define enum classes for constrained fields
@@ -254,3 +255,29 @@ class Feedback(Base):
 
     def __repr__(self):
         return f"<Feedback {self.id}: From {self.sender_id} To {self.receiver_id}>"
+    
+
+class OTP(Base):
+    __tablename__ = "otp_table"
+
+    id = Column(Integer, primary_key=True, index=True)
+    mailid = Column(String, nullable=False)
+    otp = Column(String, nullable=False)
+    created_at = Column(DateTime, nullable=False, server_default=func.now())
+    valid_upto = Column(DateTime, nullable=False)
+    is_used = Column(Boolean, nullable=False, default=False)
+
+    def __repr__(self):
+        return f"<OTP {self.id}: {self.mailid}>"
+
+@event.listens_for(OTP, 'before_insert')
+def set_valid_upto_on_insert(mapper, connection, target):
+    # If created_at is not explicitly set (will use server default)
+    # we need to set valid_upto to 5 minutes from now
+    if target.created_at is None:
+        from datetime import datetime
+        now = datetime.now()
+        target.valid_upto = now + timedelta(minutes=5)
+    else:
+        # If created_at is explicitly set, use that as the base
+        target.valid_upto = target.created_at + timedelta(minutes=5)

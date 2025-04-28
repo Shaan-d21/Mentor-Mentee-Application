@@ -23,7 +23,7 @@ function App() {
         <Navigate to="/auth/login" replace />
       ) : (
         <>
-          <div className="min-h-screen">
+          <div className={`h-screen ${location.pathname.startsWith('/auth/') ? 'overflow-hidden' : ''}`}>
             {!isDashboardPath && <Navbar />}
             <div className={!isDashboardPath ? "pt-0" : ""}>
               <ReactRouter />

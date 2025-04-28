@@ -72,7 +72,7 @@ const RoadmapEditModal: React.FC<RoadmapEditModalProps> = ({
         description: editingTopic.description,
         subtopics: parsedSubtopics,
         importance: editingTopic.importance,
-        topic_duration_days: editingTopic.topic_duration_hours || 0
+        topic_duration_days: editingTopic.topic_duration_days || 0
       });
       setErrors({});
     }
@@ -179,7 +179,7 @@ const RoadmapEditModal: React.FC<RoadmapEditModalProps> = ({
           description: editedValues.description.trim(),
           subtopics: formattedSubtopics,
           importance: editedValues.importance.trim(),
-          topic_duration_hours: totalDuration
+          topic_duration_days: totalDuration
         });
       } finally {
         setIsSaving(false);
@@ -304,13 +304,13 @@ const RoadmapEditModal: React.FC<RoadmapEditModalProps> = ({
           <View style={styles.editModalFooter}>
             {!isAddingTopic && editingTopic && (
               <TouchableOpacity 
-                style={[styles.editModalButton, styles.deleteButton]} 
-                onPress={() => onDelete(Number(editingTopic.topic_id))}
-                disabled={isSaving}
-              >
-                <FontAwesomeIcon icon={faTrash} size={16} color="#FFF" />
-                <Text style={styles.deleteButtonText}>Delete</Text>
-              </TouchableOpacity>
+              style={[styles.editModalButton, styles.deleteButton]} 
+              onPress={() => onDelete(Number(editingTopic.topic_id))}
+              disabled={isSaving}
+            >
+              <FontAwesomeIcon icon={faTrash} size={16} color="#FFF" />
+              <Text style={styles.deleteButtonText}>Delete</Text>
+            </TouchableOpacity>
             )}
             
             <TouchableOpacity 

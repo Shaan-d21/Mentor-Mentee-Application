@@ -130,7 +130,7 @@ export const ListRoadmapItems = ({ roadmap }: ListRoadmapItemsProps) => {
       subtopics: [""],
       importance: "",
       topic_status: "pending",
-      topic_duration_hours: 0,
+      topic_duration_days: 0,
     };
     
     setIsAddingTopic(true);
@@ -249,7 +249,7 @@ export const ListRoadmapItems = ({ roadmap }: ListRoadmapItemsProps) => {
                   <Text style={styles.topicDescription}>{topic.description}</Text>
                   <Text style={styles.durationText}>
   <Text style={styles.contentLabel}>Duration: </Text>
-  <Text style={styles.topicDescription}>{topic.topic_duration_hours} Hours</Text>
+  <Text style={styles.topicDescription}>{topic.topic_duration_days} Hours</Text>
 </Text>
 
                   

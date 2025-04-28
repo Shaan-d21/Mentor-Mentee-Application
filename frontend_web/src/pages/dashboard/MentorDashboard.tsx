@@ -63,7 +63,7 @@ const DashboardHome: React.FC = () => {
   }
   
   return (
-    <div className="p-8">
+    <div className="">
       <div className="mb-8">
         <h1 className="text-3xl font-bold text-gray-800">Welcome, {userName}!</h1>
       </div>
@@ -100,7 +100,7 @@ const MentorDashboard: React.FC = () => {
       <Navbar />
       <div className="flex flex-1 overflow-hidden">
         <Sidebar userRole="mentor" />
-        <div className="flex-1 overflow-auto">
+        <div className="flex-1 overflow-auto p-8">
           <Routes>
             <Route path="/" element={<DashboardHome />} />
             <Route path="/profile" element={<MentorProfile />} />

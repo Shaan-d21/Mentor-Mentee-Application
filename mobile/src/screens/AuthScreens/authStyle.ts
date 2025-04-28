@@ -80,4 +80,92 @@ export const authStyles = StyleSheet.create({
     paddingHorizontal: 15,
     fontSize: 16,
   },
+  forgotPasswordContainer: {
+    alignSelf: 'flex-end',
+    marginBottom: 15,
+    marginTop: 5,
+  },
+  forgotPasswordText: {
+    color: '#007AFF', 
+    fontSize: 14,
+    textDecorationLine: 'underline',
+  },
+
+
+  //Forgot Password Styles
+
+  subtitle: {
+    fontSize: 14,
+    color: '#6B7280',
+    textAlign: 'center',
+    marginBottom: 24,
+    paddingHorizontal: 20,
+  },
+  buttonDisabled: {
+    backgroundColor: '#A0AEC0',
+  },
+  backButton: {
+    marginTop: 16,
+    alignItems: 'center',
+  },
+  backButtonText: {
+    color: '#007AFF',
+    fontSize: 14,
+    fontWeight: '500',
+  },
+
+  //OTP Verification Page Styles
+
+  otpContainer: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    gap: 12,
+    marginBottom: 24,
+    paddingHorizontal: 20,
+  },
+  otpInput: {
+    width: 50,
+    height: 50,
+    borderWidth: 1,
+    borderRadius: 8,
+    borderColor: '#E5E7EB',
+    textAlign: 'center',
+    fontSize: 24,
+    backgroundColor: '#FFFFFF',
+    color: '#111827',
+  },
+  resendContainer: {
+    alignItems: 'center',
+    marginBottom: 24,
+  },
+  resendText: {
+    color: '#5474E8',
+    fontSize: 14,
+    fontWeight: '500',
+  },
+  resendTextDisabled: {
+    color: '#9CA3AF',
+  },
+
+  //Reset Password Styles
+  inputContainer: {
+    width: '100%',
+    marginBottom: 24,
+  },
+  validationContainer: {
+    marginTop: 8,
+    marginBottom: 16,
+  },
+  validationText: {
+    fontSize: 12,
+    marginBottom: 4,
+  },
+  validationError: {
+    color: '#059669',
+  },
+  validationSuccess: {
+    color: '#EF4444',
+  },
+
+
 });
