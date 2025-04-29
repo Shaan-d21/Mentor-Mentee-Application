@@ -143,7 +143,6 @@ const SignInPage: React.FC<ScreenProps<'SignInPage'>> = ({ navigation }) => {
         <TextInput
           style={authStyles.input}
           placeholder="Email"
-          placeholderTextColor={colorScheme === 'dark' ? '#CCCCCC' : '#666666'}
 
           keyboardType="email-address"
           value={emailLocal}
