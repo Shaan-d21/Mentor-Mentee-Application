@@ -409,7 +409,7 @@ const MentorProfile: React.FC = () => {
           {!editMode && (
             <button
               onClick={() => setEditMode(true)}
-              className="px-3 py-1.5 sm:px-4 sm:py-2 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-md hover:bg-blue-700 hover:shadow-md hover:scale-105 focus:outline-none focus:ring-2 focus:ring-blue-500 flex items-center transition-all duration-200"
+              className="cursor-pointer px-3 py-1.5 sm:px-4 sm:py-2 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-md hover:bg-blue-700 hover:shadow-md hover:scale-105 focus:outline-none focus:ring-2 focus:ring-blue-500 flex items-center transition-all duration-200"
             >
               <Edit2 size={16} className="mr-2" /> Edit Profile
             </button>
@@ -639,7 +639,7 @@ const MentorProfile: React.FC = () => {
                   <div className="flex justify-center">
                     <button
                       onClick={() => setShowAddSkillsModal(true)}
-                      className="inline-flex items-center px-3 py-1.5 sm:px-4 sm:py-2 text-sm sm:text-base font-medium text-blue-600 bg-blue-50 rounded-lg hover:bg-blue-100 hover:shadow-md hover:scale-105 transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      className="cursor-pointer inline-flex items-center px-3 py-1.5 sm:px-4 sm:py-2 text-sm sm:text-base font-medium text-blue-600 bg-blue-50 rounded-lg hover:bg-blue-100 hover:shadow-md hover:scale-105 transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-blue-500"
                     >
                       <Plus className="h-4 w-4 sm:h-5 sm:w-5 mr-2" />
                       <span>Add Skills</span>
@@ -656,14 +656,14 @@ const MentorProfile: React.FC = () => {
               <div className="flex flex-col sm:flex-row justify-end space-y-2 sm:space-y-0 sm:space-x-3">
                 <button
                   onClick={cancelEdit}
-                  className="px-3 py-1.5 sm:px-4 sm:py-2 border border-gray-300 rounded-md text-gray-700 bg-white hover:bg-gray-50 hover:shadow-md hover:scale-105 focus:outline-none focus:ring-2 focus:ring-gray-500 transition-all duration-200"
+                  className="cursor-pointer px-3 py-1.5 sm:px-4 sm:py-2 border border-gray-300 rounded-md text-gray-700 bg-white hover:bg-gray-50 hover:shadow-md hover:scale-105 focus:outline-none focus:ring-2 focus:ring-gray-500 transition-all duration-200"
                 >
                   Cancel
                 </button>
                 <button
                   onClick={saveChanges}
                   disabled={saving}
-                  className="px-3 py-1.5 sm:px-4 sm:py-2 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-md hover:bg-blue-700 hover:shadow-md hover:scale-105 focus:outline-none focus:ring-2 focus:ring-blue-500 flex items-center disabled:opacity-50 transition-all duration-200"
+                  className="cursor-pointer px-3 py-1.5 sm:px-4 sm:py-2 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-md hover:bg-blue-700 hover:shadow-md hover:scale-105 focus:outline-none focus:ring-2 focus:ring-blue-500 flex items-center disabled:opacity-50 transition-all duration-200"
                 >
                   {saving ? (
                     <>
@@ -701,7 +701,7 @@ const MentorProfile: React.FC = () => {
                         <div className="flex items-center">
                           <input
                             type="checkbox"
-                            className="mr-2 h-4 w-4 sm:h-5 sm:w-5"
+                            className="cursor-pointer mr-2 h-4 w-4 sm:h-5 sm:w-5"
                             checked={selectedNewSkills.some(s => s.name === skill)}
                             onChange={(e) => {
                               if (e.target.checked) {
@@ -739,14 +739,14 @@ const MentorProfile: React.FC = () => {
                       setShowAddSkillsModal(false);
                       setSelectedNewSkills([]);
                     }}
-                    className="px-3 py-1.5 sm:px-4 sm:py-2 text-sm sm:text-base font-medium text-gray-700 bg-gray-100 rounded-md hover:bg-gray-200 hover:shadow-md hover:scale-105 transition-all duration-200"
+                    className="cursor-pointer px-3 py-1.5 sm:px-4 sm:py-2 text-sm sm:text-base font-medium text-gray-700 bg-gray-100 rounded-md hover:bg-gray-200 hover:shadow-md hover:scale-105 transition-all duration-200"
                   >
                     Cancel
                   </button>
                   <button
                     onClick={handleAddNewSkills}
                     disabled={selectedNewSkills.length === 0}
-                    className="px-3 py-1.5 sm:px-4 sm:py-2 text-sm sm:text-base font-medium text-white bg-gradient-to-r from-blue-600 to-indigo-600 rounded-md hover:bg-blue-700 hover:shadow-md hover:scale-105 disabled:opacity-50 transition-all duration-200"
+                    className="cursor-pointer px-3 py-1.5 sm:px-4 sm:py-2 text-sm sm:text-base font-medium text-white bg-gradient-to-r from-blue-600 to-indigo-600 rounded-md hover:bg-blue-700 hover:shadow-md hover:scale-105 disabled:opacity-50 transition-all duration-200"
                   >
                     Add Selected Skills
                   </button>

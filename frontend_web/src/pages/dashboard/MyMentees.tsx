@@ -248,7 +248,7 @@ const MyMentees: React.FC = () => {
               <div className="bg-white rounded-lg shadow-lg p-6 w-11/12 max-w-md relative">
                 <button
                   onClick={closeRoadmapModal}
-                  className="absolute top-2 right-2 text-gray-500 hover:text-gray-700"
+                  className="cursor-pointer absolute top-2 right-2 text-gray-500 hover:text-gray-700"
                   aria-label="Close modal"
                 >
                   <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -260,13 +260,13 @@ const MyMentees: React.FC = () => {
                 <div className="flex justify-end space-x-2">
                   <button
                     onClick={closeRoadmapModal}
-                    className="py-2 px-4 rounded-md text-gray-600 bg-gray-200 hover:bg-gray-300"
+                    className="cursor-pointer py-2 px-4 rounded-md text-gray-600 bg-gray-200 hover:bg-gray-300"
                   >
                     Cancel
                   </button>
                   <button
                     onClick={() => handleViewRoadmap(selectedMentee)}
-                    className="py-2 px-4 rounded-md text-white bg-blue-600 hover:bg-blue-700"
+                    className="cursor-pointer py-2 px-4 rounded-md text-white bg-blue-600 hover:bg-blue-700"
                   >
                     View Roadmap
                   </button>

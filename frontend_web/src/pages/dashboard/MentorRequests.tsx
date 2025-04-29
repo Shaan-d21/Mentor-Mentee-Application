@@ -46,7 +46,7 @@ const ApprovalModal: React.FC<ApprovalModalProps> = ({ isOpen, onClose, onSubmit
       <div className="relative bg-white rounded-lg shadow-lg p-6 w-11/12 max-w-md">
         <button
           onClick={onClose}
-          className="absolute top-2 right-2 text-gray-500 hover:text-gray-700"
+          className="cursor-pointer absolute top-2 right-2 text-gray-500 hover:text-gray-700"
           aria-label="Close modal"
         >
           <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -71,13 +71,13 @@ const ApprovalModal: React.FC<ApprovalModalProps> = ({ isOpen, onClose, onSubmit
         />
         <div className="flex justify-end space-x-2">
           <button
-            className="py-2 px-4 rounded-md text-gray-600 bg-gray-200 hover:bg-gray-300"
+            className="cursor-pointer py-2 px-4 rounded-md text-gray-600 bg-gray-200 hover:bg-gray-300"
             onClick={onClose}
           >
             Cancel
           </button>
           <button
-            className={`py-2 px-4 rounded-md text-white ${
+            className={`cursor-pointer py-2 px-4 rounded-md text-white ${
               isRejection ? 'bg-red-500 hover:bg-red-600' : 'bg-blue-600 hover:bg-blue-700'
             }`}
             onClick={handleSubmit}
@@ -313,14 +313,14 @@ const MentorRequests: React.FC = () => {
                       <div className="flex space-x-2">
                         <button
                           onClick={() => openApprovalModal(request, false)}
-                          className="p-2 text-blue-600 hover:text-blue-700"
+                          className="cursor-pointer p-2 text-blue-600 hover:text-blue-700"
                           title="Approve"
                         >
                           <CheckCircle className="w-5 h-5" />
                         </button>
                         <button
                           onClick={() => openApprovalModal(request, true)}
-                          className="p-2 text-red-500 hover:text-red-600"
+                          className="cursor-pointer p-2 text-red-500 hover:text-red-600"
                           title="Reject"
                         >
                           <XCircle className="w-5 h-5" />

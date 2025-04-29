@@ -632,7 +632,7 @@ const RoadmapGenerator: React.FC = () => {
                                 className={`w-full py-2 sm:py-3 px-3 sm:px-4 rounded-md text-sm sm:text-base font-medium text-white ${
                                     loading || !selectedMentee
                                         ? 'bg-gray-400 cursor-not-allowed'
-                                        : 'bg-indigo-600 hover:bg-indigo-700 hover:scale-105 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-all duration-200'
+                                        : 'cursor-pointer bg-indigo-600 hover:bg-indigo-700 hover:scale-105 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-all duration-200'
                                 }`}
                             >
                                 {loading ? (
@@ -683,7 +683,7 @@ const RoadmapGenerator: React.FC = () => {
                                     <h3 className="text-lg sm:text-xl font-semibold text-indigo-800">Learning Topics</h3>
                                     <button
                                         onClick={() => setShowAddTopicModal(true)}
-                                        className="flex items-center px-3 sm:px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 hover:scale-105 transition-all duration-200 text-sm sm:text-base"
+                                        className="cursor-pointer flex items-center px-3 sm:px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 hover:scale-105 transition-all duration-200 text-sm sm:text-base"
                                     >
                                         <Plus className="h-4 w-4 sm:h-5 sm:w-5 mr-1 sm:mr-2" />
                                         Add Topic
@@ -699,7 +699,7 @@ const RoadmapGenerator: React.FC = () => {
                                             >
                                                 <button
                                                     onClick={() => handleViewTopicDetails(topic)}
-                                                    className="w-full text-left"
+                                                    className="cursor-pointer w-full text-left"
                                                 >
                                                     <div className="flex justify-between items-center min-w-0">
                                                         <div className="flex-1 min-w-0">
@@ -727,7 +727,7 @@ const RoadmapGenerator: React.FC = () => {
                                                     <div className="flex items-center space-x-2 sm:space-x-3 min-w-0">
                                                         <button
                                                             onClick={() => handleToggleTopic(topic.topic_id)}
-                                                            className="text-indigo-600 hover:text-indigo-800 hover:scale-110 transition-transform duration-200"
+                                                            className="cursor-pointer text-indigo-600 hover:text-indigo-800 hover:scale-110 transition-transform duration-200"
                                                         >
                                                             {topic.isExpanded ? <ChevronDown className="h-4 w-4 sm:h-5 sm:w-5" /> : <ChevronRight className="h-4 w-4 sm:h-5 sm:w-5" />}
                                                         </button>
@@ -741,13 +741,13 @@ const RoadmapGenerator: React.FC = () => {
                                                     <div className="flex space-x-2 sm:space-x-3">
                                                         <button
                                                             onClick={() => handleEditTopic(topic)}
-                                                            className="text-indigo-600 hover:text-indigo-800 hover:scale-110 transition-transform duration-200"
+                                                            className="cursor-pointer text-indigo-600 hover:text-indigo-800 hover:scale-110 transition-transform duration-200"
                                                         >
                                                             <Edit2 className="h-4 w-4 sm:h-5 sm:w-5" />
                                                         </button>
                                                         <button
                                                             onClick={() => handleDeleteTopic(topic.topic_id)}
-                                                            className="text-red-600 hover:text-red-800 hover:scale-110 transition-transform duration-200"
+                                                            className="cursor-pointer text-red-600 hover:text-red-800 hover:scale-110 transition-transform duration-200"
                                                         >
                                                             <Trash2 className="h-4 w-4 sm:h-5 sm:w-5" />
                                                         </button>
@@ -773,7 +773,7 @@ const RoadmapGenerator: React.FC = () => {
                                                                         </div>
                                                                         <button
                                                                             onClick={() => setShowDeleteSubtopicConfirmation({ show: true, topicId: topic.topic_id, subtopicIndex: index })}
-                                                                            className="text-red-600 hover:text-red-800 text-sm sm:text-base"
+                                                                            className="cursor-pointer text-red-600 hover:text-red-800 text-sm sm:text-base"
                                                                         >
                                                                             Remove
                                                                         </button>
@@ -801,7 +801,7 @@ const RoadmapGenerator: React.FC = () => {
                                     className={`w-full py-2 sm:py-3 px-3 sm:px-4 rounded-md text-sm sm:text-base font-medium text-white ${
                                         loading || isAssigned
                                             ? 'bg-gray-400 cursor-not-allowed'
-                                            : 'bg-green-600 hover:bg-green-700 hover:scale-105 transition-all duration-200'
+                                            : 'cursor-pointer bg-green-600 hover:bg-green-700 hover:scale-105 transition-all duration-200'
                                     }`}
                                 >
                                     {loading ? (
@@ -961,7 +961,7 @@ const RoadmapGenerator: React.FC = () => {
                                             <label className="block text-sm sm:text-base font-medium text-gray-700">Subtopics</label>
                                             <button
                                                 onClick={() => setShowAddModalSubtopicForm(true)}
-                                                className="flex items-center space-x-1 text-sm sm:text-base text-indigo-600 hover:text-indigo-800"
+                                                className="cursor-pointer flex items-center space-x-1 text-sm sm:text-base text-indigo-600 hover:text-indigo-800"
                                             >
                                                 <Plus className="h-4 w-4 sm:h-5 sm:w-5" />
                                                 <span>Add Subtopic</span>
@@ -1006,7 +1006,7 @@ const RoadmapGenerator: React.FC = () => {
                                                                     setShowAddModalSubtopicForm(false);
                                                                 }
                                                             }}
-                                                            className="text-sm sm:text-base text-indigo-600 hover:text-indigo-800"
+                                                            className="cursor-pointer text-sm sm:text-base text-indigo-600 hover:text-indigo-800"
                                                         >
                                                             Add
                                                         </button>
@@ -1015,7 +1015,7 @@ const RoadmapGenerator: React.FC = () => {
                                                                 setShowAddModalSubtopicForm(false);
                                                                 setNewTopicSubtopicForm({ name: '', duration: 0 });
                                                             }}
-                                                            className="text-sm sm:text-base text-gray-600 hover:text-gray-800"
+                                                            className="cursor-pointer text-sm sm:text-base text-gray-600 hover:text-gray-800"
                                                         >
                                                             Cancel
                                                         </button>
@@ -1059,13 +1059,13 @@ const RoadmapGenerator: React.FC = () => {
                                     setNewTopic(newTopicInitialState);
                                     setNewTopicSubtopics([]);
                                 }}
-                                className="px-3 sm:px-4 py-2 text-sm sm:text-base font-medium text-gray-700 bg-gray-100 rounded-md hover:bg-gray-200 hover:scale-105 transition-all duration-200"
+                                className="cursor-pointer px-3 sm:px-4 py-2 text-sm sm:text-base font-medium text-gray-700 bg-gray-100 rounded-md hover:bg-gray-200 hover:scale-105 transition-all duration-200"
                             >
                                 Cancel
                             </button>
                             <button
                                 onClick={handleAddTopic}
-                                className="px-3 sm:px-4 py-2 text-sm sm:text-base font-medium text-white bg-indigo-600 rounded-md hover:bg-indigo-700 hover:scale-105 transition-all duration-200"
+                                className="cursor-pointer px-3 sm:px-4 py-2 text-sm sm:text-base font-medium text-white bg-indigo-600 rounded-md hover:bg-indigo-700 hover:scale-105 transition-all duration-200"
                             >
                                 Add Topic
                             </button>
@@ -1108,13 +1108,13 @@ const RoadmapGenerator: React.FC = () => {
                             <div className="flex flex-col sm:flex-row justify-end gap-3">
                                 <button
                                     onClick={() => setShowAddSubtopicModal(false)}
-                                    className="px-3 sm:px-4 py-2 text-sm sm:text-base font-medium text-gray-700 bg-gray-100 rounded-md hover:bg-gray-200 hover:scale-105 transition-all duration-200"
+                                    className="cursor-pointer px-3 sm:px-4 py-2 text-sm sm:text-base font-medium text-gray-700 bg-gray-100 rounded-md hover:bg-gray-200 hover:scale-105 transition-all duration-200"
                                 >
                                     Cancel
                                 </button>
                                 <button
                                     onClick={handleAddSubtopic}
-                                    className="px-3 sm:px-4 py-2 text-sm sm:text-base font-medium text-white bg-indigo-600 rounded-md hover:bg-indigo-700 hover:scale-105 transition-all duration-200"
+                                    className="cursor-pointer px-3 sm:px-4 py-2 text-sm sm:text-base font-medium text-white bg-indigo-600 rounded-md hover:bg-indigo-700 hover:scale-105 transition-all duration-200"
                                 >
                                     Add Subtopic
                                 </button>
@@ -1174,7 +1174,7 @@ const RoadmapGenerator: React.FC = () => {
                                             <label className="block text-sm sm:text-base font-medium text-gray-700">Subtopics</label>
                                             <button
                                                 onClick={() => setShowSubtopicForm(true)}
-                                                className="flex items-center space-x-1 text-sm sm:text-base text-indigo-600 hover:text-indigo-800"
+                                                className="cursor-pointer flex items-center space-x-1 text-sm sm:text-base text-indigo-600 hover:text-indigo-800"
                                             >
                                                 <Plus className="h-4 w-4 sm:h-5 sm:w-5" />
                                                 <span>Add Subtopic</span>
@@ -1225,7 +1225,7 @@ const RoadmapGenerator: React.FC = () => {
                                                                     setShowSubtopicForm(false);
                                                                 }
                                                             }}
-                                                            className="text-sm sm:text-base text-indigo-600 hover:text-indigo-800"
+                                                            className="cursor-pointer text-sm sm:text-base text-indigo-600 hover:text-indigo-800"
                                                         >
                                                             Add
                                                         </button>
@@ -1234,7 +1234,7 @@ const RoadmapGenerator: React.FC = () => {
                                                                 setShowSubtopicForm(false);
                                                                 setNewSubtopicForm({ name: '', duration: 0 });
                                                             }}
-                                                            className="text-sm sm:text-base text-gray-600 hover:text-gray-800"
+                                                            className="cursor-pointer text-sm sm:text-base text-gray-600 hover:text-gray-800"
                                                         >
                                                             Cancel
                                                         </button>
@@ -1293,7 +1293,7 @@ const RoadmapGenerator: React.FC = () => {
                                                             <span className="text-sm sm:text-base text-gray-500">hours</span>
                                                             <button
                                                                 onClick={() => setShowEditModalSubtopicDeleteConfirmation({ show: true, subtopicIndex: index })}
-                                                                className="text-sm sm:text-base text-red-600 hover:text-red-800"
+                                                                className="cursor-pointer text-sm sm:text-base text-red-600 hover:text-red-800"
                                                             >
                                                                 Remove
                                                             </button>
@@ -1309,13 +1309,13 @@ const RoadmapGenerator: React.FC = () => {
                         <div className="flex flex-col sm:flex-row justify-end gap-3 p-4 sm:p-6 border-t border-gray-200">
                             <button
                                 onClick={() => setEditingTopic(null)}
-                                className="px-3 sm:px-4 py-2 text-sm sm:text-base font-medium text-gray-700 bg-gray-100 rounded-md hover:bg-gray-200 hover:scale-105 transition-all duration-200"
+                                className="cursor-pointer px-3 sm:px-4 py-2 text-sm sm:text-base font-medium text-gray-700 bg-gray-100 rounded-md hover:bg-gray-200 hover:scale-105 transition-all duration-200"
                             >
                                 Cancel
                             </button>
                             <button
                                 onClick={() => handleUpdateTopic(editingTopic)}
-                                className="px-3 sm:px-4 py-2 text-sm sm:text-base font-medium text-white bg-indigo-600 rounded-md hover:bg-indigo-700 hover:scale-105 transition-all duration-200"
+                                className="cursor-pointer px-3 sm:px-4 py-2 text-sm sm:text-base font-medium text-white bg-indigo-600 rounded-md hover:bg-indigo-700 hover:scale-105 transition-all duration-200"
                             >
                                 Save Changes
                             </button>
@@ -1333,7 +1333,7 @@ const RoadmapGenerator: React.FC = () => {
                         <div className="flex flex-col sm:flex-row justify-end gap-3">
                             <button
                                 onClick={() => setShowEditModalSubtopicDeleteConfirmation(null)}
-                                className="px-3 sm:px-4 py-2 text-sm sm:text-base font-medium text-gray-700 bg-gray-100 rounded-md hover:bg-gray-200 hover:scale-105 transition-all duration-200"
+                                className="cursor-pointer px-3 sm:px-4 py-2 text-sm sm:text-base font-medium text-gray-700 bg-gray-100 rounded-md hover:bg-gray-200 hover:scale-105 transition-all duration-200"
                             >
                                 Cancel
                             </button>
@@ -1354,7 +1354,7 @@ const RoadmapGenerator: React.FC = () => {
                                         setShowEditModalSubtopicDeleteConfirmation(null);
                                     }
                                 }}
-                                className="px-3 sm:px-4 py-2 text-sm sm:text-base font-medium text-white bg-red-600 rounded-md hover:bg-red-700 hover:scale-105 transition-all duration-200"
+                                className="cursor-pointer px-3 sm:px-4 py-2 text-sm sm:text-base font-medium text-white bg-red-600 rounded-md hover:bg-red-700 hover:scale-105 transition-all duration-200"
                             >
                                 Delete
                             </button>
@@ -1372,13 +1372,13 @@ const RoadmapGenerator: React.FC = () => {
                         <div className="flex flex-col sm:flex-row justify-end gap-3">
                             <button
                                 onClick={() => setShowDeleteTopicConfirmation({ show: false, topicId: null })}
-                                className="px-3 sm:px-4 py-2 text-sm sm:text-base font-medium text-gray-700 bg-gray-100 rounded-md hover:bg-gray-200 hover:scale-105 transition-all duration-200"
+                                className="cursor-pointer px-3 sm:px-4 py-2 text-sm sm:text-base font-medium text-gray-700 bg-gray-100 rounded-md hover:bg-gray-200 hover:scale-105 transition-all duration-200"
                             >
                                 Cancel
                             </button>
                             <button
                                 onClick={handleConfirmDeleteTopic}
-                                className="px-3 sm:px-4 py-2 text-sm sm:text-base font-medium text-white bg-red-600 rounded-md hover:bg-red-700 hover:scale-105 transition-all duration-200"
+                                className="cursor-pointer px-3 sm:px-4 py-2 text-sm sm:text-base font-medium text-white bg-red-600 rounded-md hover:bg-red-700 hover:scale-105 transition-all duration-200"
                             >
                                 Delete
                             </button>
@@ -1396,13 +1396,13 @@ const RoadmapGenerator: React.FC = () => {
                         <div className="flex flex-col sm:flex-row justify-end gap-3">
                             <button
                                 onClick={() => setShowDeleteSubtopicConfirmation(null)}
-                                className="px-3 sm:px-4 py-2 text-sm sm:text-base font-medium text-gray-700 bg-gray-100 rounded-md hover:bg-gray-200 hover:scale-105 transition-all duration-200"
+                                className="cursor-pointer px-3 sm:px-4 py-2 text-sm sm:text-base font-medium text-gray-700 bg-gray-100 rounded-md hover:bg-gray-200 hover:scale-105 transition-all duration-200"
                             >
                                 Cancel
                             </button>
                             <button
                                 onClick={handleConfirmDeleteSubtopic}
-                                className="px-3 sm:px-4 py-2 text-sm sm:text-base font-medium text-white bg-red-600 rounded-md hover:bg-red-700 hover:scale-105 transition-all duration-200"
+                                className="cursor-pointer px-3 sm:px-4 py-2 text-sm sm:text-base font-medium text-white bg-red-600 rounded-md hover:bg-red-700 hover:scale-105 transition-all duration-200"
                             >
                                 Delete
                             </button>
@@ -1420,7 +1420,7 @@ const RoadmapGenerator: React.FC = () => {
                         <div className="flex flex-col sm:flex-row justify-end gap-3">
                             <button
                                 onClick={() => setShowAddModalSubtopicDeleteConfirmation(null)}
-                                className="px-3 sm:px-4 py-2 text-sm sm:text-base font-medium text-gray-700 bg-gray-100 rounded-md hover:bg-gray-200 hover:scale-105 transition-all duration-200"
+                                className="cursor-pointer px-3 sm:px-4 py-2 text-sm sm:text-base font-medium text-gray-700 bg-gray-100 rounded-md hover:bg-gray-200 hover:scale-105 transition-all duration-200"
                             >
                                 Cancel
                             </button>
@@ -1433,7 +1433,7 @@ const RoadmapGenerator: React.FC = () => {
                                         setShowAddModalSubtopicDeleteConfirmation(null);
                                     }
                                 }}
-                                className="px-3 sm:px-4 py-2 text-sm sm:text-base font-medium text-white bg-red-600 rounded-md hover:bg-red-700 hover:scale-105 transition-all duration-200"
+                                className="cursor-pointer px-3 sm:px-4 py-2 text-sm sm:text-base font-medium text-white bg-red-600 rounded-md hover:bg-red-700 hover:scale-105 transition-all duration-200"
                             >
                                 Delete
                             </button>
