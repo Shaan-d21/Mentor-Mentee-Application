@@ -9,6 +9,7 @@ import {
   Pressable,
   Dimensions,
   useWindowDimensions,
+  Platform,
 } from 'react-native';
 import {useDispatch, useSelector} from 'react-redux';
 import {fetchApprovedMentees} from '../../redux/slices/mentorSlice';
@@ -17,22 +18,31 @@ import {AppDispatch, RootState} from '../../redux/store';
 // Navigation types
 import {useIsFocused, useNavigation} from '@react-navigation/native';
 import {NativeStackNavigationProp} from '@react-navigation/native-stack';
-import {RootStackParamList} from '../../navigation/types'; // Adjust the path as needed
+import {RootStackParamList} from '../../navigation/types';
 import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome';
 import { faEnvelope, faUserTag, faCodeBranch, faCommentDots } from '@fortawesome/free-solid-svg-icons';
 
 import Avatar from 'react-native-elements/dist/avatar/Avatar';
 import AppBar from '../../components/appbar_component';
 
+// Define fixed font sizes for different text elements
+const FONT_SIZES = {
+  HEADER: 18,
+  TITLE: 16,
+  NORMAL: 14,
+  SMALL: 12,
+};
+
 // Get responsive font size based on screen width
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 const scale = SCREEN_WIDTH / 375; // 375 is a standard width to scale from
 
-const normalize = (size:any
-
-
+const normalize = (size: number): number => {
+  // Small screen adjustment - reduce font size even more on very small screens
+  if (SCREEN_WIDTH < 320) {
+    return Math.max(size * 0.8, 10); // Min font size of 10
+  }
   
-) => {
   const newSize = size * scale;
   return Math.round(Math.min(newSize, size * 1.2)); // Cap the size increase
 };
@@ -45,23 +55,22 @@ type MentorDashboardNavigationProp = NativeStackNavigationProp<
 const MentorDashboardScreen = () => {
   const dispatch = useDispatch<AppDispatch>();
   const navigation = useNavigation<MentorDashboardNavigationProp>();
-  const isFocused = useIsFocused();          // <-- track focus
-  const { width } = useWindowDimensions(); // For responsive updates
+  const isFocused = useIsFocused();
+  const { width } = useWindowDimensions();
 
-  // Note: approved mentees list is stored under 'approved' in your slice.
   const {approved, pending, error, status} = useSelector(
     (state: RootState) => state.mentorDashboard,
   );
   const userName = useSelector((state: RootState) => state.login.name);
 
   useEffect(() => {
-    if (isFocused) {                        // <-- refetch only when focused
+    if (isFocused) {
       dispatch(fetchApprovedMentees());
     }
   }, [isFocused, ]);
   
   useEffect(() => {
-    if (isFocused) {                        // <-- refetch only when focused
+    if (isFocused) {
       dispatch(fetchApprovedMentees());
     }
   }, [ ]);
@@ -87,7 +96,7 @@ const MentorDashboardScreen = () => {
             <View style={styles.cardItem}>
               <FontAwesomeIcon 
                 icon={faEnvelope} 
-                size={normalize(14)} 
+                size={normalize(FONT_SIZES.SMALL)} 
                 color="#777" 
                 style={styles.icon} 
               />
@@ -98,7 +107,7 @@ const MentorDashboardScreen = () => {
             <View style={styles.cardItem}>
               <FontAwesomeIcon 
                 icon={faUserTag} 
-                size={normalize(14)} 
+                size={normalize(FONT_SIZES.SMALL)} 
                 color="#777" 
                 style={styles.icon} 
               />
@@ -109,7 +118,7 @@ const MentorDashboardScreen = () => {
             <View style={styles.cardItem}>
               <FontAwesomeIcon 
                 icon={faCodeBranch} 
-                size={normalize(14)} 
+                size={normalize(FONT_SIZES.SMALL)} 
                 color="#777" 
                 style={styles.icon} 
               />
@@ -189,7 +198,7 @@ const styles = StyleSheet.create({
     paddingBottom: '2%',
   },
   cardTitle: {
-    fontSize: normalize(16),
+    fontSize: normalize(FONT_SIZES.TITLE),
     fontWeight: 'bold',
     color: '#333',
   },
@@ -206,12 +215,12 @@ const styles = StyleSheet.create({
     marginRight: 10,
   },
   cardText: {
-    fontSize: normalize(14),
+    fontSize: normalize(FONT_SIZES.NORMAL),
     color: '#555',
     flex: 1,
   },
   cardTextTitle: {
-    fontSize: normalize(14),
+    fontSize: normalize(FONT_SIZES.NORMAL),
     fontWeight: 'bold',
     color: '#333',
   },
@@ -221,7 +230,7 @@ const styles = StyleSheet.create({
   noMenteesText: {
     textAlign: 'center',
     padding: '5%',
-    fontSize: normalize(14),
+    fontSize: normalize(FONT_SIZES.NORMAL),
     color: '#777',
   },
   header: {
@@ -232,7 +241,7 @@ const styles = StyleSheet.create({
     flexWrap: 'wrap',
   },
   headerText: {
-    fontSize: normalize(18),
+    fontSize: normalize(FONT_SIZES.HEADER),
     fontWeight: 'bold',
     color: '#333',
     flex: 1,
@@ -246,7 +255,7 @@ const styles = StyleSheet.create({
     flexWrap: 'wrap',
   },
   title: {
-    fontSize: normalize(16),
+    fontSize: normalize(FONT_SIZES.TITLE),
     fontWeight: 'bold',
     color: '#333',
     flex: 1,
@@ -254,13 +263,13 @@ const styles = StyleSheet.create({
   },
   checkBtn: {
     backgroundColor: '#1a73e8',
-    padding: '2.5%',
+    padding: '2%',
     borderRadius: 6,
     marginTop: '2%',
   },
   checkBtnText: {
     color: 'white',
     fontWeight: 'bold',
-    fontSize: normalize(14),
+    fontSize: normalize(FONT_SIZES.NORMAL),
   },
 });

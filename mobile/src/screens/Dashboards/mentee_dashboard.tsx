@@ -19,11 +19,24 @@ import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome';
 import { faEnvelope, faBriefcase, faCode, faClock, faCodeBranch } from '@fortawesome/free-solid-svg-icons';
 import { getApprovedMentorList } from '../../redux/slices/sliceMenteeDashboard';
 
-// Get responsive font size based on screen width
-const { width } = Dimensions.get('window');
-const scale = width / 375; // 375 is a standard width to scale from
+// Define fixed font sizes for different text elements
+const FONT_SIZES = {
+  HEADER: 20,
+  TITLE: 16,
+  NORMAL: 14,
+  SMALL: 12,
+};
 
-const normalize = (size:any) => {
+// Get responsive font size based on screen width
+const { width: SCREEN_WIDTH } = Dimensions.get('window');
+const scale = SCREEN_WIDTH / 375; // 375 is a standard width to scale from
+
+const normalize = (size: number): number => {
+  // Small screen adjustment - reduce font size even more on very small screens
+  if (SCREEN_WIDTH < 320) {
+    return Math.max(size * 0.8, 10); // Min font size of 10
+  }
+  
   const newSize = size * scale;
   return Math.round(Math.min(newSize, size * 1.2)); // Cap the size increase
 };
@@ -58,19 +71,39 @@ const MenteeDashboard: FC<ScreenProps<'MenteeDashboard'>> = ({ navigation }) => 
       </View>
       <View style={styles.cardBody}>
         <View style={styles.cardItem}>
-          <FontAwesomeIcon icon={faEnvelope} size={normalize(14)} color="#777" style={styles.icon} />
+          <FontAwesomeIcon 
+            icon={faEnvelope} 
+            size={normalize(FONT_SIZES.SMALL)} 
+            color="#777" 
+            style={styles.icon} 
+          />
           <Text style={styles.cardText} numberOfLines={1} ellipsizeMode="tail">{item.mail}</Text>
         </View>
         <View style={styles.cardItem}>
-          <FontAwesomeIcon icon={faBriefcase} size={normalize(14)} color="#777" style={styles.icon} />
+          <FontAwesomeIcon 
+            icon={faBriefcase} 
+            size={normalize(FONT_SIZES.SMALL)} 
+            color="#777" 
+            style={styles.icon} 
+          />
           <Text style={styles.cardText} numberOfLines={1} ellipsizeMode="tail">{item.designation || 'N/A'}</Text>
         </View>
         <View style={styles.cardItem}>
-          <FontAwesomeIcon icon={faCodeBranch} size={normalize(14)} color="#777" style={styles.icon} />
+          <FontAwesomeIcon 
+            icon={faCodeBranch} 
+            size={normalize(FONT_SIZES.SMALL)} 
+            color="#777" 
+            style={styles.icon} 
+          />
           <Text style={styles.cardText} numberOfLines={1} ellipsizeMode="tail">{item.domain_name || 'N/A'}</Text>
         </View>
         <View style={styles.cardItem}>
-          <FontAwesomeIcon icon={faClock} size={normalize(14)} color="#777" style={styles.icon} />
+          <FontAwesomeIcon 
+            icon={faClock} 
+            size={normalize(FONT_SIZES.SMALL)} 
+            color="#777" 
+            style={styles.icon} 
+          />
           <Text style={styles.cardText}>{item.exp !== null ? `${item.exp} years` : 'N/A'}</Text>
         </View>
       </View>
@@ -122,7 +155,7 @@ const styles = StyleSheet.create({
     flexWrap: 'wrap'
   },
   headerText: { 
-    fontSize: normalize(20), 
+    fontSize: normalize(FONT_SIZES.HEADER), 
     fontWeight: 'bold', 
     color: '#333',
     flex: 1,
@@ -132,7 +165,7 @@ const styles = StyleSheet.create({
     color: 'red',
     marginBottom: 10,
     textAlign: 'center',
-    fontSize: normalize(14)
+    fontSize: normalize(FONT_SIZES.NORMAL)
   },
   card: {
     backgroundColor: '#E0F7FA',
@@ -154,7 +187,7 @@ const styles = StyleSheet.create({
     marginBottom: '2%'
   },
   cardTitle: {
-    fontSize: normalize(16),
+    fontSize: normalize(FONT_SIZES.TITLE),
     fontWeight: 'bold',
     color: '#333'
   },
@@ -171,7 +204,7 @@ const styles = StyleSheet.create({
     marginRight: 10
   },
   cardText: {
-    fontSize: normalize(14),
+    fontSize: normalize(FONT_SIZES.NORMAL),
     color: '#555',
     flex: 1
   },
@@ -180,7 +213,7 @@ const styles = StyleSheet.create({
   },
   checkCompatibilityButton: {
     backgroundColor: '#2196F3',
-    padding: '3%',
+    padding: SCREEN_WIDTH < 350 ? '2%' : '3%', // Smaller padding on small screens
     borderRadius: 5,
     alignItems: 'center',
     marginBottom: '3%'
@@ -188,7 +221,7 @@ const styles = StyleSheet.create({
   checkCompatibilityButtonText: {
     color: '#fff',
     fontWeight: 'bold',
-    fontSize: normalize(14)
+    fontSize: normalize(FONT_SIZES.NORMAL)
   }
 });
 
