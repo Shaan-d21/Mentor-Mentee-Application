@@ -126,14 +126,17 @@ const SignInPage: React.FC<ScreenProps<'SignInPage'>> = ({ navigation }) => {
     }
   }, [userType, currentStatus]);
 
-  return currentStatus === 'loading' ? (
+  return (
+    <KeyboardAvoidingView
+      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+      style={authStyles.container}
+    >
+    {currentStatus === 'loading' ? (
     <View style={authStyles.container}>
       <ActivityIndicator size="large" color="#0000ff" />
     </View>
   ) : (
-    <KeyboardAvoidingView
-      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-      style={authStyles.container}>
+    
       <View style={authStyles.formContainer}>
         <Text style={authStyles.title}>Sign In</Text>
 
@@ -209,9 +212,9 @@ const SignInPage: React.FC<ScreenProps<'SignInPage'>> = ({ navigation }) => {
             <Text style={authStyles.toggleText}>Sign Up</Text>
           </Text>
         </TouchableOpacity>
-      </View>
+      </View>)}
     </KeyboardAvoidingView>
-  );
+  )
 };
 
 export default SignInPage;
