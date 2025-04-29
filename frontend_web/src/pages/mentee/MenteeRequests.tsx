@@ -182,7 +182,7 @@ const MenteeRequests: React.FC = () => {
                             setSelectedMentor(request);
                             setShowCancelModal(true);
                           }}
-                          className="inline-flex items-center px-3 py-1.5 border border-red-400 text-sm font-medium rounded-md text-red-700 bg-red-50 hover:bg-red-100 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 transition-colors duration-200"
+                          className="cursor-pointer inline-flex items-center px-3 py-1.5 border border-red-400 text-sm font-medium rounded-md text-red-700 bg-red-50 hover:bg-red-100 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 transition-colors duration-200"
                         >
                           <svg className="w-4 h-4 mr-2" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                             <path d="M6 18L18 6M6 6l12 12" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
@@ -223,7 +223,7 @@ const MenteeRequests: React.FC = () => {
                         setSelectedMentor(request);
                         setShowCancelModal(true);
                       }}
-                      className="inline-flex items-center px-3 py-1 border border-red-400 text-sm font-medium rounded-md text-red-700 bg-red-50 hover:bg-red-100 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 transition-colors duration-200"
+                      className="cursor-pointer inline-flex items-center px-3 py-1 border border-red-400 text-sm font-medium rounded-md text-red-700 bg-red-50 hover:bg-red-100 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 transition-colors duration-200"
                     >
                       Cancel
                     </button>
@@ -249,13 +249,13 @@ const MenteeRequests: React.FC = () => {
                   setShowCancelModal(false);
                   setSelectedMentor(null);
                 }}
-                className="px-3 py-1.5 text-gray-700 bg-gray-100 rounded-md hover:bg-gray-200 transition-colors text-sm"
+                className="cursor-pointer px-3 py-1.5 text-gray-700 bg-gray-100 rounded-md hover:bg-gray-200 transition-colors text-sm"
               >
                 No, Keep
               </button>
               <button
                 onClick={handleCancelRequest}
-                className="px-3 py-1.5 text-white bg-red-600 rounded-md hover:bg-red-700 transition-colors text-sm"
+                className="cursor-pointer px-3 py-1.5 text-white bg-red-600 rounded-md hover:bg-red-700 transition-colors text-sm"
               >
                 Yes, Cancel
               </button>
@@ -275,7 +275,7 @@ const MenteeRequests: React.FC = () => {
                   setShowCommentModal(false);
                   setSelectedComment(null);
                 }}
-                className="text-gray-400 hover:text-gray-500"
+                className="cursor-pointer text-gray-400 hover:text-gray-500"
               >
                 <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -291,7 +291,7 @@ const MenteeRequests: React.FC = () => {
 
       {/* Details Modal */}
       {showDetailsModal && selectedRequest && (
-        <div className="fixed inset-0 bg-gray-900/30 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+        <div className="fixed inset-0 bg-gray-900/30 backdrop-blur-sm z-50 flex items-center justify-center p-4 overflow-y-auto">
           <div className="bg-white rounded-lg shadow-xl p-6 w-full max-w-md">
             <div className="flex justify-between items-start mb-4">
               <h3 className="text-base font-semibold text-gray-900">Request Details</h3>
@@ -300,7 +300,7 @@ const MenteeRequests: React.FC = () => {
                   setShowDetailsModal(false);
                   setSelectedRequest(null);
                 }}
-                className="text-gray-400 hover:text-gray-500"
+                className="cursor-pointer text-gray-400 hover:text-gray-500"
               >
                 <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -347,7 +347,7 @@ const MenteeRequests: React.FC = () => {
                       setShowDetailsModal(false);
                     }}
                   >
-                    {selectedRequest.comment}
+                    {selectedRequest.comment.slice(0, 100) + "..."}
                   </p>
                 ) : (
                   <p className="text-gray-400">No comment</p>
@@ -360,7 +360,7 @@ const MenteeRequests: React.FC = () => {
                   setShowDetailsModal(false);
                   setSelectedRequest(null);
                 }}
-                className="px-3 py-1.5 text-gray-700 bg-gray-100 rounded-md hover:bg-gray-200 transition-colors text-sm"
+                className="cursor-pointer px-3 py-1.5 text-gray-700 bg-gray-100 rounded-md hover:bg-gray-200 transition-colors text-sm"
               >
                 Close
               </button>

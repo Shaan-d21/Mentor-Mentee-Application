@@ -463,7 +463,7 @@ const MenteeProfileContent: React.FC = () => {
             {!editMode && (
               <button
                 onClick={() => setEditMode(true)}
-                className="px-3 sm:px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 hover:scale-105 focus:outline-none focus:ring-2 focus:ring-blue-500 flex items-center text-sm sm:text-base transition-all duration-200"
+                className="cursor-pointer px-3 sm:px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 hover:scale-105 focus:outline-none focus:ring-2 focus:ring-blue-500 flex items-center text-sm sm:text-base transition-all duration-200"
               >
                 <Edit2 className="h-4 w-4 sm:h-5 sm:w-5 mr-2" />
                 Edit Profile
@@ -634,7 +634,7 @@ const MenteeProfileContent: React.FC = () => {
                             {skill.skill_id ? (
                               <button
                                 onClick={() => skill.skill_id && handleDeleteSkill(skill.skill_id, skill.name)}
-                                className="text-gray-400 hover:text-red-500 hover:scale-110 transition-all duration-200"
+                                className="cursor-pointer text-gray-400 hover:text-red-500 hover:scale-110 transition-all duration-200"
                               >
                                 <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 sm:h-5 sm:w-5" viewBox="0 0 20 20" fill="currentColor">
                                   <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" />
@@ -659,7 +659,7 @@ const MenteeProfileContent: React.FC = () => {
                   <div className="mt-6 sm:mt-8 flex justify-center">
                     <button
                       onClick={() => setShowAddSkillsModal(true)}
-                      className="inline-flex items-center px-3 sm:px-4 py-2 text-sm sm:text-base font-medium text-blue-600 bg-blue-50 rounded-md hover:bg-blue-100 hover:shadow-md hover:scale-105 transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      className="cursor-pointer inline-flex items-center px-3 sm:px-4 py-2 text-sm sm:text-base font-medium text-blue-600 bg-blue-50 rounded-md hover:bg-blue-100 hover:shadow-md hover:scale-105 transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-blue-500"
                     >
                       <Plus className="h-4 w-4 sm:h-5 sm:w-5 mr-2" />
                       Add Skills
@@ -678,14 +678,14 @@ const MenteeProfileContent: React.FC = () => {
             <div className="mt-6 sm:mt-8 flex flex-col sm:flex-row justify-end space-y-3 sm:space-y-0 sm:space-x-3">
               <button
                 onClick={cancelEdit}
-                className="px-3 sm:px-4 py-2 border border-gray-300 rounded-md text-gray-700 bg-white hover:bg-gray-50 hover:scale-105 text-sm sm:text-base focus:outline-none focus:ring-2 focus:ring-gray-500 transition-all duration-200"
+                className="cursor-pointer px-3 sm:px-4 py-2 border border-gray-300 rounded-md text-gray-700 bg-white hover:bg-gray-50 hover:scale-105 text-sm sm:text-base focus:outline-none focus:ring-2 focus:ring-gray-500 transition-all duration-200"
               >
                 Cancel
               </button>
               <button
                 onClick={saveChanges}
                 disabled={saving}
-                className="px-3 sm:px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 hover:scale-105 text-sm sm:text-base focus:outline-none focus:ring-2 focus:ring-blue-500 flex items-center disabled:opacity-50 transition-all duration-200"
+                className="cursor-pointer px-3 sm:px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 hover:scale-105 text-sm sm:text-base focus:outline-none focus:ring-2 focus:ring-blue-500 flex items-center disabled:opacity-50 transition-all duration-200"
               >
                 {saving ? (
                   <>
