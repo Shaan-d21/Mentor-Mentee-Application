@@ -7,6 +7,9 @@ import {
   TouchableOpacity,
   ScrollView,
   Pressable,
+  Dimensions,
+  useWindowDimensions,
+  Platform,
 } from 'react-native';
 import {useDispatch, useSelector} from 'react-redux';
 import {fetchApprovedMentees} from '../../redux/slices/mentorSlice';
@@ -15,12 +18,34 @@ import {AppDispatch, RootState} from '../../redux/store';
 // Navigation types
 import {useIsFocused, useNavigation} from '@react-navigation/native';
 import {NativeStackNavigationProp} from '@react-navigation/native-stack';
-import {RootStackParamList} from '../../navigation/types'; // Adjust the path as needed
+import {RootStackParamList} from '../../navigation/types';
 import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome';
 import { faEnvelope, faUserTag, faCodeBranch, faCommentDots } from '@fortawesome/free-solid-svg-icons';
 
 import Avatar from 'react-native-elements/dist/avatar/Avatar';
 import AppBar from '../../components/appbar_component';
+
+// Define fixed font sizes for different text elements
+const FONT_SIZES = {
+  HEADER: 18,
+  TITLE: 16,
+  NORMAL: 14,
+  SMALL: 12,
+};
+
+// Get responsive font size based on screen width
+const { width: SCREEN_WIDTH } = Dimensions.get('window');
+const scale = SCREEN_WIDTH / 375; // 375 is a standard width to scale from
+
+const normalize = (size: number): number => {
+  // Small screen adjustment - reduce font size even more on very small screens
+  if (SCREEN_WIDTH < 320) {
+    return Math.max(size * 0.8, 10); // Min font size of 10
+  }
+  
+  const newSize = size * scale;
+  return Math.round(Math.min(newSize, size * 1.2)); // Cap the size increase
+};
 
 type MentorDashboardNavigationProp = NativeStackNavigationProp<
   RootStackParamList,
@@ -30,42 +55,27 @@ type MentorDashboardNavigationProp = NativeStackNavigationProp<
 const MentorDashboardScreen = () => {
   const dispatch = useDispatch<AppDispatch>();
   const navigation = useNavigation<MentorDashboardNavigationProp>();
-  const isFocused = useIsFocused();          // <-- track focus
+  const isFocused = useIsFocused();
+  const { width } = useWindowDimensions();
 
-  // Note: approved mentees list is stored under 'approved' in your slice.
-  // const approvedMentees = useSelector(
-  //   (state: RootState) => state.mentor.approved,
-  // );
-  const {approved, pending,error,status} = useSelector(
+  const {approved, pending, error, status} = useSelector(
     (state: RootState) => state.mentorDashboard,
   );
   const userName = useSelector((state: RootState) => state.login.name);
 
   useEffect(() => {
-    if (isFocused) {                        // <-- refetch only when focused
+    if (isFocused) {
       dispatch(fetchApprovedMentees());
     }
   }, [isFocused, ]);
+  
   useEffect(() => {
-  if (isFocused) {                        // <-- refetch only when focused
-    dispatch(fetchApprovedMentees());
-  }
-}, [ ]);
-  // const renderItem = ({item}: {item: any}) => (
-  //   <View style={styles.row}>
-  //     <Text style={styles.cell}>{item.name}</Text>
-  //     <Text style={styles.cell}>{item.email}</Text>
-  //     <Text style={styles.cell}>{item.role}</Text>
-  //     <Text style={styles.cell}>{item.domain}</Text>
-  //     <Text style={styles.cell}>{item.comment || '-'}</Text>
-  //   </View>
-  // );
+    if (isFocused) {
+      dispatch(fetchApprovedMentees());
+    }
+  }, [ ]);
 
-
-
-  // ---------------------------------
-
-  const pressMoveToTopicList= (item: any)=>{
+  const pressMoveToTopicList= (item: any) => {
     console.log("Button pressed");
     navigation.navigate("MentorProgress", {roadmap_id: item.roadmap_id, mentee_id: item.id});
     console.log(item)
@@ -75,122 +85,89 @@ const MentorDashboardScreen = () => {
     console.log(item);
 
     return (
-      <Pressable
-        onPress={()=>pressMoveToTopicList(item)}
-      >
-  
+      <Pressable onPress={() => pressMoveToTopicList(item)}>
         <View style={styles.card}>
           <View style={styles.cardHeader}>
-            <Text style={styles.cardTitle}>{item.name}</Text>
+            <Text style={styles.cardTitle} numberOfLines={1} ellipsizeMode="tail">
+              {item.name}
+            </Text>
           </View>
           <View style={styles.cardBody}>
             <View style={styles.cardItem}>
-              <FontAwesomeIcon icon={faEnvelope} size={16} color="#777" style={styles.icon} />
-              <Text style={styles.cardText}>{item.email}</Text>
+              <FontAwesomeIcon 
+                icon={faEnvelope} 
+                size={normalize(FONT_SIZES.SMALL)} 
+                color="#777" 
+                style={styles.icon} 
+              />
+              <Text style={styles.cardText} numberOfLines={1} ellipsizeMode="tail">
+                {item.email}
+              </Text>
             </View>
             <View style={styles.cardItem}>
-              <FontAwesomeIcon icon={faUserTag} size={16} color="#777" style={styles.icon} />
-              <Text style={styles.cardText}>{item.designation??"Intern"}</Text>
+              <FontAwesomeIcon 
+                icon={faUserTag} 
+                size={normalize(FONT_SIZES.SMALL)} 
+                color="#777" 
+                style={styles.icon} 
+              />
+              <Text style={styles.cardText} numberOfLines={1} ellipsizeMode="tail">
+                {item.designation ?? "Intern"}
+              </Text>
             </View>
             <View style={styles.cardItem}>
-              <FontAwesomeIcon icon={faCodeBranch} size={16} color="#777" style={styles.icon} />
-              <Text style={styles.cardText}>{item.domain}</Text>
+              <FontAwesomeIcon 
+                icon={faCodeBranch} 
+                size={normalize(FONT_SIZES.SMALL)} 
+                color="#777" 
+                style={styles.icon} 
+              />
+              <Text style={styles.cardText} numberOfLines={1} ellipsizeMode="tail">
+                {item.domain}
+              </Text>
             </View>
-            {/* <View style={styles.cardItem}>
-              <FontAwesomeIcon icon={faCommentDots} size={16} color="#777" style={styles.icon} />
-              <Text style={styles.cardText}>{item.comment || 'No comment'}</Text>
-            </View> */}
           </View>
         </View>
       </Pressable>
-            );
-
-          };
-  // ----------------------------------------
-
-// const renderMenteeCard = ({ item }: { item: any }) => (
-//   <View style={styles.card}>
-//     <View style={styles.cardHeader}>
-//       <Text style={styles.cardTitle}>{item.name}</Text>
-//     </View>
-//     <View style={styles.cardBody}>
-//       <View style={styles.cardItem}>
-//         <Text style={styles.cardTextTitle}>Email: </Text>
-//         <Text style={styles.cardText}>{item.email}</Text>
-//       </View>
-//       <View style={styles.cardItem}>
-//         <Text style={styles.cardTextTitle}>Designation: </Text>
-//         <Text style={styles.cardText}>{item.designation ?? 'Intern'}</Text>
-//       </View>
-//       <View style={styles.cardItem}>
-//         <Text style={styles.cardTextTitle}>Domain: </Text>
-//         <Text style={styles.cardText}>{item.domain}</Text>
-//       </View>
-//     </View>
-//   </View>
-// );
+    );
+  };
 
   return (
-  
-  <View style={styles.container}>
-    {/* {status === 'loading' && <Text>Loading...</Text>
-    } */}
+    <View style={styles.container}>
       <AppBar
         onProfilePress={() => navigation.navigate('MentorProfileScreen')}
         openDrawer={() => {}}
       />
 
       <View style={styles.header}>
-        <Text style={styles.headerText}>Hello, {userName} 👋</Text>
-        {/* <Avatar rounded icon={{name: 'user', type: 'font-awesome'}} /> */}
+        <Text style={styles.headerText} numberOfLines={1} ellipsizeMode="tail">
+          Hello, {userName} 👋
+        </Text>
       </View>
+      
       <View style={styles.rowHeaderContainer}>
-        <Text style={styles.title}>Approved Mentees</Text>
+        <Text style={styles.title} numberOfLines={1} ellipsizeMode="tail">
+          Approved Mentees
+        </Text>
         <TouchableOpacity
-          style={[styles.checkBtn, {marginTop: 30}]}
+          style={styles.checkBtn}
           onPress={() => navigation.navigate('CheckRequestScreen')}>
           <Text style={styles.checkBtnText}>Check Request</Text>
         </TouchableOpacity>
       </View>
 
-      {/* <ScrollView horizontal>
-        <View style={styles.table}>
-          <View style={[styles.row, styles.headerRow]}>
-            <Text style={[styles.cell, styles.headerCell]}>Name</Text>
-            <Text style={[styles.cell, styles.headerCell]}>Email</Text>
-            <Text style={[styles.cell, styles.headerCell]}>Role</Text>
-            <Text style={[styles.cell, styles.headerCell]}>Domain</Text>
-            <Text style={[styles.cell, styles.headerCell]}>Comment</Text>
-          </View>
-          {approved.length === 0 ? (
-            <Text style={styles.noMenteesText}>
-              No approved mentees available.
-            </Text>
-          ) : (
-            <FlatList
-              data={approved}
-              renderItem={renderItem}
-              keyExtractor={item => item.id.toString()}
-              ItemSeparatorComponent={() => <View style={styles.separator} />}
-            />
-          )}
-        </View>
-      </ScrollView> */}
-{approved.length === 0? (
-  
-  <Text style={styles.noMenteesText}>
-    No approved mentees available.
-  </Text>
-
-):(
-<FlatList
-data={approved}
-keyExtractor={item => item.id.toString()}
-renderItem={renderMenteeCard}
-/>
-)}
-
-
+      {approved.length === 0 ? (
+        <Text style={styles.noMenteesText}>
+          No approved mentees available.
+        </Text>
+      ) : (
+        <FlatList
+          data={approved}
+          keyExtractor={item => item.id.toString()}
+          renderItem={renderMenteeCard}
+          contentContainerStyle={styles.flatListContent}
+        />
+      )}
     </View>
   );
 };
@@ -198,19 +175,15 @@ renderItem={renderMenteeCard}
 export default MentorDashboardScreen;
 
 const styles = StyleSheet.create({
-  cardTextTitle:{
-    fontSize: 16,
-    fontWeight: 'bold',
-    color: '#333',
-  },
   container: {
     flex: 1,
-    padding: 16,
+    padding: '4%',
+    backgroundColor: '#F5F5F5',
   },
   card: {
     backgroundColor: '#E0F7FA',
-    padding: 16,
-    marginBottom: 12,
+    padding: '4%',
+    marginBottom: '3%',
     borderRadius: 10,
     elevation: 4,
     shadowColor: '#000',
@@ -218,116 +191,85 @@ const styles = StyleSheet.create({
     shadowRadius: 4,
     shadowOffset: { width: 0, height: 2 },
   },
-  
   cardHeader: {
-    marginBottom: 10,
+    marginBottom: '2.5%',
+    borderBottomWidth: 1,
+    borderColor: '#B2EBF2',
+    paddingBottom: '2%',
   },
-  
   cardTitle: {
-    fontSize: 18,
+    fontSize: normalize(FONT_SIZES.TITLE),
     fontWeight: 'bold',
     color: '#333',
   },
-  
   cardBody: {
-    paddingLeft: 6,
+    paddingLeft: '1.5%',
   },
-  
   cardItem: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 8,
+    marginBottom: '2%',
+    flexWrap: 'wrap',
   },
-  
   icon: {
     marginRight: 10,
   },
-  
   cardText: {
-    fontSize: 14,
+    fontSize: normalize(FONT_SIZES.NORMAL),
     color: '#555',
+    flex: 1,
   },
-  
-  
-  separator: {
-    height: 1,
-    backgroundColor: 'white', // Adjust color as needed
+  cardTextTitle: {
+    fontSize: normalize(FONT_SIZES.NORMAL),
+    fontWeight: 'bold',
+    color: '#333',
   },
-  rowHeaderContainer: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems:'flex-end',
-    marginHorizontal: 3,
-    marginTop: 3,
-    padding: 10,
-    marginRight: 10,
+  flatListContent: {
+    paddingBottom: '5%',
   },
   noMenteesText: {
     textAlign: 'center',
-    padding: 20,
-    fontSize: 16,
+    padding: '5%',
+    fontSize: normalize(FONT_SIZES.NORMAL),
     color: '#777',
   },
-
   header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 15,
+    marginBottom: '4%',
+    flexWrap: 'wrap',
   },
   headerText: {
-    fontSize: 22,
+    fontSize: normalize(FONT_SIZES.HEADER),
     fontWeight: 'bold',
     color: '#333',
-    marginBottom: 10,
-  },
-  headerCell: {
     flex: 1,
-    textAlign: 'center',
-    paddingVertical: 10,
-    borderRightWidth: 1,
-    borderColor: 'white',
-    color: 'white', // Adjust color as needed
   },
-  lastHeaderCell: {
-    flex: 1,
-    textAlign: 'center',
-    paddingVertical: 10,
+  rowHeaderContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: '3%',
+    paddingHorizontal: '1%',
+    flexWrap: 'wrap',
   },
-
   title: {
-    fontSize: 20,
+    fontSize: normalize(FONT_SIZES.TITLE),
     fontWeight: 'bold',
-    marginVertical: 10,
+    color: '#333',
+    flex: 1,
+    marginRight: 10,
   },
   checkBtn: {
     backgroundColor: '#1a73e8',
-    padding: 10,
+    padding: '2%',
     borderRadius: 6,
-    alignSelf: 'flex-end',
+    marginTop: '2%',
   },
   checkBtnText: {
     color: 'white',
     fontWeight: 'bold',
-  },
-  table: {
-    minWidth: 700, // Adjust this width to ensure horizontal scrolling as needed
-    borderWidth: 1,
-    borderColor: '#ccc',
-    borderRadius: 6,
-  },
-  headerRow: {
-    backgroundColor: 'black',
-  },
-  row: {
-    flexDirection: 'row',
-    borderBottomWidth: 1,
-    borderColor: '#ddd',
-    paddingVertical: 10,
-    alignItems: 'center',
-  },
-  cell: {
-    width: 140, // Fixed width for each cell to maintain column structure
-    textAlign: 'center',
+    fontSize: normalize(FONT_SIZES.NORMAL),
   },
 });
