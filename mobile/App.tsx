@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react';
-import { SafeAreaView, StatusBar, View } from 'react-native';
+import { Appearance, SafeAreaView, StatusBar, View } from 'react-native';
 import { NavigationContainer } from '@react-navigation/native';
 import { Provider, useSelector } from 'react-redux';
 import {store} from './src/redux/store';
@@ -19,7 +19,14 @@ const AppContent: React.FC = () => {
 useEffect(() => {
   console.log(`APP from Mentee Profile Status: ${Menteeprofile_status}`);
 }
+
 , [Menteeprofile_status]);
+
+useEffect(() => {
+  Appearance.setColorScheme('light');
+}, []);
+
+
   return (
     <SafeAreaView style={{ flex: 1 }}>
       <StatusBar barStyle="dark-content" />
