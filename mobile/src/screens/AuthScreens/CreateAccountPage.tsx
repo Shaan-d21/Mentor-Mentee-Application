@@ -16,7 +16,9 @@ import { AppDispatch, RootState } from '../../redux/store';
 import { changeStatusToInitial, registerUser } from '../../redux/slices/auth/sliceRegister';
 import { ScreenProps } from '../../navigation/types';
 import { authStyles } from './authStyle';
+import { useColorScheme } from 'react-native';
 
+const colorScheme = useColorScheme();
 const CreateAccountPage: React.FC<ScreenProps<"CreateAccountPage">> = ({ navigation }) => {
   const dispatch = useDispatch<AppDispatch>();
   const [userTypeLocal, setUserTypeLocal] = React.useState<string | null>(null);
@@ -106,12 +108,16 @@ const CreateAccountPage: React.FC<ScreenProps<"CreateAccountPage">> = ({ navigat
         <TextInput
           style={authStyles.input}
           placeholder="Name"
+          placeholderTextColor={colorScheme === 'dark' ? '#CCCCCC' : '#666666'}
+
           value={nameLocal}
           onChangeText={setNameLocal}
         />
         <TextInput
           style={authStyles.input}
           placeholder="Email"
+          placeholderTextColor={colorScheme === 'dark' ? '#CCCCCC' : '#666666'}
+
           keyboardType="email-address"
           value={emailLocal}
           onChangeText={setEmailLocal}
@@ -127,6 +133,8 @@ const CreateAccountPage: React.FC<ScreenProps<"CreateAccountPage">> = ({ navigat
                     <TextInput
                       style={authStyles.passwordInput}
                       placeholder="Password"
+                      placeholderTextColor={colorScheme === 'dark' ? '#CCCCCC' : '#666666'}
+
                       secureTextEntry={!isPasswordVisible} // Toggle secureTextEntry
                       value={passwordLocal}
                       onChangeText={setPasswordLocal}
