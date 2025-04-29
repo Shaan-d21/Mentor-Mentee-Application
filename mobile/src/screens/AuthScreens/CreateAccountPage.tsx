@@ -18,8 +18,8 @@ import { ScreenProps } from '../../navigation/types';
 import { authStyles } from './authStyle';
 import { useColorScheme } from 'react-native';
 
-const colorScheme = useColorScheme();
 const CreateAccountPage: React.FC<ScreenProps<"CreateAccountPage">> = ({ navigation }) => {
+  const colorScheme = useColorScheme();
   const dispatch = useDispatch<AppDispatch>();
   const [userTypeLocal, setUserTypeLocal] = React.useState<string | null>(null);
   const [emailLocal, setEmailLocal] = React.useState('');
