@@ -21,8 +21,10 @@ import { useState } from 'react';
 // ✅ Added
 import AsyncStorage from '@react-native-async-storage/async-storage';
 // import CheckBox from '@react-native-community/checkbox';
+import { useColorScheme } from 'react-native';
 
 const SignInPage: React.FC<ScreenProps<'SignInPage'>> = ({ navigation }) => {
+  const colorScheme = useColorScheme();
   const dispatch = useDispatch<AppDispatch>();
   const [emailLocal, setEmailLocal] = React.useState('');
   const [passwordLocal, setPasswordLocal] = React.useState('');
@@ -138,6 +140,8 @@ const SignInPage: React.FC<ScreenProps<'SignInPage'>> = ({ navigation }) => {
         <TextInput
           style={authStyles.input}
           placeholder="Email"
+          placeholderTextColor={colorScheme === 'dark' ? '#CCCCCC' : '#666666'}
+
           keyboardType="email-address"
           value={emailLocal}
           onChangeText={setEmailLocal}
@@ -148,6 +152,8 @@ const SignInPage: React.FC<ScreenProps<'SignInPage'>> = ({ navigation }) => {
           <TextInput
             style={authStyles.passwordInput}
             placeholder="Password"
+            placeholderTextColor={colorScheme === 'dark' ? '#CCCCCC' : '#666666'}
+
             secureTextEntry={!isPasswordVisible}
             value={passwordLocal}
             onChangeText={setPasswordLocal}
