@@ -643,7 +643,7 @@ const MenteeProfileContent: React.FC = () => {
                             ) : (
                               <button
                                 onClick={() => handleRemoveSkill(skill.name)}
-                                className="text-gray-400 hover:text-red-500 hover:scale-110 transition-all duration-200"
+                                className="cursor-pointer text-gray-400 hover:text-red-500 hover:scale-110 transition-all duration-200"
                               >
                                 <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 sm:h-5 sm:w-5" viewBox="0 0 20 20" fill="currentColor">
                                   <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" />
@@ -715,7 +715,7 @@ const MenteeProfileContent: React.FC = () => {
                           <div className="flex items-center">
                             <input
                               type="checkbox"
-                              className="mr-2 h-4 w-4 sm:h-5 sm:w-5"
+                              className="cursor-pointer mr-2 h-4 w-4 sm:h-5 sm:w-5"
                               checked={selectedNewSkills.some(s => s.name === skill)}
                               onChange={(e) => {
                                 if (e.target.checked) {
@@ -753,14 +753,14 @@ const MenteeProfileContent: React.FC = () => {
                         setShowAddSkillsModal(false);
                         setSelectedNewSkills([]);
                       }}
-                      className="px-3 sm:px-4 py-2 text-sm sm:text-base font-medium text-gray-700 bg-gray-100 rounded-md hover:bg-gray-200 hover:scale-105 transition-all duration-200"
+                      className="cursor-pointer px-3 sm:px-4 py-2 text-sm sm:text-base font-medium text-gray-700 bg-gray-100 rounded-md hover:bg-gray-200 hover:scale-105 transition-all duration-200"
                     >
                       Cancel
                     </button>
                     <button
                       onClick={handleAddNewSkills}
                       disabled={selectedNewSkills.length === 0}
-                      className="px-3 sm:px-4 py-2 text-sm sm:text-base font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700 hover:scale-105 disabled:opacity-50 transition-all duration-200"
+                      className="cursor-pointer px-3 sm:px-4 py-2 text-sm sm:text-base font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700 hover:scale-105 disabled:opacity-50 transition-all duration-200"
                     >
                       Add Selected Skills
                     </button>

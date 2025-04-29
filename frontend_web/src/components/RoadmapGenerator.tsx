@@ -601,7 +601,7 @@ const RoadmapGenerator: React.FC = () => {
                             <select
                                 value={selectedMentee}
                                 onChange={handleMenteeSelect}
-                                className="block w-full rounded-md border-indigo-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 p-2 text-sm sm:text-base bg-white"
+                                className="cursor-pointer block w-full rounded-md border-indigo-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 p-2 text-sm sm:text-base bg-white"
                             >
                                 <option value="">Select a mentee</option>
                                 {mentees.map((mentee) => (
