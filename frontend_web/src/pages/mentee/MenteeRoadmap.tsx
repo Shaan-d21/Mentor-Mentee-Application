@@ -449,7 +449,7 @@ const MenteeRoadmap: React.FC = () => {
             {mentors.map((mentor) => (
               <div
                 key={mentor.mentor_id}
-                className={`bg-white rounded-xl shadow-sm border border-gray-100 p-3 sm:p-4 md:p-6 transition-shadow duration-300 hover:shadow-lg hover:border-blue-200 cursor-pointer ${
+                className={`bg-white rounded-xl shadow-sm border border-gray-100 p-3 sm:p-4 md:p-6 transition-shadow duration-300 hover:shadow-lg hover:border-blue-200 ${
                   mentor.has_roadmap ? 'hover:shadow-lg' : 'opacity-75'
                 }`}
                 onClick={() => window.innerWidth <= 768 ? openMentorModal(mentor) : null}

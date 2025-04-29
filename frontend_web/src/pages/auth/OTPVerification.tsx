@@ -166,7 +166,7 @@ const OTPVerification: React.FC<OTPVerificationProps> = ({ email }) => {
 
           <button
             type="submit"
-            className={`w-full py-3 bg-blue-600 text-white rounded-lg font-semibold hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-all duration-200 ${
+            className={`cursor-pointer w-full py-3 bg-blue-600 text-white rounded-lg font-semibold hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-all duration-200 ${
               isSubmitting ? "opacity-60 cursor-not-allowed" : ""
             }`}
             disabled={isSubmitting}
@@ -179,7 +179,7 @@ const OTPVerification: React.FC<OTPVerificationProps> = ({ email }) => {
           <p className="mt-4">
             <button
               type="button"
-              className={`text-blue-600 font-semibold hover:underline ${
+              className={`cursor-pointer text-blue-600 font-semibold hover:underline ${
                 isResending || isSubmitting ? "opacity-50 cursor-not-allowed" : ""
               }`}
               onClick={() => resend_otp()}

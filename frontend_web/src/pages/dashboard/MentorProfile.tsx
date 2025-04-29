@@ -8,6 +8,7 @@ import { validateName, validateContact, validateDesignation, validateExperience 
 interface Skill {
   name: string;
   proficiency: number;
+  id?: number;
 }
 
 interface MentorProfile {
@@ -71,11 +72,11 @@ const MentorProfile: React.FC = () => {
   ];
 
   const fetchProfile = async () => {
+    if (profile) return;
     try {
       setLoading(true);
       const accessToken = localStorage.getItem('accessToken');
       if (!accessToken) {
-        console.error('No access token found');
         setError('No access token found');
         return;
       }
@@ -99,7 +100,8 @@ const MentorProfile: React.FC = () => {
           domain: response.data.domain || 'Not specified',
           skills: response.data["Skill set"]?.map((skill: any) => ({
             name: skill.name || '',
-            proficiency: skill.proficiency || 2
+            proficiency: skill.proficiency || 2,
+            id: skill.skill_id
           })) || [],
           profile_pic_url: response.data.profile_pic_url
         };
@@ -107,7 +109,6 @@ const MentorProfile: React.FC = () => {
         setTempProfile(transformedData);
       }
     } catch (error: any) {
-      console.error('Error fetching profile:', error);
       if (error.response?.status === 401) {
         toast.error('Session expired. Please log in again.');
         localStorage.removeItem('accessToken');
@@ -125,7 +126,6 @@ const MentorProfile: React.FC = () => {
     fetchProfile();
   }, []);
 
-  // Validation functions
   const validateNameField = (name: string): string | undefined => {
     const result = validateName(name);
     return result.isValid ? undefined : result.error;
@@ -180,7 +180,6 @@ const MentorProfile: React.FC = () => {
     return !nameError && !contactError && !designationError && !domainError && !skillsError && !experienceError;
   };
 
-  // Handle field changes
   const handleChange = (field: keyof MentorProfile, value: string | number) => {
     if (!tempProfile) return;
     
@@ -189,7 +188,6 @@ const MentorProfile: React.FC = () => {
       [field]: value
     }));
 
-    // Validate the field immediately
     if (field === 'name') {
       const nameError = validateNameField(value as string);
       setValidationErrors(prev => ({
@@ -217,7 +215,6 @@ const MentorProfile: React.FC = () => {
     }
   };
 
-  // Close dropdown when clicking outside
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
@@ -229,6 +226,52 @@ const MentorProfile: React.FC = () => {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
+  const handleDeleteSkill = async (skillId: number, skillName: string) => {
+    if (!skillId) {
+      toast.error('Cannot delete skill: Invalid skill ID');
+      return;
+    }
+
+    try {
+      const token = localStorage.getItem('accessToken');
+      if (!token) {
+        toast.error('Authentication token missing. Please login again.');
+        navigate('/auth/login');
+        return;
+      }
+
+      await axios.delete(
+        `${import.meta.env.VITE_API_URL}/users/mentor/skill_delete`,
+        {
+          headers: {
+            'Content-Type': 'application/json',
+            'Token': token
+          },
+          data: {
+            skill_id: skillId
+          }
+        }
+      );
+
+      if (tempProfile) {
+        const updatedSkills = tempProfile.skills.filter(skill => skill.id !== skillId);
+        setTempProfile({
+          ...tempProfile,
+          skills: updatedSkills
+        });
+      }
+
+      toast.success(`Skill "${skillName}" deleted successfully`);
+    } catch (error: any) {
+      if (error.response?.status === 401) {
+        toast.error('Session expired. Please log in again.');
+        navigate('/auth/login');
+      } else {
+        toast.error(error.response?.data?.detail || 'Failed to delete skill. Please try again.');
+      }
+    }
+  };
+
   const saveChanges = async () => {
     if (!tempProfile || !validateProfile()) return;
 
@@ -236,7 +279,6 @@ const MentorProfile: React.FC = () => {
       setSaving(true);
       const accessToken = localStorage.getItem('accessToken');
       if (!accessToken) {
-        console.error('No access token found');
         setError('No access token found');
         return;
       }
@@ -246,8 +288,6 @@ const MentorProfile: React.FC = () => {
       tempProfile.name = tempProfile.name.trim().replace(/\s+/g, ' ');
       tempProfile.designation = tempProfile.designation.trim().replace(/\s+/g, ' ');
 
-
-      // Update profile
       const profileResponse = await axios.put(
         `${import.meta.env.VITE_API_URL}/users/mentor/profile_creation`,
         {
@@ -266,7 +306,6 @@ const MentorProfile: React.FC = () => {
       );
 
       if (profileResponse.status === 200) {
-        // Update skills
         const skillsToKeep = tempProfile.skills.filter(skill => skill.name);
         const skillsResponse = await axios.post(
           `${import.meta.env.VITE_API_URL}/users/mentor/skills`,
@@ -282,7 +321,6 @@ const MentorProfile: React.FC = () => {
         );
         
         if (skillsResponse.status === 200) {
-          // Fetch updated profile
           const updatedProfileResponse = await axios.get(
             `${import.meta.env.VITE_API_URL}/users/mentor/profile`,
             {
@@ -301,7 +339,8 @@ const MentorProfile: React.FC = () => {
               domain: updatedProfileResponse.data.domain || 'Not specified',
               skills: updatedProfileResponse.data["Skill set"]?.map((skill: any) => ({
                 name: skill.name || '',
-                proficiency: skill.proficiency || 2
+                proficiency: skill.proficiency || 2,
+                id: skill.skill_id
               })) || [],
               profile_pic_url: updatedProfileResponse.data.profile_pic_url
             };
@@ -314,7 +353,6 @@ const MentorProfile: React.FC = () => {
         }
       }
     } catch (error: any) {
-      console.error('Error updating profile:', error);
       if (error.response?.status === 401) {
         toast.error('Session expired. Please log in again.');
         localStorage.removeItem('accessToken');
@@ -409,7 +447,7 @@ const MentorProfile: React.FC = () => {
           {!editMode && (
             <button
               onClick={() => setEditMode(true)}
-              className="px-3 py-1.5 sm:px-4 sm:py-2 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-md hover:bg-blue-700 hover:shadow-md hover:scale-105 focus:outline-none focus:ring-2 focus:ring-blue-500 flex items-center transition-all duration-200"
+              className="cursor-pointer px-3 py-1.5 sm:px-4 sm:py-2 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-md hover:bg-blue-700 hover:shadow-md hover:scale-105 focus:outline-none focus:ring-2 focus:ring-blue-500 flex items-center transition-all duration-200"
             >
               <Edit2 size={16} className="mr-2" /> Edit Profile
             </button>
@@ -417,10 +455,8 @@ const MentorProfile: React.FC = () => {
         </div>
 
         <div className="space-y-6 sm:space-y-8">
-          {/* View Mode */}
           {!editMode && (
             <>
-              {/* Profile Header */}
               <div className="flex flex-col sm:flex-row items-center sm:items-start space-y-4 sm:space-y-0 sm:space-x-4 mb-6 sm:mb-8 bg-white p-4 sm:p-6 rounded-lg shadow-md border border-blue-200 hover:scale-[1.01] transition-all duration-300">
                 {profile?.profile_pic_url ? (
                   <img
@@ -439,9 +475,7 @@ const MentorProfile: React.FC = () => {
                 </div>
               </div>
 
-              {/* Profile Details */}
               <div className="space-y-6">
-                {/* Contact Information */}
                 <div className="bg-white p-4 sm:p-6 rounded-lg shadow-sm border border-gray-100 hover:shadow-md transition-all duration-300">
                   <h3 className="text-lg sm:text-xl font-semibold text-gray-800 mb-3 sm:mb-4">Contact Information</h3>
                   <div className="space-y-2 sm:space-y-3">
@@ -464,7 +498,6 @@ const MentorProfile: React.FC = () => {
                   </div>
                 </div>
 
-                {/* Skills */}
                 <div className="bg-white p-4 sm:p-6 rounded-lg shadow-sm border border-gray-100 hover:shadow-md transition-all duration-300">
                   <h3 className="text-lg sm:text-xl font-semibold text-gray-800 mb-3 sm:mb-4">Skills</h3>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
@@ -491,10 +524,8 @@ const MentorProfile: React.FC = () => {
             </>
           )}
 
-          {/* Edit Mode Form */}
           {editMode && (
             <div className="space-y-6 sm:space-y-8">
-              {/* Basic Information */}
               <div className="bg-white p-4 sm:p-6 rounded-lg shadow-sm border border-gray-100 hover:shadow-md transition-all duration-300">
                 <h3 className="text-lg sm:text-xl font-semibold text-gray-800 mb-3 sm:mb-4">Basic Information</h3>
                 <div className="space-y-4 sm:space-y-5">
@@ -572,11 +603,10 @@ const MentorProfile: React.FC = () => {
                 </div>
               </div>
 
-              {/* Domain */}
               <div className="bg-white p-4 sm:p-6 rounded-lg shadow-sm border border-gray-100 hover:shadow-md transition-all duration-300">
                 <h3 className="text-lg sm:text-xl font-semibold text-gray-800 mb-3 sm:mb-4">Domain</h3>
                 <select
-                  className={`w-full py-2 px-3 sm:py-3 sm:px-4 border rounded-lg text-sm sm:text-base focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all duration-200 ${
+                  className={`cursor-pointer w-full py-2 px-3 sm:py-3 sm:px-4 border rounded-lg text-sm sm:text-base focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all duration-200 ${
                     validationErrors.domain ? 'border-red-500' : 'border-gray-300 hover:border-blue-400'
                   }`}
                   value={tempProfile?.domain || ''}
@@ -594,11 +624,9 @@ const MentorProfile: React.FC = () => {
                 )}
               </div>
 
-              {/* Skills */}
               <div className="bg-white p-4 sm:p-6 rounded-lg shadow-sm border border-gray-100 hover:shadow-md transition-all duration-300">
                 <h3 className="text-lg sm:text-xl font-semibold text-gray-800 mb-3 sm:mb-4">Skills</h3>
                 <div className="space-y-4 sm:space-y-6">
-                  {/* Selected Skills Display */}
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
                     {tempProfile?.skills.map((skill, index) => (
                       <div 
@@ -619,10 +647,19 @@ const MentorProfile: React.FC = () => {
                                 </option>
                               ))}
                             </select>
-                            {!profile?.skills.some(s => s.name === skill.name) && (
+                            {skill.id ? (
+                              <button
+                                onClick={() => handleDeleteSkill(skill.id!, skill.name)}
+                                className="cursor-pointer text-gray-400 hover:text-red-500 hover:scale-110 transition-all duration-200 z-10 pointer-events-auto"
+                              >
+                                <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 sm:h-5 sm:w-5" viewBox="0 0 20 20" fill="currentColor">
+                                  <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" />
+                                </svg>
+                              </button>
+                            ) : (
                               <button
                                 onClick={() => handleRemoveSkill(skill.name)}
-                                className="text-gray-400 hover:text-red-500 hover:scale-110 transition-all duration-200"
+                                className="cursor-pointer text-gray-400 hover:text-red-500 hover:scale-110 transition-all duration-200 z-10 pointer-events-auto"
                               >
                                 <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 sm:h-5 sm:w-5" viewBox="0 0 20 20" fill="currentColor">
                                   <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" />
@@ -635,11 +672,10 @@ const MentorProfile: React.FC = () => {
                     ))}
                   </div>
 
-                  {/* Add Skills Button */}
                   <div className="flex justify-center">
                     <button
                       onClick={() => setShowAddSkillsModal(true)}
-                      className="inline-flex items-center px-3 py-1.5 sm:px-4 sm:py-2 text-sm sm:text-base font-medium text-blue-600 bg-blue-50 rounded-lg hover:bg-blue-100 hover:shadow-md hover:scale-105 transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      className="cursor-pointer inline-flex items-center px-3 py-1.5 sm:px-4 sm:py-2 text-sm sm:text-base font-medium text-blue-600 bg-blue-50 rounded-lg hover:bg-blue-100 hover:shadow-md hover:scale-105 transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-blue-500"
                     >
                       <Plus className="h-4 w-4 sm:h-5 sm:w-5 mr-2" />
                       <span>Add Skills</span>
@@ -652,18 +688,17 @@ const MentorProfile: React.FC = () => {
                 </div>
               </div>
 
-              {/* Action Buttons */}
               <div className="flex flex-col sm:flex-row justify-end space-y-2 sm:space-y-0 sm:space-x-3">
                 <button
                   onClick={cancelEdit}
-                  className="px-3 py-1.5 sm:px-4 sm:py-2 border border-gray-300 rounded-md text-gray-700 bg-white hover:bg-gray-50 hover:shadow-md hover:scale-105 focus:outline-none focus:ring-2 focus:ring-gray-500 transition-all duration-200"
+                  className="cursor-pointer px-3 py-1.5 sm:px-4 sm:py-2 border border-gray-300 rounded-md text-gray-700 bg-white hover:bg-gray-50 hover:shadow-md hover:scale-105 focus:outline-none focus:ring-2 focus:ring-gray-500 transition-all duration-200"
                 >
                   Cancel
                 </button>
                 <button
                   onClick={saveChanges}
                   disabled={saving}
-                  className="px-3 py-1.5 sm:px-4 sm:py-2 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-md hover:bg-blue-700 hover:shadow-md hover:scale-105 focus:outline-none focus:ring-2 focus:ring-blue-500 flex items-center disabled:opacity-50 transition-all duration-200"
+                  className="cursor-pointer px-3 py-1.5 sm:px-4 sm:py-2 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-md hover:bg-blue-700 hover:shadow-md hover:scale-105 focus:outline-none focus:ring-2 focus:ring-blue-500 flex items-center disabled:opacity-50 transition-all duration-200"
                 >
                   {saving ? (
                     <>
@@ -682,7 +717,6 @@ const MentorProfile: React.FC = () => {
           )}
         </div>
 
-        {/* Add Skills Modal */}
         {showAddSkillsModal && (
           <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 transition-opacity duration-300">
             <div ref={dropdownRef} className="bg-white rounded-lg p-4 sm:p-6 max-w-[90vw] w-full max-h-[80vh] overflow-y-auto shadow-xl">
@@ -701,7 +735,7 @@ const MentorProfile: React.FC = () => {
                         <div className="flex items-center">
                           <input
                             type="checkbox"
-                            className="mr-2 h-4 w-4 sm:h-5 sm:w-5"
+                            className="cursor-pointer mr-2 h-4 w-4 sm:h-5 sm:w-5"
                             checked={selectedNewSkills.some(s => s.name === skill)}
                             onChange={(e) => {
                               if (e.target.checked) {
@@ -739,14 +773,14 @@ const MentorProfile: React.FC = () => {
                       setShowAddSkillsModal(false);
                       setSelectedNewSkills([]);
                     }}
-                    className="px-3 py-1.5 sm:px-4 sm:py-2 text-sm sm:text-base font-medium text-gray-700 bg-gray-100 rounded-md hover:bg-gray-200 hover:shadow-md hover:scale-105 transition-all duration-200"
+                    className="cursor-pointer px-3 py-1.5 sm:px-4 sm:py-2 text-sm sm:text-base font-medium text-gray-700 bg-gray-100 rounded-md hover:bg-gray-200 hover:shadow-md hover:scale-105 transition-all duration-200"
                   >
                     Cancel
                   </button>
                   <button
                     onClick={handleAddNewSkills}
                     disabled={selectedNewSkills.length === 0}
-                    className="px-3 py-1.5 sm:px-4 sm:py-2 text-sm sm:text-base font-medium text-white bg-gradient-to-r from-blue-600 to-indigo-600 rounded-md hover:bg-blue-700 hover:shadow-md hover:scale-105 disabled:opacity-50 transition-all duration-200"
+                    className="cursor-pointer px-3 py-1.5 sm:px-4 sm:py-2 text-sm sm:text-base font-medium text-white bg-gradient-to-r from-blue-600 to-indigo-600 rounded-md hover:bg-blue-700 hover:shadow-md hover:scale-105 disabled:opacity-50 transition-all duration-200"
                   >
                     Add Selected Skills
                   </button>

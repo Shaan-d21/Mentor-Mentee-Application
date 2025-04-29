@@ -413,7 +413,7 @@ const FindMentors: React.FC = () => {
           </div>
 
           <button
-            className="bg-blue-600 text-white px-6 py-2 rounded-md hover:bg-blue-700 transition-colors flex items-center justify-center disabled:bg-blue-300 disabled:cursor-not-allowed"
+            className="cursor-pointer bg-blue-600 text-white px-6 py-2 rounded-md hover:bg-blue-700 transition-colors flex items-center justify-center disabled:bg-blue-300 disabled:cursor-not-allowed"
             onClick={handleCheckCompatibility}
             disabled={isCheckingCompatibility || !compatibilityDomain || 
               pendingRequestDomains.has(compatibilityDomain) || 
@@ -604,7 +604,7 @@ const FindMentors: React.FC = () => {
                 <h2 className="text-2xl font-bold text-gray-800">{selectedMentor.name}</h2>
                 <button
                   onClick={closeModal}
-                  className="p-2 rounded-full bg-gray-100 hover:bg-gray-200 transition-colors duration-200 flex items-center justify-center"
+                  className="cursor-pointer p-2 rounded-full bg-gray-100 hover:bg-gray-200 transition-colors duration-200 flex items-center justify-center"
                   aria-label="Close"
                 >
                   <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-gray-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -714,7 +714,7 @@ const FindMentors: React.FC = () => {
                   <div className="mt-6">
                     <button 
                       onClick={handleSendRequest}
-                      className="w-full bg-blue-500 hover:bg-blue-600 text-white py-3 rounded-md font-medium transition-colors duration-200 flex items-center justify-center"
+                      className="cursor-pointer w-full bg-blue-500 hover:bg-blue-600 text-white py-3 rounded-md font-medium transition-colors duration-200 flex items-center justify-center"
                     >
                       <svg className="w-5 h-5 mr-2" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                         <path d="M9 12L11 14L15 10" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
@@ -738,7 +738,7 @@ const FindMentors: React.FC = () => {
               <h3 className="text-base font-semibold text-gray-900">Mentor Details</h3>
               <button
                 onClick={closeDetailsModal}
-                className="text-gray-400 hover:text-gray-500"
+                className="text-gray-400 hover:text-gray-500 cursor-pointer"
               >
                 <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -789,13 +789,13 @@ const FindMentors: React.FC = () => {
                   handleViewCompatibilityReport(selectedDetailsMentor);
                   closeDetailsModal();
                 }}
-                className="px-3 py-1.5 text-white bg-blue-600 rounded-md hover:bg-blue-700 transition-colors text-sm"
+                className="cursor-pointer px-3 py-1.5 text-white bg-blue-600 rounded-md hover:bg-blue-700 transition-colors text-sm"
               >
                 View Compatibility Report
               </button>
               <button
                 onClick={closeDetailsModal}
-                className="px-3 py-1.5 text-gray-700 bg-gray-100 rounded-md hover:bg-gray-200 transition-colors text-sm"
+                className="cursor-pointer px-3 py-1.5 text-gray-700 bg-gray-100 rounded-md hover:bg-gray-200 transition-colors text-sm"
               >
                 Close
               </button>

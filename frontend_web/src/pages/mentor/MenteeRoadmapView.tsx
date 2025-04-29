@@ -65,13 +65,13 @@ const ApprovalModal: React.FC<ApprovalModalProps> = ({ isOpen, onClose, onSubmit
           </div>
           <div className="flex flex-col sm:flex-row justify-end space-x-0 sm:space-x-4 gap-3">
             <button
-              className="px-4 py-2 bg-gray-200 rounded-md hover:bg-gray-300 text-sm sm:text-base font-medium text-gray-700 transition-all duration-200"
+              className="cursor-pointer px-4 py-2 bg-gray-200 rounded-md hover:bg-gray-300 text-sm sm:text-base font-medium text-gray-700 transition-all duration-200"
               onClick={onClose}
             >
               Cancel
             </button>
             <button
-              className={`px-4 py-2 rounded-md text-sm sm:text-base font-medium text-white ${
+              className={`cursor-pointer px-4 py-2 rounded-md text-sm sm:text-base font-medium text-white ${
                 isReassign ? 'bg-yellow-500 hover:bg-yellow-600' : 'bg-green-500 hover:bg-green-600'
               } transition-all duration-200`}
               onClick={handleSubmit}
@@ -197,13 +197,13 @@ const TopicDetailsModal: React.FC<TopicDetailsModalProps> = ({ isOpen, onClose, 
             <div className="mt-4 flex flex-col sm:flex-row gap-3">
               <button
                 onClick={onApprove}
-                className="px-4 py-2 bg-green-500 text-white rounded-md hover:bg-green-600 text-sm font-medium transition-all duration-200"
+                className="cursor-pointer px-4 py-2 bg-green-500 text-white rounded-md hover:bg-green-600 text-sm font-medium transition-all duration-200"
               >
                 Approve
               </button>
               <button
                 onClick={onReassign}
-                className="px-4 py-2 bg-yellow-500 text-white rounded-md hover:bg-yellow-600 text-sm font-medium transition-all duration-200"
+                className="cursor-pointer px-4 py-2 bg-yellow-500 text-white rounded-md hover:bg-yellow-600 text-sm font-medium transition-all duration-200"
               >
                 Reassign
               </button>
@@ -212,7 +212,7 @@ const TopicDetailsModal: React.FC<TopicDetailsModalProps> = ({ isOpen, onClose, 
           <div className="mt-4 flex justify-end">
             <button
               onClick={onClose}
-              className="px-4 py-2 bg-gray-200 rounded-md hover:bg-gray-300 text-sm font-medium text-gray-700 transition-all duration-200"
+              className="cursor-pointer px-4 py-2 bg-gray-200 rounded-md hover:bg-gray-300 text-sm font-medium text-gray-700 transition-all duration-200"
             >
               Close
             </button>
@@ -522,7 +522,7 @@ const MenteeRoadmapView: React.FC = () => {
     <div className="max-w-[95vw] sm:max-w-6xl mx-auto p-4 sm:p-8 bg-gradient-to-b from-blue-50 to-indigo-50 min-h-screen">
       <button
         onClick={() => navigate(-1)}
-        className="flex items-center text-gray-600 hover:text-gray-800 mb-4 sm:mb-6 transition-colors duration-200 text-sm sm:text-base"
+        className="cursor-pointer flex items-center text-gray-600 hover:text-gray-800 mb-4 sm:mb-6 transition-colors duration-200 text-sm sm:text-base"
       >
         <ArrowLeft className="w-4 h-4 sm:w-5 sm:h-5 mr-2" />
         Back
@@ -678,14 +678,14 @@ const MenteeRoadmapView: React.FC = () => {
                       <div className="flex gap-3">
                         <button
                           onClick={() => openModal(topic, false)}
-                          className="p-3 text-green-500 hover:text-green-600 transition-colors duration-200 hover:scale-110"
+                          className="cursor-pointer p-3 text-green-500 hover:text-green-600 transition-colors duration-200 hover:scale-110"
                           title="Approve"
                         >
                           <CheckCircle className="w-6 h-6" />
                         </button>
                         <button
                           onClick={() => openModal(topic, true)}
-                          className="p-3 text-yellow-500 hover:text-yellow-600 transition-colors duration-200 hover:scale-110"
+                          className="cursor-pointer p-3 text-yellow-500 hover:text-yellow-600 transition-colors duration-200 hover:scale-110"
                           title="Reassign"
                         >
                           <RefreshCw className="w-6 h-6" />

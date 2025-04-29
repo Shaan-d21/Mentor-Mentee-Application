@@ -302,7 +302,7 @@ const ViewFeedback: React.FC = () => {
                   {topics.map((topic) => (
                     <div
                       key={topic.id}
-                      className="group bg-white rounded-lg border border-gray-100 p-3 sm:p-4 transition-all duration-300 hover:shadow-lg hover:border-blue-200 hover:scale-[1.01] hover:-translate-y-1 cursor-pointer overflow-hidden"
+                      className="group bg-white rounded-lg border border-gray-100 p-3 sm:p-4 transition-all duration-300 hover:shadow-lg hover:border-blue-200 hover:scale-[1.01] hover:-translate-y-1 overflow-hidden"
                       onClick={() => (window.innerWidth <= 768 ? openTopicModal(topic) : setSelectedTopic(selectedTopic?.id === topic.id ? null : topic))}
                     >
                       <div className="flex items-center justify-between">
@@ -333,7 +333,7 @@ const ViewFeedback: React.FC = () => {
                                 }
                               }}
                               disabled={analyzingFeedbackId === topic.id || summarizingFeedbackId === topic.id}
-                              className="flex items-center px-3 sm:px-4 py-2 sm:py-2.5 bg-pink-100 text-pink-700 rounded-md hover:bg-pink-200 text-sm sm:text-base transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+                              className="cursor-pointer flex items-center px-3 sm:px-4 py-2 sm:py-2.5 bg-pink-100 text-pink-700 rounded-md hover:bg-pink-200 text-sm sm:text-base transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
                             >
                               {analyzingFeedbackId === topic.id ? (
                                 <>
@@ -353,7 +353,7 @@ const ViewFeedback: React.FC = () => {
                                 handleSummarize(topic.id, topic.feedback);
                               }}
                               disabled={summarizingFeedbackId === topic.id || analyzingFeedbackId === topic.id}
-                              className="flex items-center px-3 sm:px-4 py-2 sm:py-2.5 bg-indigo-100 text-indigo-700 rounded-md hover:bg-indigo-200 text-sm sm:text-base transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+                              className="cursor-pointer flex items-center px-3 sm:px-4 py-2 sm:py-2.5 bg-indigo-100 text-indigo-700 rounded-md hover:bg-indigo-200 text-sm sm:text-base transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
                             >
                               {summarizingFeedbackId === topic.id ? (
                                 <>

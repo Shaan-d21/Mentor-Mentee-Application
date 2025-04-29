@@ -85,6 +85,7 @@ const Sidebar: React.FC<SidebarProps> = ({ userRole }) => {
             {/* Only show toggle button if not in mobile view */}
             {!isMobile() && (
               <button
+                style={{cursor: "pointer"}}
                 onClick={toggleSidebar}
                 className="bg-slate-700 text-white w-8 h-8 rounded-full flex items-center justify-center shadow-md border border-slate-600 hover:bg-slate-600 focus:outline-none"
                 aria-label={isCollapsed ? "Expand sidebar" : "Collapse sidebar"}
