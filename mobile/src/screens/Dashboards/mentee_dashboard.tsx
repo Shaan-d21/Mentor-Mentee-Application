@@ -1,22 +1,32 @@
-import React, { FC, useState, useEffect } from 'react';
+import React, { FC, useState, useEffect, useCallback } from 'react';
 import {
   View,
   Text,
   StyleSheet,
   FlatList,
   ActivityIndicator,
-  TouchableOpacity // Import TouchableOpacity
+  TouchableOpacity,
+  Dimensions,
+  ScrollView,
+  useWindowDimensions
 } from 'react-native';
 import { Avatar } from 'react-native-elements';
 import AppBar from '../../components/appbar_component';
 import { useDispatch, useSelector } from 'react-redux';
 import { AppDispatch, RootState } from '../../redux/store';
 import { ScreenProps } from '../../navigation/types';
-import axios from 'axios';
 import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome';
 import { faEnvelope, faBriefcase, faCode, faClock, faCodeBranch } from '@fortawesome/free-solid-svg-icons';
-import { apiGetApprovedMentorList } from '../../services/apiMenteeDashboard/apiGetApprovedMentorList';
 import { getApprovedMentorList } from '../../redux/slices/sliceMenteeDashboard';
+
+// Get responsive font size based on screen width
+const { width } = Dimensions.get('window');
+const scale = width / 375; // 375 is a standard width to scale from
+
+const normalize = (size:any) => {
+  const newSize = size * scale;
+  return Math.round(Math.min(newSize, size * 1.2)); // Cap the size increase
+};
 
 interface Mentor {
   id: number;
@@ -24,16 +34,16 @@ interface Mentor {
   mail: string;
   designation: string | null;
   domain_name: string | null;
-  exp: number | null; // Add experience field
+  exp: number | null;
 }
 
 const MenteeDashboard: FC<ScreenProps<'MenteeDashboard'>> = ({ navigation }) => {
   const dispatch= useDispatch<AppDispatch>();
   const userName = useSelector((state: RootState) => state.login.name);
-  // const [mentorList, setMentorList] = useState<Mentor[]>([]);
-  const [loading, setLoading] = useState(false); // Add loading state
-  const [error, setError] = useState<string | null>(null); // Add error state
-
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const { width } = useWindowDimensions(); // Re-render on dimension changes
+  
   const mentorList= useSelector((state:RootState)=> state.menteeDashboard.getApprovedMentors);
   
   useEffect(() =>{
@@ -44,23 +54,23 @@ const MenteeDashboard: FC<ScreenProps<'MenteeDashboard'>> = ({ navigation }) => 
   const renderMentorCard = ({ item }: { item: Mentor }) => (
     <View style={styles.card}>
       <View style={styles.cardHeader}>
-        <Text style={styles.cardTitle}>{item.name}</Text>
+        <Text style={styles.cardTitle} numberOfLines={1} ellipsizeMode="tail">{item.name}</Text>
       </View>
       <View style={styles.cardBody}>
         <View style={styles.cardItem}>
-          <FontAwesomeIcon icon={faEnvelope} size={16} color="#777" style={styles.icon} />
-          <Text style={styles.cardText}>{item.mail}</Text>
+          <FontAwesomeIcon icon={faEnvelope} size={normalize(14)} color="#777" style={styles.icon} />
+          <Text style={styles.cardText} numberOfLines={1} ellipsizeMode="tail">{item.mail}</Text>
         </View>
         <View style={styles.cardItem}>
-          <FontAwesomeIcon icon={faBriefcase} size={16} color="#777" style={styles.icon} />
-          <Text style={styles.cardText}>{item.designation}</Text>
+          <FontAwesomeIcon icon={faBriefcase} size={normalize(14)} color="#777" style={styles.icon} />
+          <Text style={styles.cardText} numberOfLines={1} ellipsizeMode="tail">{item.designation || 'N/A'}</Text>
         </View>
         <View style={styles.cardItem}>
-          <FontAwesomeIcon icon={faCodeBranch} size={16} color="#777" style={styles.icon} />
-          <Text style={styles.cardText}>{item.domain_name}</Text>
+          <FontAwesomeIcon icon={faCodeBranch} size={normalize(14)} color="#777" style={styles.icon} />
+          <Text style={styles.cardText} numberOfLines={1} ellipsizeMode="tail">{item.domain_name || 'N/A'}</Text>
         </View>
         <View style={styles.cardItem}>
-          <FontAwesomeIcon icon={faClock} size={16} color="#777" style={styles.icon} />
+          <FontAwesomeIcon icon={faClock} size={normalize(14)} color="#777" style={styles.icon} />
           <Text style={styles.cardText}>{item.exp !== null ? `${item.exp} years` : 'N/A'}</Text>
         </View>
       </View>
@@ -72,11 +82,12 @@ const MenteeDashboard: FC<ScreenProps<'MenteeDashboard'>> = ({ navigation }) => 
       <AppBar onProfilePress={() => navigation.navigate('MenteeProfileScreen')} openDrawer={() => { }} />
 
       <View style={styles.header}>
-        <Text style={styles.headerText}>Hello, {userName} 👋</Text>
+        <Text style={styles.headerText} numberOfLines={1} ellipsizeMode="tail">
+          Hello, {userName} 👋
+        </Text>
         <Avatar rounded icon={{ name: 'user', type: 'font-awesome' }} />
       </View>
 
-      {/* Check Compatibility Button */}
       <TouchableOpacity
         style={styles.checkCompatibilityButton}
         onPress={() => navigation.navigate('CheckCompatibility')} 
@@ -84,88 +95,100 @@ const MenteeDashboard: FC<ScreenProps<'MenteeDashboard'>> = ({ navigation }) => 
         <Text style={styles.checkCompatibilityButtonText}>Check Compatibility</Text>
       </TouchableOpacity>
 
-      {/* Display loading indicator */}
       {loading && <ActivityIndicator size="large" color="#007BFF" />}
-
-      {/* Display error message */}
       {error && <Text style={styles.errorText}>{error}</Text>}
 
       <FlatList
         data={mentorList}
         keyExtractor={(item) => item.id.toString()}
         renderItem={renderMentorCard}
-        contentContainerStyle={styles.flatListContent} // Add padding to the FlatList
+        contentContainerStyle={styles.flatListContent}
       />
     </View>
   );
 };
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#F5F5F5', padding: 20 },
+  container: { 
+    flex: 1, 
+    backgroundColor: '#F5F5F5', 
+    padding: '5%', // Percentage-based padding
+  },
   header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 15
+    marginBottom: '4%',
+    flexWrap: 'wrap'
   },
-  headerText: { fontSize: 22, fontWeight: 'bold', color: '#333' },
+  headerText: { 
+    fontSize: normalize(20), 
+    fontWeight: 'bold', 
+    color: '#333',
+    flex: 1,
+    marginRight: 10,
+  },
   errorText: {
     color: 'red',
     marginBottom: 10,
-    textAlign: 'center'
+    textAlign: 'center',
+    fontSize: normalize(14)
   },
   card: {
-    backgroundColor: '#E0F7FA', // Light blue background
+    backgroundColor: '#E0F7FA',
     borderRadius: 10,
-    padding: 15,
-    marginBottom: 10,
+    padding: '4%',
+    marginBottom: '3%',
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 4,
     elevation: 2,
-    borderWidth: 1, // Add border
-    borderColor: '#B2EBF2', // Light blue border
+    borderWidth: 1,
+    borderColor: '#B2EBF2',
   },
   cardHeader: {
     borderBottomWidth: 1,
     borderColor: '#B2EBF2',
-    paddingBottom: 8,
-    marginBottom: 8
+    paddingBottom: '2%',
+    marginBottom: '2%'
   },
   cardTitle: {
-    fontSize: 18,
+    fontSize: normalize(16),
     fontWeight: 'bold',
     color: '#333'
   },
   cardBody: {
-    paddingHorizontal: 5
+    paddingHorizontal: '1%'
   },
   cardItem: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 5
+    marginBottom: '1.5%',
+    flexWrap: 'wrap'
   },
   icon: {
     marginRight: 10
   },
   cardText: {
-    fontSize: 16,
-    color: '#555'
+    fontSize: normalize(14),
+    color: '#555',
+    flex: 1
   },
-  flatListContent: { // Style for FlatList content
-    paddingBottom: 20 // Add bottom padding
+  flatListContent: {
+    paddingBottom: '5%'
   },
-  checkCompatibilityButton: { // Style for the Check Compatibility button
+  checkCompatibilityButton: {
     backgroundColor: '#2196F3',
-    padding: 10,
+    padding: '3%',
     borderRadius: 5,
     alignItems: 'center',
-    marginBottom: 10
+    marginBottom: '3%'
   },
-  checkCompatibilityButtonText: { // Style for the Check Compatibility button text
+  checkCompatibilityButtonText: {
     color: '#fff',
-    fontWeight: 'bold'
+    fontWeight: 'bold',
+    fontSize: normalize(14)
   }
 });
 
