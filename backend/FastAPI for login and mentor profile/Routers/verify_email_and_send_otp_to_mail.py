@@ -53,15 +53,10 @@ from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 
 def send_mail_with_otp(otp: str, mail: str):
-    # EMAIL_ADDRESS = os.getenv("EMAIL_ADDRESS")
-    # EMAIL_PASSWORD = os.getenv("EMAIL_PASSWORD")
-    # EMAIL_HOST = os.getenv("EMAIL_HOST", "smtp.gmail.com")
-    # EMAIL_PORT = int(os.getenv("EMAIL_PORT", 465))
-
-    EMAIL_ADDRESS="pratyusha.23.mndl@gmail.com"
-    EMAIL_PASSWORD="uoml oqaj wlvb unka"
-    EMAIL_HOST="smtp.gmail.com"
-    EMAIL_PORT=465
+    EMAIL_ADDRESS = os.getenv("EMAIL_ADDRESS")
+    EMAIL_PASSWORD = os.getenv("EMAIL_PASSWORD")
+    EMAIL_HOST = os.getenv("EMAIL_HOST", "smtp.gmail.com")
+    EMAIL_PORT = int(os.getenv("EMAIL_PORT", 465))
 
     msg = MIMEMultipart("alternative")
     msg["Subject"] = "Password Reset Request"
